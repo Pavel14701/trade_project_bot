@@ -1,0 +1,88 @@
+Connected 2024-02-19T20:22:29.126374
+
+ {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': '421fe1f9'} 
+ 
+
+
+ {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': '421fe1f9'} 
+ 
+
+
+ {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
+ 
+
+
+ Бот остановлен вручную
+Connected 2024-02-19T20:23:06.078343
+
+ {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': '1d5a6690'} 
+ 
+
+
+ {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': '1d5a6690'} 
+ 
+
+
+ {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
+ 
+
+
+ Бот остановлен вручную
+Connected 2024-02-19T20:28:45.251579
+
+ {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': '4b330182'} 
+ 
+
+
+ {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': '4b330182'} 
+ 
+
+
+ {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
+ 
+
+Connected 2024-02-19T20:30:50.865684
+
+ {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': 'c104abd8'} 
+ 
+
+
+ {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '2', 'connId': 'c104abd8'} 
+ 
+
+
+ {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
+ 
+
+
+ Бот остановлен вручную
+
+ {'data_instId': 'BTC-USDT-SWAP', 'data_liqPx': '46592.3377252355', 'data_avgPx': '52089.9', 'data_posSide': 'long', 'data_posId': '675830696044253188', 'data_notionalUsd': '350828.44354070403', 'data_lever': '50', 'data_upl': '0', 'data_pnl': '0'} 
+ 
+
+
+ {'data_instId': 'BTC-USDT-SWAP', 'data_liqPx': '49225.5836618286', 'data_avgPx': '52089.9116395187034461', 'data_posSide': 'long', 'data_posId': '675830696044253188', 'data_notionalUsd': '636298.3570587421', 'data_lever': '50', 'data_upl': '-1.363899999936053', 'data_pnl': '0'} 
+ 
+
+
+ {'data_instId': 'BTC-USDT-SWAP', 'data_liqPx': '', 'data_avgPx': '', 'data_posSide': 'long', 'data_posId': '675830696044253188', 'data_notionalUsd': '', 'data_lever': '', 'data_upl': '', 'data_pnl': ''} 
+ 
+
+
+ Бот остановлен вручную
+Connected 2024-05-28T20:20:48.136864
+
+ {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': 'd157e96e'} 
+ 
+
+
+ {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': 'd157e96e'} 
+ 
+
+
+ {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
+ 
+
+
+ Бот остановлен вручную
+Connected 2024-05-28T20:26:09.812300
