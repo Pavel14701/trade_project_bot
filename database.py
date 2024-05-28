@@ -1,5 +1,8 @@
 import sqlalchemy
+<<<<<<< HEAD
 import okx.MarketData as MarketData
+=======
+>>>>>>> e23f1213a1301559b75c471050618ee99c9687d9
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Numeric
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -8,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 instIds = ["BTC-USDT-SWAP", "ETH-USDT-SWAP"]
 timeframes = ("15m", "1H", "4H", "1D")
+<<<<<<< HEAD
 flag = "1"
 marketDataAPI = MarketData.MarketAPI(flag=flag)
 #timeframe = "1D" Минуты с маленькой m, часы H, неделя W, месяц M
@@ -15,6 +19,8 @@ marketDataAPI = MarketData.MarketAPI(flag=flag)
 engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserData.db")#твой путь
 # создаем базовый класс для декларативных классов
 Base = declarative_base()
+=======
+>>>>>>> e23f1213a1301559b75c471050618ee99c9687d9
 
 
 # Функция для создания классов с заданными параметрами
@@ -41,6 +47,7 @@ def create_classes(instIds, timeframes, Base):
     print(classes)
     return classes
 
+<<<<<<< HEAD
 create_classes(instIds, timeframes, Base)
 # создаем таблицу в базе данных, если она еще не существует
 Base.metadata.create_all(engine)
@@ -48,6 +55,10 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 
+=======
+
+create_classes(instIds, timeframes, Base)
+>>>>>>> e23f1213a1301559b75c471050618ee99c9687d9
 
 # Вывод данных из бд в дикте
 # Метод для получения данных из таблиц
@@ -83,4 +94,9 @@ def get_data(instId, timeframes, classes):
         data[timeframe] = d
     # Возвращаем словарь данных
     print(data)
+<<<<<<< HEAD
     return data
+=======
+    return data
+
+>>>>>>> e23f1213a1301559b75c471050618ee99c9687d9
