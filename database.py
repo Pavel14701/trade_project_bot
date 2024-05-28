@@ -83,7 +83,3 @@ def get_data(instId, timeframes, classes):
     # Возвращаем словарь данных
     print(data)
     return data
-=======
-    return data
-
->>>>>>> e23f1213a1301559b75c471050618ee99c9687d9
