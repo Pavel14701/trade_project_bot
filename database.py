@@ -12,10 +12,9 @@ flag = "1"
 marketDataAPI = MarketData.MarketAPI(flag=flag)
 #timeframe = "1D" Минуты с маленькой m, часы H, неделя W, месяц M
 
-engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserData.db")#твой путь
+engine = create_engine("sqlite:////C:\\Users\\Admin\\Desktop\\trade_project_bot\\TradeUserData.db")#твой путь
 # создаем базовый класс для декларативных классов
 Base = declarative_base()
-
 
 # Функция для создания классов с заданными параметрами
 def create_classes(instIds, timeframes, Base):
