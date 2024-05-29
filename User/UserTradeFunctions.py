@@ -150,7 +150,9 @@ class PlaceOrders:
                 leverage=self.leverage,
                 time=outTime,
                 side_of_trade=self.posSide
-                )    
+                )
+                session.add(order_id)
+                session.commit    
         else:
             print("Unsuccessful order request，error_code = ",result["data"][0]["sCode"], ", Error_message = ", result["data"][0]["sMsg"])
         

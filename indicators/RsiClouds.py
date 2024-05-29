@@ -4,26 +4,22 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 
 # Загружаем данные по акциям Apple
-df = yf.download("BTC-USD", start="2023-01-01", end="2024-05-23", interval="1h")
-
-class RsiClouds:
-    def __init__(self, df, instId, timeframe, data_source):
-        self.df = df
-        self.instId = instId
-        self.timeframe = timeframe
-        self.data_source = data_source
-
+df = yf.download("AAPL", start="2023-01-01", end="2024-05-23", interval="1h")
 
 
 # Рассчитываем RSI по формуле
-def rsi(data, n=14):
+import pandas as pd
+
+def rsi(data, n=34, smooth_n=5):
     delta = data['Close'].diff()
     up = delta.clip(lower=0)
     down = -delta.clip(upper=0)
-    ma_up = up.ewm(com=n - 1, adjust=False).mean()
-    ma_down = down.ewm(com=n - 1, adjust=False).mean()
+    ma_up = up.ewm(span=n, adjust=True).mean()
+    ma_down = down.ewm(span=n, adjust=True).mean()
     rsi = 100 - (100 / (1 + ma_up / ma_down))
+    smoothed_rsi = rsi.ewm(span=smooth_n, adjust=True).mean()
     return rsi
+
 
 
 # Добавляем колонку RSI к датафрейму
@@ -36,8 +32,15 @@ def ema_rsi(data, n):
 
 
 # Добавляем колонки EMA от RSI к датафрейму
-df['EMA_RSI_9'] = ema_rsi(df['RSI'], 9)
-df['EMA_RSI_26'] = ema_rsi(df['RSI'], 26)
+df['EMA_RSI_9'] = ema_rsi(df['RSI'], 5)
+df['EMA_RSI_26'] = ema_rsi(df['RSI'], 34)
+
+df['EMA_RSI_9'] = ema_rsi(df['RSI'], 14)  # Было 5, стало 14
+df['EMA_RSI_26'] = ema_rsi(df['RSI'], 50)  # Было 34, стало 50
+
+# Применяем дополнительное скользящее среднее к EMA_RSI
+df['SMA_of_EMA_RSI_9'] = df['EMA_RSI_9'].rolling(window=5).mean()
+df['SMA_of_EMA_RSI_26'] = df['EMA_RSI_26'].rolling(window=5).mean()
 
 
 # Рассчитываем сигналы по точкам пересечения EMA от RSI
