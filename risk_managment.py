@@ -22,7 +22,7 @@ class RiskMenedgment:
             }
         }
         # Рассчитываем стоп-лос
-        slPrice = self.enter_price * coefficients[self.posSide][volatility]
+        slPrice = self.enter_price * coefficients[self.posSide][self.volatility]
         # Рассчитываем размер позиции
         P = (self.balance * self.leverage * self.risk) / slPrice
         #   Выводим результаты
