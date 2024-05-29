@@ -1,5 +1,18 @@
-#from decimal import Decimal
+from decimal import Decimal
+import os
+import okx.PublicData as PublicData
+import okx.Account as Account
+import okx.Trade as Trade
 
+# Данные Api
+passphrase = os.getenv("PASSPHRASE")
+secret_key = os.getenv("SECRET_KEY")
+api_key = os.getenv("API_KEY")
+# !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
+# Формируем объект tradeApi
+flag = "1"  # live trading: 0, demo trading: 1
+tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
+accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
 
 
 class UserInfo:
@@ -33,7 +46,7 @@ class UserInfo:
         print(f'Установка левириджа {lever}x, кросс для {instId}: \n{result}\n\n')
 
     # Установка левериджа для \изолированых позиций для шорт и лонг
-    def set_leverage_short_long(self, instId, lever, posSide, mgnMode)
+    def set_leverage_short_long(self, instId, lever, posSide, mgnMode):
         instId = "BTC-USDT-SWAP"
         result = accountAPI.set_leverage(
             instId = instId,

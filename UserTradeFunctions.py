@@ -1,4 +1,10 @@
-"""
+import os
+from datetime import datetime, timedelta
+import okx.Account as Account
+import okx.Trade as Trade
+from database import TradeUserData
+from database import Session
+
 # Данные Api
 passphrase = os.getenv("PASSPHRASE")
 secret_key = os.getenv("SECRET_KEY")
@@ -6,9 +12,12 @@ api_key = os.getenv("API_KEY")
 # !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
 # Формируем объект tradeApi
 flag = "1"  # live trading: 0, demo trading: 1
+instType = 'SWAP'
+leverage = 10
 tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
 accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
-"""
+
+accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
 
 class PlaceOrders:
     def __init__(self, tradeAction, flag, instId, size, posSide, levarage, risk, tpPrice, slPrice, mgnMode):
@@ -120,27 +129,28 @@ class PlaceOrders:
             instId=self.instId,
             tdMode=self.mgnMode,
             side=self.tradeAction,
-            posSide=posSide,
+            posSide=self.posSide,
             ordType="limit",
             px=price,
             sz=self.size
         )
         print(result)
         if result["code"] == "0":
-            print("Successful order request，order_id = ",result["data"][0]["ordId"])
+            print("Successful order request, order_id = ",result["data"][0]["ordId"])
+            outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
             order_id_limit = result["data"][0]["ordId"]
             # Нужно встроить логику нахождения стопа и сохранять его в бд
-        with Session() as session:
-            order_id = TradeUserData(
-            order_id=order_id_market,
-            status=False,
-            order_volume=self.size,
-            balance=usdt_balance,
-            instrument=self.instId,
-            leverage=self.leverage,
-            time=outTime,
-            side_of_trade=self.posSide
-            )    
+            with Session() as session:
+                order_id = TradeUserData(
+                order_id=order_id_limit,
+                status=False,
+                order_volume=self.size,
+                balance=usdt_balance,
+                instrument=self.instId,
+                leverage=self.leverage,
+                time=outTime,
+                side_of_trade=self.posSide
+                )    
         else:
             print("Unsuccessful order request，error_code = ",result["data"][0]["sCode"], ", Error_message = ", result["data"][0]["sMsg"])
         

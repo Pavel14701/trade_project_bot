@@ -1,17 +1,16 @@
-import sqlalchemy
 import okx.MarketData as MarketData
 from sqlalchemy import create_engine,Column, Integer, String, DateTime, Numeric, Boolean
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
 
-'''
+
 instIds = ["BTC-USDT-SWAP", "ETH-USDT-SWAP"]
 timeframes = ("15m", "1H", "4H", "1D")
 flag = "1"
 marketDataAPI = MarketData.MarketAPI(flag=flag)
 #timeframe = "1D" Минуты c маленькой m, часы H, неделя W, месяц M
-'''
+
 
 engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserData.db")#твой путь
 # создаем базовый класс для декларативных классов
