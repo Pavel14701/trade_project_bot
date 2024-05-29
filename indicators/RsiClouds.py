@@ -1,84 +1,71 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import yfinance as yf
+import pandas as pd
+import talib
+import matplotlib.pyplot as plt
+import mplcursors
+from matplotlib.widgets import Cursor
 
 # Загружаем данные по акциям Apple
 df = yf.download("AAPL", start="2023-01-01", end="2024-05-23", interval="1h")
 
+# Параметры для индикаторов RSI и EMA
+rsi_period_short = 7  # Короткий период для RSI
+rsi_period_long = 14  # Длинный период для RSI
+ema_period = 9        # Период для EMA
 
-# Рассчитываем RSI по формуле
-import pandas as pd
+# Вычисляем RSI для двух периодов
+rsi_short = talib.RSI(df['Close'].values, timeperiod=rsi_period_short)
+rsi_long = talib.RSI(df['Close'].values, timeperiod=rsi_period_long)
 
-def rsi(data, n=34, smooth_n=5):
-    delta = data['Close'].diff()
-    up = delta.clip(lower=0)
-    down = -delta.clip(upper=0)
-    ma_up = up.ewm(span=n, adjust=True).mean()
-    ma_down = down.ewm(span=n, adjust=True).mean()
-    rsi = 100 - (100 / (1 + ma_up / ma_down))
-    smoothed_rsi = rsi.ewm(span=smooth_n, adjust=True).mean()
-    return rsi
+# Сглаживаем RSI с помощью EMA
+rsi_short_ema = talib.EMA(rsi_short, timeperiod=ema_period)
+rsi_long_ema = talib.EMA(rsi_long, timeperiod=ema_period)
 
+# Добавляем индикаторы в DataFrame
+df['RSI_Short_EMA'] = rsi_short_ema
+df['RSI_Long_EMA'] = rsi_long_ema
 
+# Сигналы перекупленности и перепроданности
+overbought = 70
+oversold = 30
 
-# Добавляем колонку RSI к датафрейму
-df['RSI'] = rsi(df)
+# Сигналы пересечения
+cross_up = (df['RSI_Short_EMA'] > df['RSI_Long_EMA']) & (df['RSI_Short_EMA'].shift(1) <= df['RSI_Long_EMA'].shift(1))
+cross_down = (df['RSI_Short_EMA'] < df['RSI_Long_EMA']) & (df['RSI_Short_EMA'].shift(1) >= df['RSI_Long_EMA'].shift(1))
 
+# Добавляем сигналы в DataFrame
+df['Cross_Up'] = cross_up
+df['Cross_Down'] = cross_down
 
-# Рассчитываем EMA от RSI по формуле
-def ema_rsi(data, n):
-    return data.ewm(span=n, adjust=False).mean()
+# Создаем фигуру и оси
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
 
+# Строим график цены актива на первом подграфике
+ax1.plot(df.index, df['Close'], label='AAPL Close Price', color='black')
+ax1.set_title('AAPL Stock Price')
+ax1.set_ylabel('Price', color='black')
+ax1.tick_params(axis='y', labelcolor='black')
+ax1.legend(loc='upper left')
 
-# Добавляем колонки EMA от RSI к датафрейму
-df['EMA_RSI_9'] = ema_rsi(df['RSI'], 5)
-df['EMA_RSI_26'] = ema_rsi(df['RSI'], 34)
+# Строим график индикаторов RSI Cloud на втором подграфике
+ax2.plot(df.index, df['RSI_Short_EMA'], label='RSI Short EMA (7)', color='blue')
+ax2.plot(df.index, df['RSI_Long_EMA'], label='RSI Long EMA (14)', color='orange')
+ax2.scatter(df.index[df['Cross_Up']], df['RSI_Short_EMA'][df['Cross_Up']], color='green', label='Cross Up', marker='^', alpha=1)
+ax2.scatter(df.index[df['Cross_Down']], df['RSI_Short_EMA'][df['Cross_Down']], color='red', label='Cross Down', marker='v', alpha=1)
+ax2.axhline(y=overbought, color='darkred', linestyle='--', label='Overbought (70)')
+ax2.axhline(y=oversold, color='darkgreen', linestyle='--', label='Oversold (30)')
+ax2.set_title('RSI Cloud Indicator with Signals')
+ax2.set_xlabel('Date')
+ax2.set_ylabel('RSI Value', color='blue')
+ax2.tick_params(axis='y', labelcolor='blue')
+ax2.legend(loc='upper right')
 
-df['EMA_RSI_9'] = ema_rsi(df['RSI'], 14)  # Было 5, стало 14
-df['EMA_RSI_26'] = ema_rsi(df['RSI'], 50)  # Было 34, стало 50
+# Создаем перекрестие, которое будет отображаться на обоих подграфиках
+cursor = Cursor(ax1, useblit=True, color='gray', linewidth=1, linestyle='--')
+cursor2 = Cursor(ax2, useblit=True, color='gray', linewidth=1, linestyle='--')
 
-# Применяем дополнительное скользящее среднее к EMA_RSI
-df['SMA_of_EMA_RSI_9'] = df['EMA_RSI_9'].rolling(window=5).mean()
-df['SMA_of_EMA_RSI_26'] = df['EMA_RSI_26'].rolling(window=5).mean()
+# Добавляем всплывающее окошко с данными
+mplcursors.cursor(hover=True)
 
-
-# Рассчитываем сигналы по точкам пересечения EMA от RSI
-def crossover_signal(data):
-    diff = np.diff(np.sign(data['EMA_RSI_9'] - data['EMA_RSI_26']))
-    buy = np.where(diff == 2)[0] + 1
-    sell = np.where(diff == -2)[0] + 1
-    return buy, sell
-
-
-# Добавляем колонки сигналов к датафрейму
-df['Buy'] = np.nan
-df['Sell'] = np.nan
-buy, sell = crossover_signal(df)
-# Используем iloc и списки для выбора строк по позициям
-df.iloc[list(buy), df.columns.get_loc('Buy')] = df.iloc[list(buy), df.columns.get_loc('Close')]
-df.iloc[list(sell), df.columns.get_loc('Sell')] = df.iloc[list(sell), df.columns.get_loc('Close')]
-
-# Строим графики индикаторов
-fig, ax = plt.subplots(figsize=(12, 5))
-ax.plot(df['RSI'], label='RSI')
-ax.plot(df['EMA_RSI_9'], label='EMA RSI 9')
-ax.plot(df['EMA_RSI_26'], label='EMA RSI 26')
-ax.axhline(70, color='r', linestyle='--')
-ax.axhline(30, color='g', linestyle='--')
-ax.legend()
-ax.set_title('RSI и EMA от него')
-
-# Добавляем область заливки между EMA от RSI
-ax.fill_between(df.index, df['EMA_RSI_9'], df['EMA_RSI_26'],
-                where=df['EMA_RSI_9'] > df['EMA_RSI_26'], facecolor='green', alpha=0.5)
-ax.fill_between(df.index, df['EMA_RSI_9'], df['EMA_RSI_26'],
-                where=df['EMA_RSI_9'] < df['EMA_RSI_26'], facecolor='red', alpha=0.5)
-
-# Добавляем точки покупки и продажи
-ax.plot(df['Close'], label='Цена закрытия')
-ax.scatter(df.index, df['Buy'], marker='^', color='green', label='Buy')
-ax.scatter(df.index, df['Sell'], marker='v', color='red', label='Sell')
-ax.legend()
-plt.tight_layout()
+plt.tight_layout()  # Автоматически корректирует подписи, чтобы они не перекрывались
 plt.show()

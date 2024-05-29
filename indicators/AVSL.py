@@ -1,82 +1,67 @@
 import yfinance as yf
-import pandas as pd
 import numpy as np
+import talib
 import matplotlib.pyplot as plt
 
+# Загрузка данных акций Apple
+data = yf.download("AAPL", start="2023-01-01", end="2024-05-23", interval="1h")
 
+# Подготовка данных
+close_prices = data['Close'].values.astype('float64')
+low_prices = data['Low'].values.astype('float64')
+volumes = data['Volume'].values.astype('float64')
 
+# Параметры
+lenF = 34  # Быстрая скользящая средняя
+lenS = 134  # Медленная скользящая средняя
+lenT = 9   # Сигнал для VPCI
+mult = 3.0 # Стандартное отклонение
+offset = 2 # Смещение
 
-# Загрузка данных акций Apple с интервалом в 1 час
-df = yf.download("AAPL", start="2023-01-01", end="2024-05-23", interval="1h")
-
-# Убедимся, что столбец 'Low' содержит числовые значения
-df['Low'] = df['Low'].astype(float)
-
-def ema(data, length):
-    return data.ewm(span=length, adjust=False).mean()
-
-def sma(data, length):
-    return data.rolling(window=length).mean()
-
-def price_fun(vpc, vpr, vm, src):
-    # Вычисляем Volume-Price Confirmation Indicator (VPCI)
-    vpci = vpc * vpr * vm
-    
-    # Заменяем 'inf' и '-inf' на NaN
-    vpci.replace([np.inf, -np.inf], np.nan, inplace=True)
-    
-    # Заполняем NaN нулями
-    vpci.fillna(0, inplace=True)
-    
-    # Вычисляем len_v для каждого элемента, используя векторизованные операции
-    len_v_series = vpci + 3
-    len_v_series[vpc < 0] = (abs(vpci - 3)).round().astype(int)
-    
-    # Вычисляем среднюю цену на основе VPCI
-    price_v_series = len_v_series.apply(lambda len_v: sum(src.iloc[i] for i in range(int(len_v))) / len_v if len_v > 0 else 0)
-    return price_v_series
-
-# Настройки
-len_f = 12
-len_s = 26
-len_t = 9
-mult = 2.0
-offset = 2  # Этот параметр может быть использован для смещения индикатора на графике
+# Функция для расчета stop-loss шага в зависимости от объема и минимальной цены
+def price_fun(VPC, VPR, VM, src):
+    PriceV = np.zeros_like(VPC)  # Создаем массив нулей той же формы, что и VPC
+    for i in range(len(VPC)):
+        VPCI = VPC[i] * VPR[i] * VM[i]
+        if np.isnan(VPCI):  # Проверяем, является ли VPCI NaN
+            lenV = 0
+        else:
+            lenV = int(round(abs(VPCI - 3))) if VPC[i] < 0 else round(VPCI + 3)
+        
+        VPCc = -1 if (VPC[i] > -1 and VPC[i] < 0) else 1 if (VPC[i] < 1 and VPC[i] >= 0) else VPC[i]
+        Price = np.sum(src[i-lenV+1:i+1] / VPCc / VPR[i-lenV+1:i+1]) if lenV > 0 else src[i]
+        PriceV[i] = Price / lenV / 100 if lenV > 0 else Price
+    return PriceV
 
 # Расчеты
-vwma_s = (df['Close'] * df['Volume']).rolling(window=len_s).sum() / df['Volume'].rolling(window=len_s).sum()
-vwma_f = (df['Close'] * df['Volume']).rolling(window=len_f).sum() / df['Volume'].rolling(window=len_f).sum()
-avg_s = sma(df['Close'], len_s)
-avg_f = sma(df['Close'], len_f)
-vpc = vwma_s - avg_s
-vpr = vwma_f / avg_f
-vm = sma(df['Volume'], len_f) / sma(df['Volume'], len_s)
-vpci = vpc * vpr * vm
-dev = mult * vpci * vm
+VWmaS = talib.WMA(close_prices, timeperiod=lenS)  # Медленная VWMA
+VWmaF = talib.WMA(close_prices, timeperiod=lenF)  # Быстрая VWMA
+AvgS = talib.SMA(close_prices, timeperiod=lenS)   # Медленная средняя объема
+AvgF = talib.SMA(close_prices, timeperiod=lenF)   # Быстрая средняя объема
+VPC = VWmaS - AvgS                                # VPC+/-
+VPR = VWmaF / AvgF                                # Отношение цены к объему
+VM = talib.SMA(volumes, timeperiod=lenF) / talib.SMA(volumes, timeperiod=lenS)  # Множитель объема
+VPCI = VPC * VPR * VM                             # Индикатор VPCI
 
-# Теперь применяем функцию price_fun к Series
-price_difference = price_fun(vpc, vpr, vm, df['Low'])
+DeV = mult * VPCI * VM                            # Отклонение
+AVSL = talib.SMA(low_prices - price_fun(VPC, VPR, VM, low_prices) + DeV, timeperiod=lenS)
 
-# Если price_fun возвращает числа, то не нужно использовать .dt.days
-# В этом случае просто используйте результат напрямую
-avsl = sma(df['Low'] - price_difference + dev, len_s)
 
-# Добавляем результаты в DataFrame
-df['AVSL'] = avsl.shift(-offset)  # Смещаем на заданное количество баров, если необходимо
-print(df['AVSL'])
-# Теперь df['AVSL'] содержит значения AVSL, которые вы можете использовать для анализа или отображения на графике
-# Построение графика цены закрытия актива
-plt.figure(figsize=(14, 7))
-plt.plot(df.index, df['Close'], label='Цена закрытия', color='blue')
-
-# Создание вторичной оси Y для индикатора AVSL
-ax2 = plt.twinx()
-ax2.plot(df.index, df['AVSL'], label='AVSL', color='orange', linestyle='--')
-
-# Настройка заголовка и легенды
-plt.title('График цены закрытия и индикатора AVSL для AAPL')
-plt.legend()
+# Определение точек пересечения
+cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
+cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
 
 # Отображение графика
-plt.show()
+plt.figure(figsize=(14, 7))
+plt.plot(data.index, close_prices, label='Цена закрытия', color='blue')
+plt.plot(data.index, AVSL, label='AVSL', color='red', linestyle='--')
 
+# Сигналы на вход
+plt.plot(data.index[cross_up], close_prices[cross_up], '^', markersize=10, color='g', lw=0, label='Сигнал на вход (покупка)')
+plt.plot(data.index[cross_down], close_prices[cross_down], 'v', markersize=10, color='r', lw=0, label='Сигнал на вход (продажа)')
+
+plt.title('График цены закрытия и AVSL с сигналами')
+plt.xlabel('Дата')
+plt.ylabel('Цена')
+plt.legend()
+plt.show()

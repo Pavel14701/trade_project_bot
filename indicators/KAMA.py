@@ -8,23 +8,23 @@ import sys
 
 # Загружаем данные
 df = yf.download("BTC", start="2021-01-01", end="2024-02-14", interval="1D")
-
 # Определяем функцию для расчета KAMA
 def kama(df, period, fast, slow):
     # Вычисляем направление и волатильность
     direction = abs(((df['High'] - df['High'].shift(period)) + (df['Low'] - df['Low'].shift(period))) / 2)
-    volatility = (df['High'].diff().abs().rolling(period).sum() + df['Low'].diff().abs().rolling(period).sum()) / 2 + 0.0001# добавим небольшое число к волатильности
+    volatility = (df['High'].diff().abs().rolling(period).sum() + df['Low'].diff().abs().rolling(period).sum()) / 2 + 0.0001 # добавим небольшое число к волатильности
     # Вычисляем коэффициент эффективности
     er = direction / volatility
     # Вычисляем сглаживающую константу
     sc = (er * (2 / (fast + 1) - 2 / (slow + 1)) + 2 / (slow + 1)) ** 2
     # Вычисляем KAMA
     kama = np.zeros(len(df))
-    kama[period] = (df['High'][period] + df['Low'][period]) / 2 # используем среднее между high и low
+    kama[period] = (df['High'].iloc[period] + df['Low'].iloc[period]) / 2 # используем среднее между high и low
     for i in range(period + 1, len(df)):
-        kama[i] = kama[i-1] + sc[i] * ((df['High'][i] + df['Low'][i]) / 2 - kama[i-1]) # используем среднее между high и low и одну разность
-    # Возвращаем результат
+        kama[i] = kama[i-1] + sc.iloc[i] * ((df['High'].iloc[i] + df['Low'].iloc[i]) / 2 - kama[i-1]) # используем .iloc[] для sc
     return kama
+
+
 
 
 
