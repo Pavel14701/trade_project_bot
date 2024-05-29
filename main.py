@@ -1,15 +1,6 @@
-# ЮПИТЕР
-import datetime
-import logging
-import json
-import time
-import hmac
-import hashlib
-import base64
-import os
-import asyncio
-import websockets
-import nest_asyncio  # импортируем пакет nest_asyncio
+#!/usr/bin/env python3
+import os, json, time, asyncio, nest_asyncio, hmac, base64, logging, hashlib
+import datetime, websockets, schedule
 from dotenv import load_dotenv
 
 # load env

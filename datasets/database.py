@@ -4,13 +4,13 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
 
-
+'''
 instIds = ["BTC-USDT-SWAP", "ETH-USDT-SWAP"]
 timeframes = ("15m", "1H", "4H", "1D")
 flag = "1"
 marketDataAPI = MarketData.MarketAPI(flag=flag)
 #timeframe = "1D" Минуты c маленькой m, часы H, неделя W, месяц M
-
+'''
 
 engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserData.db")#твой путь
 # создаем базовый класс для декларативных классов
@@ -80,7 +80,7 @@ class DataAllDatasets:
     
     # Запрос на получение последних данных из биржи
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
-    def get_charts(self, marketDataAPI, load_data_after, load_data_before, lenghts):
+    def get_charts(self, marketDataAPI, load_data_after = None, load_data_before = None, lenghts = None):
         for timeframe in self.timeframes:
             result = marketDataAPI.get_candlesticks(
                 instId=self.instId,
