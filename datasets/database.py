@@ -17,8 +17,8 @@ engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\
 Base = declarative_base()
 
 class DataAllDatasets:
-    def __init__(self, instId, Base, timeframes):
-        self.instId = instId
+    def __init__(self, instIds, Base, timeframes):
+        self.instIds = instIds
         self.Base = Base
         self.timeframes = timeframes
 
@@ -121,9 +121,9 @@ class DataAllDatasets:
                     #Применяем изменения
                     session.commit()
 
-DataAllDatasets.create_classes(instIds, timeframes, Base)
 
-class TradeUserData(Base):
+
+class TradeUserData(Base):  
     __tablename__ = "positions_and_orders"
     order_id = Column(String, primary_key=True)
     balance = Column(Integer)
@@ -153,6 +153,8 @@ class TradeUserData(Base):
 Base.metadata.create_all(engine)
 # создаем фабрику сессий
 Session = sessionmaker(bind=engine)
+
+data_all_datasets = DataAllDatasets(instIds, Base, timeframes)
 
 
 
