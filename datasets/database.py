@@ -1,29 +1,14 @@
-import okx.MarketData as MarketData
-from sqlalchemy import create_engine,Column, Integer, String, DateTime, Numeric, Boolean
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 from datetime import datetime, timedelta
 
-'''
-instIds = ["BTC-USDT-SWAP", "ETH-USDT-SWAP"]
-timeframes = ("15m", "1H", "4H", "1D")
-flag = "1"
-marketDataAPI = MarketData.MarketAPI(flag=flag)
-#timeframe = "1D" Минуты c маленькой m, часы H, неделя W, месяц M
-'''
-
-engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserData.db")#твой путь
-# создаем базовый класс для декларативных классов
-Base = declarative_base()
-
 class DataAllDatasets:
-    def __init__(self, instIds, Base, timeframes):
+    def __init__(self, instIds, timeframes, Session=None):
         self.instIds = instIds
-        self.Base = Base
         self.timeframes = timeframes
+        self.Session = Session
 
     # Функция для создания классов с заданными параметрами
-    def create_classes(self):
+    def create_classes(self, Base):
         classes = {}
         for inst_id in self.instIds:
             for timeframe in self.timeframes:
@@ -46,6 +31,39 @@ class DataAllDatasets:
         print(classes)
         return classes
     
+    def create_TradeUserData(self, Base):
+        class_name = "TradeUserData"
+        table_name = "positions_and_orders"
+        class_ = type(class_name, (Base,), {
+            "__tablename__": table_name,
+            "__table_args__": {'extend_existing': True},
+            "order_id": Column(String, primary_key=True),
+            "balance": Column(Integer),
+            "instrument": Column(String),
+            "enter_price": Column(Numeric(10, 4)),
+            "price_of_1contr": Column(Numeric(10, 4)),
+            "number_of_contracts": Column(Numeric(10, 4)),
+            "money_in_deal": Column(Integer),
+            "side_of_trade": Column(String),
+            "order_volume": Column(Integer),
+            "leverage":  Column(Integer),
+            "time" : Column(DateTime),
+            "status": Column(Boolean),
+            "tp_price": Column(Numeric(10, 4)),
+            "tp_order_id": Column(String),
+            "tp_order_volume": Column(Integer),
+            "sl_price": Column(Numeric(10, 4)),
+            "sl_order_id": Column(String),
+            "sl_order_volume": Column(Integer),
+            "risk_coef": Column(Numeric(10, 4)),
+            "close_price": Column(Numeric(10, 4)),
+            "money_income": Column(Integer),
+            "percent_money_income": Column(Numeric(10, 4))
+        })
+        TradeUserData = class_
+        return TradeUserData
+
+    
     # Вывод данных из бд в дикте
     # Метод для получения данных из таблиц
     def get_bd_marketdata(self, classes):
@@ -61,7 +79,7 @@ class DataAllDatasets:
             # Получаем объект таблицы по классу
             table = class_.mapper.mapped_table
             # Используем метод c для доступа к колонкам таблицы
-            with Session() as session:
+            with self.Session() as session:
                 query = session.query(
                     table.c.TIMESTAMP,
                     table.c.OPEN,
@@ -80,7 +98,7 @@ class DataAllDatasets:
     
     # Запрос на получение последних данных из биржи
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
-    def get_charts(self, marketDataAPI, load_data_after = None, load_data_before = None, lenghts = None):
+    def get_charts(self, marketDataAPI, Base, load_data_after = None, load_data_before = None, lenghts = None):
         for timeframe in self.timeframes:
             result = marketDataAPI.get_candlesticks(
                 instId=self.instId,
@@ -116,45 +134,15 @@ class DataAllDatasets:
                     VOLUME=volume,
                     VOLUME_USDT=volume_usdt
                 )
-                with Session() as session:
+                with self.Session() as session:
                     session.add(data)
                     #Применяем изменения
                     session.commit()
 
 
 
-class TradeUserData(Base):  
-    __tablename__ = "positions_and_orders"
-    order_id = Column(String, primary_key=True)
-    balance = Column(Integer)
-    instrument = Column(String)
-    enter_price = Column(Numeric(10, 4))
-    price_of_1contr = Column(Numeric(10, 4))
-    number_of_contracts = Column(Numeric(10, 4))
-    money_in_deal = Column(Integer)
-    side_of_trade = Column(String)
-    order_volume = Column(Integer)
-    leverage = Column(Integer)
-    time = Column(DateTime)
-    status = Column(Boolean)
-    tp_price = Column(Numeric(10, 4))
-    tp_order_id = Column(String)
-    tp_order_volume = Column(Integer)
-    sl_price = Column(Numeric(10, 4))
-    sl_order_id = Column(String)
-    sl_order_volume = Column(Integer)
-    risk_coef = Column(Numeric(10, 4))
-    close_price = Column(Numeric(10, 4))
-    money_income = Column(Integer)
-    percent_money_income = Column(Numeric(10, 4))
 
 
-# создаем таблицу в базе данных, если она еще не существует
-Base.metadata.create_all(engine)
-# создаем фабрику сессий
-Session = sessionmaker(bind=engine)
-
-data_all_datasets = DataAllDatasets(instIds, Base, timeframes)
 
 
 

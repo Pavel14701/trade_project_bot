@@ -2,4 +2,13 @@
 import os 
 from datasets.database import DataAllDatasets, get_charts, TradeUserData
 from dotenv import load_env
-load_env(.env)
+from User.LoadSettings import LoadUserSettingsData
+
+def start():
+    load_env()
+    load_user_settings()
+    
+
+if __name__ == "__main__":
+    start()
+    print(flag, timeframes)
