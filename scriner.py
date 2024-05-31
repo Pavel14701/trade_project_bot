@@ -5,8 +5,7 @@ from dotenv import load_env
 from User.LoadSettings import LoadUserSettingsData
 
 def start():
-    load_env()
-    load_user_settings()
+    print
     
 
 if __name__ == "__main__":
