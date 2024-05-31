@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
-instId - 'sdasdsada'
+instId = 'sdasdsada'
 class Alma:
     def __init__(self, data = None, lenghts=None, instId = None, timeframe = None, test=None):
         self.lenghts = lenghts
