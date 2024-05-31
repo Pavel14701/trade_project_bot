@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import os, json, time, asyncio, nest_asyncio, hmac, base64, logging, hashlib
-import datetime, websockets, schedule
+import os, json, time, asyncio, hmac, base64, logging, hashlib
+import datetime, websockets, schedule, nest_asyncio
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker

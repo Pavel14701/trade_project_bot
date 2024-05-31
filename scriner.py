@@ -3,9 +3,9 @@ import os
 from datasets.database import DataAllDatasets, get_charts, TradeUserData
 from dotenv import load_env
 from User.LoadSettings import LoadUserSettingsData
-
+load_env('.env')
 def start():
-    print
+    p
     
 
 if __name__ == "__main__":
