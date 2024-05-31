@@ -1,7 +1,7 @@
 import os
 
-class LoadUserSettingData:
 
+class LoadUserSettingData:
     @ staticmethod
     def load_user_settings():
         flag = os.getenv("FLAG")

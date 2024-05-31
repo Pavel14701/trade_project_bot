@@ -1,11 +1,13 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 from datetime import datetime, timedelta
 
+
 class DataAllDatasets:
     def __init__(self, instIds, timeframes, Session=None):
         self.instIds = instIds
         self.timeframes = timeframes
         self.Session = Session
+
 
     # Функция для создания классов с заданными параметрами
     def create_classes(self, Base):
@@ -30,6 +32,7 @@ class DataAllDatasets:
                 classes[class_name] = class_
         print(classes)
         return classes
+
     
     def create_TradeUserData(self, Base):
         class_name = "TradeUserData"
@@ -66,7 +69,7 @@ class DataAllDatasets:
     
     # Вывод данных из бд в дикте
     # Метод для получения данных из таблиц
-    def get_bd_marketdata(self, classes):
+    def get_bd_marketdata(self, classes, timeframe, instId):
         # Создаем пустой словарь для хранения данных
         data = {}
         # Проходим по всем комбинациям инструментов и временных интервалов
@@ -95,6 +98,7 @@ class DataAllDatasets:
             data[timeframe] = d
         # Возвращаем словарь данных
         return data
+
     
     # Запрос на получение последних данных из биржи
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
