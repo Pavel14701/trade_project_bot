@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import os, json, time, asyncio, hmac, base64, logging, hashlib
-import datetime, websockets, schedule, nest_asyncio
+import os, json, time, asyncio, nest_asyncio, hmac, base64, logging, hashlib
+import datetime, websockets, schedule
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -10,10 +10,7 @@ from User.LoadSettings import LoadUserSettingData
 
 # Асинхронный движок для подключения к базе данных
 engine = create_async_engine("sqlite+aiosqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserDatasets.db")
-
-# Создаем базовый класс для декларативных классов
 Base = declarative_base()
-
 # Асинхронная фабрика сессий
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession)
 
@@ -42,15 +39,11 @@ total_params = bytes(sign, encoding='utf-8')
 signature = hmac.new(bytes(secret_key, encoding='utf-8'), total_params, digestmod=hashlib.sha256).digest()
 signature = base64.b64encode(signature)
 signature = str(signature, 'utf-8')
-
 print("signature = {0}".format(signature))
 
 # Основная асинхронная функция
 async def main():
-    # Создаем таблицы, если они еще не существуют
     await create_tables()
-
-    # Ваш код для работы с WebSocket и другие асинхронные операции
     msg = \
         {
             "op": "login",
@@ -63,7 +56,6 @@ async def main():
                 }
             ]
         }
-
     async with websockets.connect('wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999') as websocket:
         print(msg)
         await websocket.send(json.dumps(msg))

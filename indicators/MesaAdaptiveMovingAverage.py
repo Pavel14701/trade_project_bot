@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import talib
-from test_data_loading import LoadDataFromYF
+#from test_data_loading import LoadDataFromYF
 
 class MesaAdaptiveMA:
     @staticmethod
@@ -29,8 +29,10 @@ class MesaAdaptiveMA:
         plt.legend()
         plt.show()
 
-
+"""
+#Пример использования
 data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
 print(data)
 mama, fama, data, buy_signals, sell_signals= MesaAdaptiveMA.calculate_mama(data)
 MesaAdaptiveMA.plot_mama(mama, fama, data, buy_signals, sell_signals)
+"""
