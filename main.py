@@ -21,9 +21,7 @@ async def create_tables():
     classes_dict = data_all_datasets.create_classes(Base)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-# load env
-load_dotenv(".env")
+        
 flag, timeframes, instIds, passphrase, api_key, secret_key = LoadUserSettingData.load_user_settings()
 
 
