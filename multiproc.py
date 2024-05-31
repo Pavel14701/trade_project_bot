@@ -1,16 +1,23 @@
 from multiprocessing import Process, Queue
 import os
 import sys
+from io import StringIO
 
 def run_script(script_name, queue):
-    # Перенаправляем стандартный вывод в переменную
-    sys.stdout = open(os.devnull, 'w')
-    # Запускаем скрипт и сохраняем результаты его работы
-    result = os.popen(f'python {script_name}').read()
+    # Создаем временный файл для стандартного вывода
+    temp_stdout = StringIO()
+    # Перенаправляем стандартный вывод в временный файл
+    sys.stdout = temp_stdout
+    # Запускаем скрипт
+    os.system(f'python {script_name}')
     # Возвращаем стандартный вывод на место
     sys.stdout = sys.__stdout__
+    # Получаем содержимое временного файла
+    output = temp_stdout.getvalue()
+    # Закрываем временный файл
+    temp_stdout.close()
     # Помещаем результат в очередь
-    queue.put((script_name, result))
+    queue.put((script_name, output))
 
 if __name__ == "__main__":
     # Список скриптов для запуска
@@ -29,5 +36,3 @@ if __name__ == "__main__":
     # Выводим результаты работы скриптов
     while not queue.empty():
         script_name, result = queue.get()
-        print(f'Результаты {script_name}:')
-        print(result)
