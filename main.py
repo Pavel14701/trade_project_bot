@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-import json, time, hmac, base64, logging, hashlib, asyncio, threading
+import json, time, logging, asyncio, threading
 import datetime, websockets
-from redis import Redis
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datasets.database import DataAllDatasets
@@ -21,8 +20,11 @@ async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+
 # Загрузка пользовательских настроек
-flag, timeframes, instIds, passphrase, api_key, secret_key = LoadUserSettingData.load_user_settings()
+flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port = LoadUserSettingData.load_user_settings()
+signature = LoadUserSettingData.create_signature(secret_key)
+
 
 # Logger
 ws_logger = logging.getLogger('websocket')
@@ -30,28 +32,11 @@ ws_logger.setLevel(logging.DEBUG)
 ws_file_handler = logging.FileHandler("test.log")
 ws_logger.addHandler(ws_file_handler)
 
-# Генерация подписи для WebSocket
-timestamp = int(time.time())
-sign = str(timestamp) + 'GET' + '/users/self/verify'
-total_params = bytes(sign, encoding='utf-8')
-signature = hmac.new(bytes(secret_key, encoding='utf-8'), total_params, digestmod=hashlib.sha256).digest()
-signature = base64.b64encode(signature)
-signature = str(signature, 'utf-8')
-
-# Функция для подписки на канал Redis в отдельном потоке
-def listen_to_redis_channel():
-    r = Redis(host='127.0.0.1', port=6379, db=0)
-    pubsub = r.pubsub()
-    pubsub.subscribe('my-channel')
-    while True:
-        message = pubsub.get_message()
-        if message and message['type'] == 'message':
-            print(f"Получено сообщение: {message['data'].decode('utf-8')}")
-        time.sleep(1)
 
 # Запуск слушателя Redis в отдельном потоке
-thread = threading.Thread(target=listen_to_redis_channel)
+thread = threading.Thread(target=LoadUserSettingData.listen_to_redis_channel, args=(host, port, db))
 thread.start()
+
 
 # Основная асинхронная функция
 async def main():
@@ -63,7 +48,7 @@ async def main():
             {
                 "apiKey": api_key,
                 "passphrase": passphrase,
-                "timestamp": timestamp,
+                "timestamp": int(time.time()),
                 "sign": signature
             }
         ]

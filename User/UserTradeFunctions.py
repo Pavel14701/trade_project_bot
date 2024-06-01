@@ -17,6 +17,10 @@ class PlaceOrders:
             tradeAction, flag, instId=None, size=None, posSide=None,
             leverage=None, risk=None, tpPrice=None, slPrice=None, mgnMode=None
             ):
+        self.passphrase = passphrase
+        self.secret_key = secret_key
+        self.api_key = api_key
+        self.flag = flag
         self.instId = instId
         self.size = size
         self.posSide = posSide #long or short
@@ -29,7 +33,7 @@ class PlaceOrders:
         self.leverage = leverage
         self.accountApi = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
         self.tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
-        self.balance = UserInfo.check_balance(api_key, secret_key, passphrase, flag)
+ 
         self.leverage = UserInfo.set_leverage_inst(api_key, secret_key, 
                                                    passphrase, False, flag, 
                                                    instId, leverage, mgnMode)
@@ -39,7 +43,7 @@ class PlaceOrders:
     def place_market_order(self):
         # установка левериджа
         result = self.leverage
-        usdt_balance = self.balance
+        usdt_balance = UserInfo.check_balance(self.api_key, self.secret_key, self.passphrase, self.flag)
         # Создаём ордер лонг по маркету
         result = self.tradeAPI.place_order(
             instId=self.instId,
@@ -167,48 +171,48 @@ class PlaceOrders:
         return slPrice
 
 
-        # Открытые ордера
-        @staticmethod
-        def get_all_order_list():
-            result = tradeAPI.get_order_list()
-            print(result)
+    # Открытые ордера
+    @staticmethod
+    def get_all_order_list(self):
+        result = self.tradeAPI.get_order_list()
+        print(result)
         return result
 
 
-        # Открытые позиции
-        @staticmethod
-        def get_all_opened_positions():
-            result = accountAPI.get_positions()
-            print(result)
+    # Открытые позиции
+    @staticmethod
+    def get_all_opened_positions(self):
+        result = self.accountAPI.get_positions()
+        print(result)
         return result
 
 
-        # История торгов за три дня
-        @staticmethod
-        def get_history_3days(instType):
-            result = tradeAPI.get_fills(
-                instType = instType #скорее всего всегда SWAP
-            )
-            print(result)
+    # История торгов за три дня
+    @staticmethod
+    def get_history_3days(self, instType):
+        result = self.tradeAPI.get_fills(
+            instType = instType #скорее всего всегда SWAP
+        )
+        print(result)
         return result
 
 
-        # История торгов за 3 месяца
-        @staticmethod
-        def get_history_3months(instType):
-            result = tradeAPI.get_fills_history(
-                instType = instType #скорее всего всегда SWAP
-            )
-            print(result)
+    # История торгов за 3 месяца
+    @staticmethod
+    def get_history_3months(self, instType):
+        result = self.tradeAPI.get_fills_history(
+            instType = instType #скорее всего всегда SWAP
+        )
+        print(result)
         return result
- 
-        
-        # Просмотр инфы по позиции через её id
-        @staticmethod
-        def check_position(self, ordId):
-            result = tradeAPI.get_order(instId=self.instId, ordId=ordId)
-            print(result)
-            enter_price = float(result["data"][0]["avgPx"])
-            print(enter_price)
+
+    
+    # Просмотр инфы по позиции через её id
+    @staticmethod
+    def check_position(self, ordId):
+        result = self.tradeAPI.get_order(instId=self.instId, ordId=ordId)
+        print(result)
+        enter_price = float(result["data"][0]["avgPx"])
+        print(enter_price)
         return result
 

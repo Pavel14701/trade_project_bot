@@ -69,7 +69,7 @@ class DataAllDatasets:
     
     # Вывод данных из бд в дикте
     # Метод для получения данных из таблиц
-    def get_bd_marketdata(self, classes, timeframe, instId):
+    def get_bd_marketdata(self, classes, timeframe):
         # Создаем пустой словарь для хранения данных
         data = {}
         # Проходим по всем комбинациям инструментов и временных интервалов
@@ -93,7 +93,10 @@ class DataAllDatasets:
                     table.c.VOLUME_USDT
                 ).all()
             # Преобразуем результат в словарь
-            d = dict((col, [row[i] for row in query]) for i, col in enumerate(['date', 'open', 'close', 'high', 'low', 'volume', 'volume_usdt']))
+            d = dict(
+                (col, [row[i] for row in query]) for i, col in enumerate(
+                    ['date', 'open', 'close', 'high', 'low', 'volume', 'volume_usdt']
+                    ))
             # Добавляем ключ и значение в словарь
             data[timeframe] = d
         # Возвращаем словарь данных
@@ -102,7 +105,11 @@ class DataAllDatasets:
     
     # Запрос на получение последних данных из биржи
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
-    def get_charts(self, marketDataAPI, Base, load_data_after = None, load_data_before = None, lenghts = None):
+    def get_charts(
+            self, marketDataAPI, Base,
+            load_data_after = None, load_data_before = None,
+            lenghts = None
+            ):
         for timeframe in self.timeframes:
             result = marketDataAPI.get_candlesticks(
                 instId=self.instId,
