@@ -23,11 +23,6 @@ Session = sessionmaker(bind=engine)
 
 message = '415 база ответьте'
 
-# Функция для публикации сообщения
-def publish_message(channel, message):
-    r = redis.Redis(host, port, db)
-    r.publish(channel, message)
-
 # Асинхронная функция для отправки сообщений каждые 15 секунд
 async def send_messages_periodically(message, host, port, db):
     while True:
