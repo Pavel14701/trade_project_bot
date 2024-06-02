@@ -13,8 +13,8 @@ Base = declarative_base()
 # Асинхронная фабрика сессий
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession)
 
-# Асинхронное создание таблиц в базе данных
-async def create_tables():
+
+async def create_tables(): 
     data_all_datasets = DataAllDatasets(instIds, flag, timeframes)
     classes_dict = data_all_datasets.create_classes(Base)
     async with engine.begin() as conn:

@@ -4,8 +4,41 @@ import matplotlib.pyplot as plt
 
 
 class VWMAbasADX:
+    """Summary:
+    Class for calculating and visualizing VWMA-based ADX.
+
+    Explanation:
+    This class provides static methods to calculate the VWMA-based ADX values, including ADX trend analysis and visualization of VWMA and ADX trendline based on the provided data.
+
+    Args:
+    - data: The input data containing price, volume, and ADX values.
+    - ADX_Period: The period for ADX calculation.
+    - ADX_Threshold: The threshold value for identifying a strong trend.
+    - ADX_Smooth: The smoothing period for ADX.
+    - WMAV_lenghts: The lengths for calculating WMAV.
+
+    Returns:
+    - For calculate_vwma_bas_adx: DataFrame with calculated ADX values, trend analysis, and WMAV.
+    - For create_vizualization_vwma_adx: None
+    """
     @staticmethod
     def calculate_vwma_bas_adx(data, ADX_Period, ADX_Threshold, ADX_Smooth, WMAV_lenghts):
+        """Summary:
+        Calculate VWMA-based ADX values.
+
+        Explanation:
+        This static method calculates the VWMA-based ADX values, including trend analysis and WMAV calculation, based on the provided data and parameters.
+
+        Args:
+        - data: The input data containing price, volume, and ADX values.
+        - ADX_Period: The period for ADX calculation. Defolt 14
+        - ADX_Threshold: The threshold value for identifying a strong trend. Defolt 25
+        - ADX_Smooth: The smoothing period for ADX. Defolt 2
+        - WMAV_lenghts: The lengths for calculating WMAV.
+
+        Returns:
+        - DataFrame with calculated ADX values, trend analysis, and WMAV.
+        """
         # Вычисляем +DI и -DI с периодом 14
         DI_Period = 14
         data["UpMove"] = data["High"].diff()
@@ -17,13 +50,6 @@ class VWMAbasADX:
         data["ATR"] = data["Close"].diff().abs().ewm(span=DI_Period, adjust=False).mean()
         data["+DI"] = data["+DM_Smooth"] / data["ATR"] * 100
         data["-DI"] = data["-DM_Smooth"] / data["ATR"] * 100
-        """
-        #Стандартные настройки ADX
-        # Вычисляем ADX c периодом 14, порогом 25 и сглаживанием
-        ADX_Period = 14
-        ADX_Threshold = 25 #Подсвечивает сильный тренд
-        ADX_Smooth = 2
-        """
         # Вычисляем ADX и сглаживаем его
         data["DX"] = np.abs(data["+DI"] - data["-DI"]) / (data["+DI"] + data["-DI"]) * 100
         data["ADX"] = data["DX"].ewm(span=ADX_Period, adjust=False).mean()
@@ -59,6 +85,18 @@ class VWMAbasADX:
 
     @staticmethod
     def create_vizualization_vwma_adx(data):
+        """Summary:
+        Create visualization of VWMA and ADX trendline.
+
+        Explanation:
+        This static method generates a plot showing the Apple stock price with the Weighted Moving Average (WMAV) and ADX trendline highlighted based on the strength of the trend.
+
+        Args:
+        - data: The input data containing price, WMAV, and ADX values.
+
+        Returns:
+        None
+        """
         plt.figure(figsize=(10, 6))
         # Строим график цены
         plt.plot(data.index, data["Close"], label="Price", color='black')

@@ -6,14 +6,40 @@ from matplotlib.widgets import Cursor
 
 
 class CloudsRsi:
+    """Summary:
+    Class for calculating and visualizing RSI Clouds.
+
+    Explanation:
+    This class provides static methods to calculate RSI values for short and long periods, smooth them using EMA, detect crossover signals, and create a visualization of the RSI Cloud indicator with buy and sell signals.
+
+    Args:
+    - data: The input data containing Close prices.
+    - rsi_period_short: The short period for RSI calculation.
+    - rsi_period_long: The long period for RSI calculation.
+    - ema_period: The period for EMA smoothing.
+
+    Returns:
+    - For calculate_rsi_clouds: DataFrame with RSI Short EMA, RSI Long EMA, Cross Up, and Cross Down signals.
+    - For create_vizualization_rsi_clouds: None
+    """
+    
+    
     @staticmethod
     def calculate_rsi_clouds(data, rsi_period_short, rsi_period_long, ema_period):
-        """"
-        # Стандартные параметры
-        # Параметры для индикаторов RSI и EMA
-        rsi_period_short = 7  # Короткий период для RSI
-        rsi_period_long = 14  # Длинный период для RSI
-        ema_period = 9        # Период для EMA
+        """Summary:
+        Calculate RSI values and crossover signals for RSI Clouds.
+
+        Explanation:
+        This static method calculates RSI values for short and long periods, smoothes them using EMA, and detects crossover signals to determine buy and sell points.
+
+        Args:
+        - data: The input data containing Close prices.
+        - rsi_period_short: The short period for RSI calculation.
+        - rsi_period_long: The long period for RSI calculation.
+        - ema_period: The period for EMA smoothing.
+
+        Returns:
+        - DataFrame with RSI Short EMA, RSI Long EMA, Cross Up, and Cross Down signals.
         """
         # Вычисляем RSI для двух периодов
         rsi_short = talib.RSI(data['Close'].values, timeperiod=rsi_period_short)
@@ -32,8 +58,21 @@ class CloudsRsi:
         data['Cross_Down'] = cross_down
         return data
 
+
     @staticmethod
     def create_vizualization_rsi_clouds(data):
+        """Summary:
+        Create visualization for RSI Clouds.
+
+        Explanation:
+        This static method generates a visualization of the RSI Cloud indicator with buy and sell signals based on the provided data.
+
+        Args:
+        - data: The input data containing Close prices.
+
+        Returns:
+        None
+        """
         overbought = 70
         oversold = 30
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
@@ -67,3 +106,4 @@ print(data)
 data = CloudsRsi.calculate_rsi_clouds(data, rsi_period_short = 7, rsi_period_long = 14, ema_period = 9)
 CloudsRsi.create_vizualization_rsi_clouds(data)
 """
+

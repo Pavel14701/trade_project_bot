@@ -4,8 +4,21 @@ import matplotlib.pyplot as plt
 
 
 class AlmaIndicator:
+
+    
+    
     @staticmethod
     def calculate_alma(data, lenghts):
+        """
+        Calculate ALMA indicator based on the given data and lengths.
+
+        Args:
+            data: Pandas DataFrame containing stock price data.
+            lenghts: Integer representing the length of the window for ALMA calculation.
+
+        Returns:
+            Pandas DataFrame with ALMA values added as a new column.
+        """
         # Вычисляем ALMA с длиной окна 20 и стандартными параметрами
         m = (lenghts - 1) / 2
         sigma = lenghts / 6
@@ -17,6 +30,15 @@ class AlmaIndicator:
 
     @staticmethod
     def create_vizualization_alma_ribbon(data):
+        """
+        Creates a visualization of stock price with ALMA indicator.
+
+        Args:
+        - data (DataFrame): Input data containing 'Close' prices and 'ALMA' values.
+
+        Returns:
+        None
+        """
         # Строим график цены и ALMA
         plt.figure(figsize=(10, 6))
         plt.plot(data["Close"], label="Price")
@@ -30,6 +52,20 @@ class AlmaIndicator:
 
     @staticmethod
     def calculate_alma_ribbon(data, lenghtsVSlow, lenghtsSlow, lenghtsMiddle, lenghtsFast, lenghtsVFast):
+        """
+        Calculates multiple ALMA indicators based on different lengths for the given data.
+
+        Args:
+        - data (DataFrame): Input data containing 'Close' prices.
+        - lenghtsVSlow (int): Length for ALMA_VSLOW calculation.
+        - lenghtsSlow (int): Length for ALMA_SLOW calculation.
+        - lenghtsMiddle (int): Length for ALMA_MIDDLE calculation.
+        - lenghtsFast (int): Length for ALMA_FAST calculation.
+        - lenghtsVFast (int): Length for ALMA_VFAST calculation.
+
+        Returns:
+        - DataFrame: Data with added columns for ALMA_VSLOW, ALMA_SLOW, ALMA_MIDDLE, ALMA_FAST, and ALMA_VFAST.
+        """
         # Вычисляем ALMA с длиной окна 20 и стандартными параметрами
         m = (lenghtsVSlow - 1) / 2
         sigma = lenghtsVSlow / 6
@@ -61,6 +97,15 @@ class AlmaIndicator:
 
     @staticmethod
     def create_vizualization_alma_ribbon(data):
+        """
+        Creates a visualization of stock price with multiple ALMA indicators.
+
+        Args:
+        - data (DataFrame): Input data containing 'Close' prices and multiple 'ALMA' values.
+
+        Returns:
+        None
+        """
         # Строим график цены и ALMA
         plt.figure(figsize=(10, 6))
         plt.plot(data["Close"], label="Price")
@@ -74,6 +119,7 @@ class AlmaIndicator:
         plt.ylabel("USDT")
         plt.legend()
         plt.show()
+        
         
 """"
 #пример применения
