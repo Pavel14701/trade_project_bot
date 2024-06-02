@@ -7,6 +7,7 @@ import schedule
 from datasets.database import DataAllDatasets
 from User.LoadSettings import LoadUserSettingData
 from utils.StartDelayCalculator import StartDelayCalc
+from User.Signals import CheckSignalData
 
 
 # Загрузка пользовательских настроек
@@ -24,6 +25,9 @@ Base.metadata.create_all(engine)
 print(f'\n\n{classes_dict}\n\n')
 # Создание сессии
 Session = sessionmaker(bind=engine)
+check_signal = CheckSignalData(flag, instIds[1], Base, Session, classes_dict,
+            load_data_after = None, load_data_before = None,
+            lenghts = 100)
 
 
 # Функция для запуска задачи в отдельном потоке
@@ -32,32 +36,10 @@ def run_job(job_func):
     job_thread.start()
 
 
-schedule.every(15).minutes.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[0], Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = 100
-            ))
-
-
-schedule.every(1).hours.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[1], Base, Session, classes_dict,
-            load_data_after=None, load_data_before=None,
-            lenghts=100
-            ))
-
-
-schedule.every(4).hours.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[2], Base, Session, classes_dict,
-            load_data_after=None, load_data_before=None,
-            lenghts=100
-            ))
-
-
-schedule.every(1).days.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[3], Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = 100
-            ))
+schedule.every(15).minutes.do(run_job, check_signal.avsl_signals(timeframes[0]))
+schedule.every(1).hours.do(run_job, check_signal.avsl_signals(timeframes[1]))
+schedule.every(4).hours.do(run_job, check_signal.avs_signals(timeframes[2]))
+schedule.every(1).days.do(run_job, check_signal.avsl_signals(timeframes[3]))
 
 
 def run_schedule():
