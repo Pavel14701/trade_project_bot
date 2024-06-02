@@ -47,10 +47,19 @@ class CheckSignalData:
         
         
     def avsl_signals(self, timeframe):
+        """Summary:
+        Calculate AVSL signals for a specific timeframe.
+
+        Explanation:
+        This function retrieves current chart data, calculates AVSL signals, and returns the last bar signal for the given timeframe.
+
+        Args:
+        - timeframe: The specific timeframe for which AVSL signals
+        """
         data = DataAllDatasets.get_current_chart_data(
             self.flag, self.instId, self.Base, self.Session, self.classes_dict,
             self.lenghts, timeframe)
-        cross_up, cross_down, AVSL, close_prices, last_bar_signal = AVSLIndicator.calculate_avsl(self.data)
+        cross_up, cross_down, AVSL, close_prices, last_bar_signal = AVSLIndicator.calculate_avsl(data)
         return last_bar_signal
         
         
