@@ -56,7 +56,6 @@ class PlaceOrders:
         if result["code"] == "0":
             print("Successful order request,order_id = ",result["data"][0]["ordId"])
             order_id_market = result["data"][0]["ordId"]
-            result_enter_price = self.tradeAPI.get_order(instId="BTC-USDT-SWAP", ordId="676182969496752129")
             enter_price = float(result["data"][0]["avgPx"])
             # Создаем ордер tp
             if self.tradeAction == 'buy':

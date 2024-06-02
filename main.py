@@ -15,7 +15,7 @@ AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession)
 
 # Асинхронное создание таблиц в базе данных
 async def create_tables():
-    data_all_datasets = DataAllDatasets(instIds, timeframes)
+    data_all_datasets = DataAllDatasets(instIds, flag, timeframes)
     classes_dict = data_all_datasets.create_classes(Base)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
