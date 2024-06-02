@@ -12,11 +12,57 @@ from UserInfoFunctions import UserInfo
 
 
 class PlaceOrders:
+    """Summary:
+    Class for placing orders, managing positions, and retrieving trade history.
+
+    Explanation:
+    This class provides methods for placing market and limit orders, calculating position size and stop loss, retrieving open orders, open positions, trade history, and checking position information.
+
+    Returns:
+    - For place_market_order,
+    - For place_limit_order,
+    - For calculate_pos_size,
+    - For get_all_order_list,
+    - For get_all_opened_positions,
+    - For get_history_3days,
+    - For get_history_3months,
+    - For check_position: None
+    """
+    
+    
     def __init__(
             self, passphrase, secret_key, api_key,
             tradeAction, flag, instId=None, size=None, posSide=None,
             leverage=None, risk=None, tpPrice=None, slPrice=None, mgnMode=None
             ):
+        """Summary:
+        Initialize trade parameters for placing orders.
+
+        Explanation:
+        This function initializes the trade parameters including passphrase, secret key, API key, trade action, flag, instrument ID, order size, position side, leverage, risk, take profit price, stop loss price, and margin mode for executing trades.
+
+        Args:
+        - passphrase: The passphrase for API authentication.
+        - secret_key: The secret key for API authentication.
+        - api_key: The API key for API authentication.
+        - tradeAction: The type of trade action (buy or sell).
+        - flag: A flag indicating a specific condition or setting.
+        - instId: The instrument ID for the trade.
+        - size: The size or quantity of the order.
+        - posSide: The position side (long or short).
+        - leverage: The leverage amount for the trade.
+        - risk: The risk factor for the trade.
+        - tpPrice: The take profit price for the trade.
+        - slPrice: The stop loss price for the trade.
+        - mgnMode: The margin mode for the trade.
+
+        Returns:
+        None
+        """
+        self.passphrase = passphrase
+        self.secret_key = secret_key
+        self.api_key = api_key
+        self.flag = flag
         self.instId = instId
         self.size = size
         self.posSide = posSide #long or short
@@ -29,7 +75,7 @@ class PlaceOrders:
         self.leverage = leverage
         self.accountApi = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
         self.tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
-        self.balance = UserInfo.check_balance(api_key, secret_key, passphrase, flag)
+ 
         self.leverage = UserInfo.set_leverage_inst(api_key, secret_key, 
                                                    passphrase, False, flag, 
                                                    instId, leverage, mgnMode)
@@ -37,9 +83,19 @@ class PlaceOrders:
         
     # Создание маркет ордера long с Tp и Sl
     def place_market_order(self):
+        """Summary:
+        Place a market order with take profit and stop loss.
+
+        Explanation:
+        This function places a market order with specified parameters such as instrument ID, margin mode, trade action, position side, order size, take profit price, and stop loss price. It also creates take profit and stop loss orders based on the market order execution.
+
+        Returns:
+        None
+        """
+        # sourcery skip: extract-method, switch
         # установка левериджа
         result = self.leverage
-        usdt_balance = self.balance
+        usdt_balance = UserInfo.check_balance(self.api_key, self.secret_key, self.passphrase, self.flag)
         # Создаём ордер лонг по маркету
         result = self.tradeAPI.place_order(
             instId=self.instId,
@@ -52,7 +108,6 @@ class PlaceOrders:
         if result["code"] == "0":
             print("Successful order request,order_id = ",result["data"][0]["ordId"])
             order_id_market = result["data"][0]["ordId"]
-            result_enter_price = self.tradeAPI.get_order(instId="BTC-USDT-SWAP", ordId="676182969496752129")
             enter_price = float(result["data"][0]["avgPx"])
             # Создаем ордер tp
             if self.tradeAction == 'buy':
@@ -111,6 +166,18 @@ class PlaceOrders:
 
     # Размещение лимитного ордера
     def place_limit_order(self, price):
+        """Summary:
+        Place a limit order with specified price.
+
+        Explanation:
+        This function places a limit order with the given price for the instrument, margin mode, trade action, position side, order size, and leverage. It also handles the result of the order placement and stores relevant information in the database.
+
+        Args:
+        - price: The price at which the limit order will be placed.
+
+        Returns:
+        None
+        """
         # Установка левериджа
         result = self.leverage
         # Баланс
@@ -151,6 +218,24 @@ class PlaceOrders:
     #Калькулятор стопа
     @staticmethod 
     def calculate_pos_size(leverage, instId, volat, enter_price, balance, direction, timeframe):
+        """Summary:
+        Calculate position size and stop loss price.
+
+        Explanation:
+        This static method calculates the stop loss price and position size based on the provided leverage, instrument ID, volatility, entry price, balance, trade direction, and timeframe.
+
+        Args:
+        - leverage: The leverage amount for the trade.
+        - instId: The instrument ID for the trade.
+        - volat:  Index volatility data.
+        - enter_price: The entry price for the trade.
+        - balance: The balance available for trading.
+        - direction: The direction of the trade (long or short).
+        - timeframe: The timeframe for the trade.
+
+        Returns:
+        - The calculated stop loss price.
+        """
         print(volat)
         risk = 0.03
         if direction == "long":
@@ -167,48 +252,102 @@ class PlaceOrders:
         return slPrice
 
 
-        # Открытые ордера
-        @staticmethod
-        def get_all_order_list():
-            result = tradeAPI.get_order_list()
-            print(result)
+    # Открытые ордера
+    @staticmethod
+    def get_all_order_list(self):
+        """Summary:
+        Retrieve a list of all open orders.
+
+        Explanation:
+        This static method retrieves and prints a list of all open orders using the trade API.
+
+        Returns:
+        - The list of all open orders.
+        """
+        result = self.tradeAPI.get_order_list()
+        print(result)
         return result
 
 
-        # Открытые позиции
-        @staticmethod
-        def get_all_opened_positions():
-            result = accountAPI.get_positions()
-            print(result)
+    # Открытые позиции
+    @staticmethod
+    def get_all_opened_positions(self):
+        """Summary:
+        Retrieve a list of all opened positions.
+
+        Explanation:
+        This static method fetches and prints a list of all opened positions using the account API.
+
+        Returns:
+        - The list of all opened positions.
+        """
+        result = self.accountAPI.get_positions()
+        print(result)
         return result
 
 
-        # История торгов за три дня
-        @staticmethod
-        def get_history_3days(instType):
-            result = tradeAPI.get_fills(
-                instType = instType #скорее всего всегда SWAP
-            )
-            print(result)
+    # История торгов за три дня
+    @staticmethod
+    def get_history_3days(self, instType):
+        """Summary:
+        Retrieve trade history for the last three days.
+
+        Explanation:
+        This static method retrieves and prints the trade history for the last three days based on the specified instrument type, typically SWAP.
+
+        Args:
+        - instType: The instrument type for which the trade history is requested.
+
+        Returns:
+        - The trade history data for the last three days.
+        """
+        result = self.tradeAPI.get_fills(
+            instType = instType #скорее всего всегда SWAP
+        )
+        print(result)
         return result
 
 
-        # История торгов за 3 месяца
-        @staticmethod
-        def get_history_3months(instType):
-            result = tradeAPI.get_fills_history(
-                instType = instType #скорее всего всегда SWAP
-            )
-            print(result)
+    # История торгов за 3 месяца
+    @staticmethod
+    def get_history_3months(self, instType):
+        """Summary:
+        Retrieve trade history for the last three months.
+
+        Explanation:
+        This static method fetches and prints the trade history for the last three months based on the specified instrument type, typically SWAP.
+
+        Args:
+        - instType: The instrument type for which the trade history is requested.
+
+        Returns:
+        - The trade history data for the last three months.
+        """
+        result = self.tradeAPI.get_fills_history(
+            instType = instType #скорее всего всегда SWAP
+        )
+        print(result)
         return result
- 
-        
-        # Просмотр инфы по позиции через её id
-        @staticmethod
-        def check_position(self, ordId):
-            result = tradeAPI.get_order(instId=self.instId, ordId=ordId)
-            print(result)
-            enter_price = float(result["data"][0]["avgPx"])
-            print(enter_price)
+
+    
+    # Просмотр инфы по позиции через её id
+    @staticmethod
+    def check_position(self, ordId):
+        """Summary:
+        Check position information by order ID.
+
+        Explanation:
+        This static method retrieves and prints information about a position based on the provided order ID.
+
+        Args:
+        - ordId: The order ID for which position information is requested.
+
+        Returns:
+        - The position information for the specified order ID.
+        """
+        result = self.tradeAPI.get_order(instId=self.instId, ordId=ordId)
+        print(result)
+        enter_price = float(result["data"][0]["avgPx"])
+        print(enter_price)
         return result
 

@@ -4,8 +4,27 @@ import talib
 
 
 class BollindgerBands:
+    """
+    A class for calculating and visualizing Bollinger Bands on stock price data.
+
+    Methods:
+    - calculate_bands(data, lenghts, stdev): Calculates Bollinger Bands based on the given data, lengths, and standard deviations.
+    - create_vizualization_bb(data): Creates a visualization of stock price with Bollinger Bands.
+    """
+    
     @staticmethod
     def calculate_bands(data, lenghts, stdev):
+        """
+        Calculates Bollinger Bands based on the given data, lengths, and standard deviations.
+
+        Args:
+        - data (DataFrame): Input data containing 'High' and 'Low' prices.
+        - lenghts (int): Length of the moving average window.
+        - stdev (int): Standard deviation multiplier for the bands.
+
+        Returns:
+        - DataFrame: Data with added columns for Upper Band, Middle Band, and Lower Band.
+        """
         # Рассчитываем среднее значение между максимальной и минимальной ценой для каждого периода
         high_low_average = (data['High'] + data['Low']) / 2
         # Рассчитываем полосы Боллинджера на основе среднего значения между High и Low
@@ -25,6 +44,15 @@ class BollindgerBands:
 
     @staticmethod
     def create_vizualization_bb(data):
+        """
+        Creates a visualization of stock price with Bollinger Bands.
+
+        Args:
+        - data (DataFrame): Input data containing 'Close', 'Upper Band', 'Middle Band', and 'Lower Band' values.
+
+        Returns:
+        None
+        """
         fig, ax = plt.subplots(figsize=(14, 7))  # Исправление здесь
         ax.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
         ax.plot(data.index, data['Upper Band'], label='Верхняя полоса', color='red', linestyle='--')

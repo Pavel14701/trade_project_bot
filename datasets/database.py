@@ -1,16 +1,40 @@
+from sqlalchemy.sql import exists
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 from datetime import datetime, timedelta
+from okx import MarketData
 
 
 class DataAllDatasets:
-    def __init__(self, instIds, timeframes, Session=None):
+    """
+    Initializes DataAllDatasets with provided parameters.
+
+    Args:
+        instIds: List of instrument IDs.
+        flag: Flag for DataAllDatasets.
+        timeframes: List of timeframes.
+        Session: Session for database interaction.
+
+    Returns:
+        None.
+    """
+    def __init__(self, instIds, flag, timeframes, Session=None):
         self.instIds = instIds
         self.timeframes = timeframes
         self.Session = Session
+        self.flag = flag
 
 
     # Функция для создания классов с заданными параметрами
     def create_classes(self, Base):
+        """
+        Creates classes with specified parameters.
+
+        Args:
+            Base: The base class for creating classes.
+
+        Returns:
+            A dictionary containing created classes.
+        """
         classes = {}
         for inst_id in self.instIds:
             for timeframe in self.timeframes:
@@ -35,6 +59,16 @@ class DataAllDatasets:
 
     
     def create_TradeUserData(self, Base):
+        """
+        Creates a TradeUserData class for managing positions and orders.
+
+        Args:
+            Base: The base class for TradeUserData.
+
+        Returns:
+            The TradeUserData class.
+        """
+        # sourcery skip: inline-immediately-returned-variable
         class_name = "TradeUserData"
         table_name = "positions_and_orders"
         class_ = type(class_name, (Base,), {
@@ -69,7 +103,21 @@ class DataAllDatasets:
     
     # Вывод данных из бд в дикте
     # Метод для получения данных из таблиц
-    def get_bd_marketdata(self, classes, timeframe, instId):
+    def get_bd_marketdata(self, classes, timeframe):
+        """
+        Retrieves market data from tables.
+
+        Args:
+            classes: A dictionary containing classes.
+            timeframe: The timeframe to retrieve data for.
+
+        Returns:
+            A dictionary containing market data.
+
+        Raises:
+            None.
+        """
+        # sourcery skip: collection-builtin-to-comprehension
         # Создаем пустой словарь для хранения данных
         data = {}
         # Проходим по всем комбинациям инструментов и временных интервалов
@@ -93,7 +141,10 @@ class DataAllDatasets:
                     table.c.VOLUME_USDT
                 ).all()
             # Преобразуем результат в словарь
-            d = dict((col, [row[i] for row in query]) for i, col in enumerate(['date', 'open', 'close', 'high', 'low', 'volume', 'volume_usdt']))
+            d = dict(
+                (col, [row[i] for row in query]) for i, col in enumerate(
+                    ['date', 'open', 'close', 'high', 'low', 'volume', 'volume_usdt']
+                    ))
             # Добавляем ключ и значение в словарь
             data[timeframe] = d
         # Возвращаем словарь данных
@@ -102,50 +153,148 @@ class DataAllDatasets:
     
     # Запрос на получение последних данных из биржи
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
-    def get_charts(self, marketDataAPI, Base, load_data_after = None, load_data_before = None, lenghts = None):
-        for timeframe in self.timeframes:
-            result = marketDataAPI.get_candlesticks(
-                instId=self.instId,
-                after=load_data_after,
-                before=load_data_before,
-                bar=timeframe,
-                limit=lenghts # 300 Лимит Okx на 1 реквест
-            )
-            print(result)
-            for i in range(0, 299):
-                time = datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3)
-                open = result["data"][i][1]
-                close = result["data"][i][2]
-                high = result["data"][i][3]
-                low = result["data"][i][4]
-                volume = result["data"][i][6]
-                volume_usdt = result["data"][i][7]
-                '''
-                Вот эту хуету с созданием класса на лету 
-                будешь сам дебажить, костыльно пиздец вышло
-                '''
-                class_name = f"ChartsData_{self.inst_id}_{timeframe}"
-                # Создаем новый класс с помощью type()
-                ClassKostyl = type(class_name, (Base,), {})
-                data = ClassKostyl(
-                    TIMESTAMP=time,
-                    INSTRUMENT=self.instId,
-                    TIMEFRAME=timeframe,
-                    OPEN=open,
-                    CLOSE=close,
-                    HIGH=high,
-                    LOW=low,
-                    VOLUME=volume,
-                    VOLUME_USDT=volume_usdt
+    def get_charts(
+            self, Base, classes_dict,
+            load_data_after = None, load_data_before = None,
+            lenghts = None
+            ):
+        """
+        Requests and stores market data from an API.
+
+        Args:
+            Base: The base class for creating classes.
+            classes_dict: A dictionary containing classes.
+            load_data_after: Timestamp to load data after.
+            load_data_before: Timestamp to load data before.
+            lengths: Number of data points to retrieve.
+
+        Returns:
+            None.
+        """
+        
+        if load_data_before is None:
+            load_data_before = ''
+        if load_data_after is None:
+            load_data_after = ''
+        if lenghts is None:
+            lenghts = ''
+        marketDataAPI = MarketData.MarketAPI(self.flag)
+        for instId in self.instIds:
+            for timeframe in self.timeframes:
+                result = marketDataAPI.get_candlesticks(
+                    instId=instId,
+                    after=load_data_after,
+                    before=load_data_before,
+                    bar=timeframe,
+                    limit=lenghts # 300 Лимит Okx на 1 реквест
                 )
-                with self.Session() as session:
+                print(result)
+                # sourcery skip: remove-zero-from-range
+                for i in range(0, lenghts-1):
+                    time = datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3)
+                    open_ = result["data"][i][1]
+                    close = result["data"][i][2]
+                    high = result["data"][i][3]
+                    low = result["data"][i][4]
+                    volume = result["data"][i][6]
+                    volume_usdt = result["data"][i][7]
+                    class_name = f"ChartsData_{instId}_{timeframe}"
+                    active_class = classes_dict[class_name]
+                    # Проверка наличия записи с таким же TIMESTAMP
+                    with self.Session() as session:
+                        target_data = session.query(exists().where(active_class.TIMESTAMP == time)).scalar()
+                        if not target_data:
+                            data = active_class(
+                                TIMESTAMP=time,
+                                INSTRUMENT=instId,
+                                TIMEFRAME=timeframe,
+                                OPEN=open_,
+                                CLOSE=close,
+                                HIGH=high,
+                                LOW=low,
+                                VOLUME=volume,
+                                VOLUME_USDT=volume_usdt
+                            )
+                            session.add(data)
+                            #Применяем изменения
+                            session.commit()
+
+
+    
+    @staticmethod
+    def get_current_chart_data(
+            flag, instId, timeframe, Base, Session, classes_dict,
+            load_data_after = None, load_data_before = None,
+            lenghts = None
+            ):
+        """
+        Requests and stores current market data from an API.
+
+        Args:
+            flag: Flag for the data request.
+            instId: Instrument ID for the data request.
+            timeframe: Timeframe for the data request.
+            Base: The base class for creating classes.
+            Session: Session for database interaction.
+            classes_dict: A dictionary containing classes.
+            load_data_after: Timestamp to load data after.
+            load_data_before: Timestamp to load data before.
+            lengths: Number of data points to retrieve.
+
+        Returns:
+            None.
+        """
+        if load_data_before is None:
+            load_data_before = ''
+        if load_data_after is None:
+            load_data_after = ''
+        if lenghts is None:
+            lenghts = ''
+        marketDataAPI = MarketData.MarketAPI(flag)
+        result = marketDataAPI.get_candlesticks(
+            instId=instId,
+            after=load_data_after,
+            before=load_data_before,
+            bar=timeframe,
+            limit=lenghts # 300 Лимит Okx на 1 реквест
+        )
+        print(result)
+        # sourcery skip: remove-zero-from-range
+        for i in range(0, lenghts-1):
+            time = datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3)
+            open_ = result["data"][i][1]
+            close = result["data"][i][2]
+            high = result["data"][i][3]
+            low = result["data"][i][4]
+            volume = result["data"][i][6]
+            volume_usdt = result["data"][i][7]
+            class_name = f"ChartsData_{instId}_{timeframe}"
+            active_class = classes_dict[class_name]
+            # Проверка наличия записи с таким же TIMESTAMP
+            with Session() as session:
+                target_data = session.query(exists().where(active_class.TIMESTAMP == time)).scalar()
+                if not target_data:
+                    data = active_class(
+                        TIMESTAMP=time,
+                        INSTRUMENT=instId,
+                        TIMEFRAME=timeframe,
+                        OPEN=open_,
+                        CLOSE=close,
+                        HIGH=high,
+                        LOW=low,
+                        VOLUME=volume,
+                        VOLUME_USDT=volume_usdt
+                    )
                     session.add(data)
                     #Применяем изменения
                     session.commit()
-
-
-
-
+                    
+                    
+    """
+    #Пример использования
+    data_class = DataAllDatasets(instIds, flag, timeframes, Session)
+    data_class.get_charts(Base, classes_dict, None, None, 300)
+    """
 
 
 

@@ -112,3 +112,17 @@ Connected 2024-05-31T22:45:40.999135
 Connected 2024-05-31T22:58:42.562918 - Response: {"event":"login","msg":"","code":"0","connId":"0b5bcb65"}
 Connected 2024-05-31T23:00:07.083812 - Response: {"event":"login","msg":"","code":"0","connId":"36e1f478"}
 Connected 2024-05-31T23:00:40.550381 - Response: {"event":"login","msg":"","code":"0","connId":"fa7a26d7"}
+Connected 2024-06-01T00:06:36.860375 - Response: {"event":"login","msg":"","code":"0","connId":"2ac4854b"}
+Connected 2024-06-01T15:39:00.678068 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"4366bf21"}
+Connected 2024-06-01T15:41:11.883572 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"8e3f17b2"}
+Connected 2024-06-01T15:43:52.057110 - Response: {"event":"login","msg":"","code":"0","connId":"1ddc07db"}
+Connected 2024-06-01T15:45:48.062061 - Response: {"event":"login","msg":"","code":"0","connId":"0ba49d1c"}
+Connected 2024-06-01T15:57:48.399614 - Response: {"event":"login","msg":"","code":"0","connId":"8995a84f"}
+Connected 2024-06-01T16:07:58.284509 - Response: {"event":"login","msg":"","code":"0","connId":"f57341f7"}
+Connected 2024-06-01T16:10:31.949345 - Response: {"event":"login","msg":"","code":"0","connId":"2eb355e9"}
+Connected 2024-06-01T16:10:59.702476 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"b31ac967"}
+Connected 2024-06-01T16:12:50.292012 - Response: {"event":"login","msg":"","code":"0","connId":"ac85d1a0"}
+Connected 2024-06-01T16:31:20.698891 - Response: {"event":"login","msg":"","code":"0","connId":"52fca058"}
+Connected 2024-06-02T03:48:55.350486 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"cc94eef4"}
+Connected 2024-06-02T03:49:24.780881 - Response: {"event":"login","msg":"","code":"0","connId":"795dc2d4"}
+Connected 2024-06-02T03:49:51.136868 - Response: {"event":"login","msg":"","code":"0","connId":"46c7deb0"}

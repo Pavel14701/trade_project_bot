@@ -2,12 +2,39 @@ import numpy as np
 import matplotlib.pyplot as plt
 import talib
 import pandas as pd
-from test_data_loading import LoadDataFromYF
+#from test_data_loading import LoadDataFromYF
 
 
 class StochRSICalculator:
+    """Summary:
+    Class for calculating and visualizing Stochastic RSI (StochRSI).
+
+    Explanation:
+    This class provides static methods to calculate StochRSI values, including Fast %K and Fast %D lines, and visualize the StochRSI indicator with buy and sell signals based on the provided data.
+
+    Args:
+    - data: The input data containing Close prices.
+
+    Returns:
+    - For calculate_stochrsi: Tuple containing input data, Fast %D values, and Fast %K values.
+    - For plot_stochrsi: None
+    """
+    
+    
     @staticmethod
     def calculate_stochrsi(data):
+        """Summary:
+        Calculate Stochastic RSI (StochRSI) values.
+
+        Explanation:
+        This static method calculates the Stochastic RSI (StochRSI) values based on the Close prices in the provided data.
+
+        Args:
+        - data: The input data containing Close prices.
+
+        Returns:
+        - Tuple containing the input data, Fast %D values, and Fast %K values.
+        """
         # Рассчитываем StochRSI
         fastk, fastd = talib.STOCHRSI(data['Close'], timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0)
         # Преобразуем numpy массивы в pandas Series с правильным индексом
@@ -17,6 +44,20 @@ class StochRSICalculator:
 
     @staticmethod
     def plot_stochrsi(fastk, fastd, data):
+        """Summary:
+        Plot Stochastic RSI (StochRSI) with buy and sell signals.
+
+        Explanation:
+        This static method visualizes the Stochastic RSI (StochRSI) indicator with Fast %K and Fast %D lines, highlighting buy and sell signals based on the provided data.
+
+        Args:
+        - fastk: The Fast %K line values.
+        - fastd: The Fast %D line values.
+        - data: The input data containing Close prices.
+
+        Returns:
+        None
+        """
         # Стандартные сигналы для StochRSI
         buy_signals = (fastk > fastd) & (fastk.shift(1) < fastd.shift(1)) & (fastk < 20)
         sell_signals = (fastk < fastd) & (fastk.shift(1) > fastd.shift(1)) & (fastk > 80)

@@ -6,9 +6,32 @@ import pandas as pd
 
 
 class AVSLIndicator:
+    """
+    A class for calculating and visualizing AVSL indicators based on volume and price data.
+
+    Methods:
+    - price_fun(VPC, VPR, VM, src): Calculates the stop-loss step based on volume, price, and source data.
+    - prepare_calculate_avsl(data): Prepares data and parameters for AVSL calculation.
+    - calculate_avsl(data): Calculates AVSL indicators based on the provided data.
+    - avsl_visualization(cross_up, cross_down, AVSL, close_prices, data): Visualizes AVSL indicators with price data.
+    """
     # Функция для расчета stop-loss шага в зависимости от объема и минимальной цены
+    
+    
     @staticmethod
     def price_fun(VPC, VPR, VM, src):
+        """
+        Calculates the price step based on volume, price, and source data.
+
+        Args:
+        - VPC (array): Array of VPC values.
+        - VPR (array): Array of VPR values.
+        - VM (array): Array of VM values.
+        - src (array): Source data array.
+
+        Returns:
+        - PriceV (array): Array of calculated price steps.
+        """
         PriceV = np.zeros_like(VPC)  # Создаем массив нулей той же формы, что и VPC
         for i in range(len(VPC)):
             VPCI = VPC[i] * VPR[i] * VM[i]
@@ -24,6 +47,15 @@ class AVSLIndicator:
 
     @staticmethod
     def prepare_calculate_avsl(data):
+        """
+        Prepares data and parameters for calculating AVSL indicators.
+
+        Args:
+        - data (DataFrame): Input data containing 'Adj Close', 'Low', and 'Volume' columns.
+
+        Returns:
+        - Tuple: A tuple containing processed data and parameters for AVSL calculation.
+        """
         # Подготовка данных
         close_prices = data['Adj Close'].values.astype('float64')
         low_prices = data['Low'].values.astype('float64')
@@ -49,19 +81,38 @@ class AVSLIndicator:
 
     @staticmethod
     def calculate_avsl(data):
-        if not isinstance(data, pd.DataFrame):
-            print("Пошёл нахуй")
-        else:
-            close_prices, DeV, low_prices, VPC, VPR, VM, lenghtsSlow = AVSLIndicator.prepare_calculate_avsl(data)
-            PriceV = AVSLIndicator.price_fun(VPC, VPR, VM, low_prices)
-            AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=lenghtsSlow)
-            cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
-            cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
-            return(cross_up, cross_down, AVSL, close_prices)
+        """
+        Calculates AVSL indicators based on the provided data.
+
+        Args:
+        - data (DataFrame): Input data containing 'Adj Close', 'Low', and 'Volume' columns.
+
+        Returns:
+        - Tuple: A tuple containing cross up, cross down signals, AVSL values, and close prices.
+        """
+        close_prices, DeV, low_prices, VPC, VPR, VM, lenghtsSlow = AVSLIndicator.prepare_calculate_avsl(data)
+        PriceV = AVSLIndicator.price_fun(VPC, VPR, VM, low_prices)
+        AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=lenghtsSlow)
+        cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
+        cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
+        return(cross_up, cross_down, AVSL, close_prices)
 
 
     @staticmethod
     def avsl_visualization(cross_up, cross_down, AVSL, close_prices, data):
+        """
+        Visualizes AVSL indicators with price data.
+
+        Args:
+        - cross_up (array): Array indicating upward crosses.
+        - cross_down (array): Array indicating downward crosses.
+        - AVSL (array): Array of AVSL values.
+        - close_prices (array): Array of close prices.
+        - data (DataFrame): Input data for visualization.
+
+        Returns:
+        None
+        """
         fig, ax = plt.subplots(figsize=(14, 7))
         ax.plot(data.index, close_prices, label='Цена закрытия', color='blue')
         ax.plot(data.index, AVSL, label='AVSL', color='orange')
