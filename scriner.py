@@ -7,8 +7,9 @@ import schedule
 from datasets.database import DataAllDatasets
 from User.LoadSettings import LoadUserSettingData
 from utils.StartDelayCalculator import StartDelayCalc
+from User.Signals import CheckSignalData
 
-
+signal = {}
 # Загрузка пользовательских настроек
 flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port = LoadUserSettingData.load_user_settings()
 
@@ -24,6 +25,9 @@ Base.metadata.create_all(engine)
 print(f'\n\n{classes_dict}\n\n')
 # Создание сессии
 Session = sessionmaker(bind=engine)
+check_signal = CheckSignalData(flag, instIds[1], Base, Session, classes_dict,
+            load_data_after = None, load_data_before = None,
+            lenghts = 100)
 
 
 # Функция для запуска задачи в отдельном потоке
@@ -31,33 +35,30 @@ def run_job(job_func):
     job_thread = Thread(target=job_func)
     job_thread.start()
 
+def check_signal_15m(timeframes):
+    signal[timeframes[0]] = check_signal.avsl_signals(timeframes)
+    print(signal)
+    return signal
 
-schedule.every(15).minutes.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[0], Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = 100
-            ))
+def check_signal_1H(timeframes):
+    signal[timeframes[1]] = check_signal.avsl_signals(timeframes)
+    print(signal)
+    return signal
+    
+def check_signal_4H(timeframes):
+    signal[timeframes[2]] = check_signal.avsl_signals(timeframes)
+    print(signal)
+    return signal
 
+def check_signal_1D(timeframes):
+    signal[timeframes[3]] = check_signal.avsl_signals(timeframes)
+    print(signal)
+    return signal
 
-schedule.every(1).hours.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[1], Base, Session, classes_dict,
-            load_data_after=None, load_data_before=None,
-            lenghts=100
-            ))
-
-
-schedule.every(4).hours.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[2], Base, Session, classes_dict,
-            load_data_after=None, load_data_before=None,
-            lenghts=100
-            ))
-
-
-schedule.every(1).days.do(run_job, DataAllDatasets.get_current_chart_data(
-            flag, instIds[1], timeframes[3], Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = 100
-            ))
+schedule.every(1).minutes.do(run_job, check_signal_15m(timeframes[0]))
+schedule.every(2).minutes.do(run_job, check_signal_1H(timeframes[1]))
+schedule.every(3).minutes.do(run_job, check_signal_4H(timeframes[2]))
+schedule.every(4).minutes.do(run_job, check_signal_1D(timeframes[3]))
 
 
 def run_schedule():

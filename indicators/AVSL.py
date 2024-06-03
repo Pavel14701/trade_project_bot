@@ -2,7 +2,7 @@ import numpy as np
 import talib
 import matplotlib.pyplot as plt
 import pandas as pd
-#from test_data_loading import LoadDataFromYF
+from test_data_loading import LoadDataFromYF
 
 
 class AVSLIndicator:
@@ -88,14 +88,20 @@ class AVSLIndicator:
         - data (DataFrame): Input data containing 'Adj Close', 'Low', and 'Volume' columns.
 
         Returns:
-        - Tuple: A tuple containing cross up, cross down signals, AVSL values, and close prices.
+        - Tuple: A tuple containing cross up, cross down signals, AVSL values, close prices and signal at last bar.
         """
         close_prices, DeV, low_prices, VPC, VPR, VM, lenghtsSlow = AVSLIndicator.prepare_calculate_avsl(data)
         PriceV = AVSLIndicator.price_fun(VPC, VPR, VM, low_prices)
         AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=lenghtsSlow)
         cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
         cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
-        return(cross_up, cross_down, AVSL, close_prices)
+        # Проверка наличия сигнала на последнем баре
+        last_bar_signal = None
+        if cross_up[-1]:
+            last_bar_signal = 'cross_up'
+        elif cross_down[-1]:
+            last_bar_signal = 'cross_down'
+        return (cross_up, cross_down, AVSL, close_prices, last_bar_signal)
 
 
     @staticmethod
@@ -124,11 +130,10 @@ class AVSLIndicator:
         ax.set_ylabel('Цена')
         plt.show()
 
-
 """
-a = LoadDataFromYF("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-data = a.load_test_data()
+data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
 # Подготавливаем для расчета
-cross_up, cross_down, AVSL, close_prices = AVSLIndicator.calculate_avsl(data)
-AVSLIndicator.avsl_visualization(cross_up, cross_down, AVSL, close_prices, data)
+cross_up, cross_down, AVSL, close_prices, last_bar_signal = AVSLIndicator.calculate_avsl(data)
+#AVSLIndicator.avsl_visualization(cross_up, cross_down, AVSL, close_prices, data)
+print(last_bar_signal)
 """
