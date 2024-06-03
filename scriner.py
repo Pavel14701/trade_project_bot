@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import asyncio, time
+import time
 from threading import Thread
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -9,7 +9,6 @@ from User.LoadSettings import LoadUserSettingData
 from utils.StartDelayCalculator import StartDelayCalc
 from User.Signals import CheckSignalData
 
-signal = {}
 # Загрузка пользовательских настроек
 flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port = LoadUserSettingData.load_user_settings()
 
@@ -25,65 +24,52 @@ Base.metadata.create_all(engine)
 print(f'\n\n{classes_dict}\n\n')
 # Создание сессии
 Session = sessionmaker(bind=engine)
-check_signal = CheckSignalData(flag, instIds[1], Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = 100)
 
+# Функции для проверки сигналов
+def check_signal_15m():
+    signal = CheckSignalData.avsl_signals(flag, instIds[1], timeframes[0],
+                                          Base, Session, classes_dict,
+                                          host, port, db, lenghts=300)
+    # Обработка сигнала
+
+def check_signal_1H():
+    signal = CheckSignalData.avsl_signals(flag, instIds[1], timeframes[1],
+                                          Base, Session, classes_dict,
+                                          host, port, db, lenghts=300)
+    # Обработка сигнала
+
+def check_signal_4H():
+    signal = CheckSignalData.avsl_signals(flag, instIds[1], timeframes[2],
+                                          Base, Session, classes_dict,
+                                          host, port, db, lenghts=300)
+    # Обработка сигнала
+
+def check_signal_1D():
+    signal = CheckSignalData.avsl_signals(flag, instIds[1], timeframes[3],
+                                          Base, Session, classes_dict, 
+                                          host, port, db, lenghts=300)
+    # Обработка сигнала
 
 # Функция для запуска задачи в отдельном потоке
 def run_job(job_func):
+    print(f"Запуск функции: {job_func.__name__}")
     job_thread = Thread(target=job_func)
     job_thread.start()
 
-def check_signal_15m(timeframes):
-    signal[timeframes[0]] = check_signal.avsl_signals(timeframes)
-    print(signal)
-    return signal
+# Планировщик
+schedule.every(20).seconds.do(run_job, check_signal_15m)
+schedule.every(40).seconds.do(run_job, check_signal_1H)
+schedule.every(60).seconds.do(run_job, check_signal_4H)
+schedule.every(80).seconds.do(run_job, check_signal_1D)
 
-def check_signal_1H(timeframes):
-    signal[timeframes[1]] = check_signal.avsl_signals(timeframes)
-    print(signal)
-    return signal
-    
-def check_signal_4H(timeframes):
-    signal[timeframes[2]] = check_signal.avsl_signals(timeframes)
-    print(signal)
-    return signal
-
-def check_signal_1D(timeframes):
-    signal[timeframes[3]] = check_signal.avsl_signals(timeframes)
-    print(signal)
-    return signal
-
-schedule.every(1).minutes.do(run_job, check_signal_15m(timeframes[0]))
-schedule.every(2).minutes.do(run_job, check_signal_1H(timeframes[1]))
-schedule.every(3).minutes.do(run_job, check_signal_4H(timeframes[2]))
-schedule.every(4).minutes.do(run_job, check_signal_1D(timeframes[3]))
-
-
+# Функция для запуска планировщика
 def run_schedule():
     while True:
         schedule.run_pending()
         time.sleep(1)
 
-
-
-
-message = '415 база ответьте'
-
-# Асинхронная функция для отправки сообщений каждые 15 секунд
-async def send_messages_periodically(message, host, port, db):
-    while True:
-        LoadUserSettingData.publish_message('my-channel',message, host, port, db)
-        print('сообщение отправлено')
-        await asyncio.sleep(15)  # Ожидание 15 секунд
-
+# Точка входа в программу
 if __name__ == "__main__":
     #StartDelayCalc.startdelay()
     thread = Thread(target=run_schedule)
     thread.start()
-    # Запуск асинхронной функции
-    asyncio.run(send_messages_periodically(message, host, port, db))
-
-
-    

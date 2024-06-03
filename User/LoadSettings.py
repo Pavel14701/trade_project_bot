@@ -1,4 +1,4 @@
-import os, time, hmac, base64, hashlib, logging
+import os, time, hmac, base64, hashlib, logging, json
 from redis import Redis
 from dotenv import load_dotenv
 
@@ -111,24 +111,23 @@ class LoadUserSettingData:
                 print(f"Получено сообщение: {message['data'].decode('utf-8')}")
             time.sleep(1)
 
-    # Функция для публикации сообщения
+        # Функция для публикации сообщения
     @staticmethod
     def publish_message(channel, message, host, port, db):
-        """Summary:
-        Publish a message to a Redis channel.
-
-        Explanation:
-        This static method connects to a Redis server using the provided host, port, and database, and publishes a message to the specified channel.
+        """
+        Publishes a message to a Redis channel after serializing it to JSON.
 
         Args:
-        - channel: The channel to which the message will be published.
-        - message: The message to be published.
-        - host: The host address of the Redis server.
-        - port: The port number of the Redis server.
-        - db: The database number of the Redis server.
+            channel: The Redis channel to publish the message to.
+            message: The message to be serialized and published.
+            host: The host address of the Redis server.
+            port: The port number of the Redis server.
+            db: The database number of the Redis server.
 
         Returns:
-        None
+            None.
         """
+        message_json = json.dumps(message)
         r = Redis(host, port, db)
-        r.publish(channel, message)
+        r.publish(channel, message_json)
+        print(message_json)
