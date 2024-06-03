@@ -23,7 +23,7 @@ TradeSignals = data_all_datasets.create_TradeUserData(Base)
 Base.metadata.create_all(engine)
 print(f'\n\n{classes_dict}\n\n')
 # Создание сессии
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Функции для проверки сигналов
 def check_signal_15m():

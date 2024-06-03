@@ -135,3 +135,4 @@ Connected 2024-06-03T19:15:40.536798 - Response: {"event":"login","msg":"","code
 Connected 2024-06-03T19:17:09.839556 - Response: {"event":"login","msg":"","code":"0","connId":"332ad30c"}
 Connected 2024-06-03T19:19:14.619465 - Response: {"event":"login","msg":"","code":"0","connId":"29020b39"}
 Connected 2024-06-03T19:27:24.409519 - Response: {"event":"login","msg":"","code":"0","connId":"64dc8e78"}
+Connected 2024-06-04T00:00:57.106041 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"1f040752"}
