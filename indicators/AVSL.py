@@ -2,7 +2,7 @@ import numpy as np
 import talib
 import matplotlib.pyplot as plt
 import pandas as pd
-from test_data_loading import LoadDataFromYF
+#from test_data_loading import LoadDataFromYF
 
 
 class AVSLIndicator:
@@ -57,7 +57,7 @@ class AVSLIndicator:
         - Tuple: A tuple containing processed data and parameters for AVSL calculation.
         """
         # Подготовка данных
-        close_prices = data['Adj Close'].values.astype('float64')
+        close_prices = data['Close'].values.astype('float64')
         low_prices = data['Low'].values.astype('float64')
         volumes = data['Volume'].values.astype('float64')
         # Параметры
