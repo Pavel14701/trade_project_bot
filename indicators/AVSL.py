@@ -130,9 +130,10 @@ class AVSLIndicator:
         ax.set_ylabel('Цена')
         plt.show()
 
-
+"""
 data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
 # Подготавливаем для расчета
 cross_up, cross_down, AVSL, close_prices, last_bar_signal = AVSLIndicator.calculate_avsl(data)
 #AVSLIndicator.avsl_visualization(cross_up, cross_down, AVSL, close_prices, data)
 print(last_bar_signal)
+"""
