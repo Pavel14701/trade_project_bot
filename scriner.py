@@ -13,7 +13,7 @@ from User.Signals import CheckSignalData
 flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port = LoadUserSettingData.load_user_settings()
 
 # Настройка подключения к базе данных
-engine = create_engine("sqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserDatasets.db")
+engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
 Base = declarative_base()
 
 # Создание классов и таблиц
@@ -23,7 +23,7 @@ TradeSignals = data_all_datasets.create_TradeUserData(Base)
 Base.metadata.create_all(engine)
 print(f'\n\n{classes_dict}\n\n')
 # Создание сессии
-Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = sessionmaker(bind=engine)
 
 # Функции для проверки сигналов
 def check_signal_15m():
