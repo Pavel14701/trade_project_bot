@@ -270,9 +270,8 @@ class DataAllDatasets:
             print(f'\n\n{lenghts}\n\n')
             # Итерируемся по данным и заполняем список словарей
             for i in range(lenghts):
-                time = datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3)
                 data_dict = {
-                    'Datetime': time.strftime('%Y-%m-%d %H:%M:%S%z'),
+                    'Datetime': datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3),
                     'Open': float(result["data"][i][1]),
                     'High': float(result["data"][i][2]),
                     'Low': float(result["data"][i][3]),
@@ -281,30 +280,7 @@ class DataAllDatasets:
                     'Usdt Volume': float(result["data"][i][7])
                 }
                 data_list.append(data_dict)
-            class_name = f"ChartsData_{instId}_{timeframe}"
-            active_class = classes_dict[class_name]
-            with Session() as session:
-                # Итерируемся по строкам DataFrame
-                for index, row in data_frame.iterrows():
-                    # Создаем экземпляр класса модели для каждой строки
-                    data = active_class(
-                        TIMESTAMP=row['Datetime'],
-                        INSTRUMENT=instId,
-                        TIMEFRAME=timeframe,
-                        OPEN=row['Open'],
-                        CLOSE=row['Close'],
-                        HIGH=row['High'],
-                        LOW=row['Low'],
-                        VOLUME=row['Volume'],
-                        VOLUME_USDT=row['Usdt Volume']
-                    )
-                    # Проверяем, существует ли уже запись с таким же TIMESTAMP
-                    target_data = session.query(exists().where(active_class.TIMESTAMP == row['Datetime'])).scalar()
-                    if not target_data:
-                        # Если записи нет, добавляем новый экземпляр в сессию
-                        session.add(data)
-                # Применяем изменения в базе данных
-                session.commit()
+            DataAllDatasets.add_data_to_db(Session, data_list, classes_dict, instId, timeframe)
             # Создаем DataFrame из списка словарей
             data_frame = pd.DataFrame(data_list)
             # Преобразуем типы данных
@@ -321,7 +297,37 @@ class DataAllDatasets:
             print("Данные отсутствуют или неполные")
         return data_frame
                     
-                    
+    
+    @staticmethod
+    def add_data_to_db(Session, data_list, classes_dict, instId, timeframe):
+        print('\n\nenter in bd function\n\n')
+        class_name = f"ChartsData_{instId}_{timeframe}"
+        active_class = classes_dict[class_name]
+        with Session() as session:
+            for data_dict in data_list:
+                # Создаем экземпляр класса модели для каждой строки
+                data = active_class(
+                    TIMESTAMP=data_dict['Datetime'],
+                    INSTRUMENT=instId,
+                    TIMEFRAME=timeframe,
+                    OPEN=data_dict['Open'],
+                    CLOSE=data_dict['Close'],
+                    HIGH=data_dict['High'],
+                    LOW=data_dict['Low'],
+                    VOLUME=data_dict['Volume'],
+                    VOLUME_USDT=data_dict['Usdt Volume']
+                )
+                # Проверяем, существует ли уже запись с таким же TIMESTAMP
+                if not session.query(exists().where(active_class.TIMESTAMP == data.TIMESTAMP)).scalar():
+                    # Если записи нет, добавляем новый экземпляр в сессию
+                    session.add(data)
+            print('\n\n add data to bd\n\n')
+            # Применяем изменения в базе данных
+            try:
+                session.commit()
+            except Exception as e:
+                print(f"Ошибка при добавлении данных: {e}")
+                session.rollback()     
     """
     #Пример использования
     data_class = DataAllDatasets(instIds, flag, timeframes, Session)

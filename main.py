@@ -7,7 +7,7 @@ from datasets.database import DataAllDatasets
 from User.LoadSettings import LoadUserSettingData
 
 # Асинхронный движок для подключения к базе данных
-engine = create_async_engine("sqlite+aiosqlite:///C:\\Users\\Admin\\Desktop\\trade_project_bot\\datasets\\TradeUserDatasets.db")
+engine = create_async_engine("sqlite+aiosqlite:///./datasets/TradeUserDatasets.db")
 Base = declarative_base()
 
 # Асинхронная фабрика сессий
