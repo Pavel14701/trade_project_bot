@@ -103,10 +103,41 @@ class ZigZagIndicator:
         plt.ylabel('Price')
         plt.show()
 
-""""
-#Пример использования
-data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-print(data)
-data_peaks_valleys = ZigZagIndicator.calculate_zigzag(data, percent_change=0.036098)
-ZigZagIndicator.plot_zigzag(data_peaks_valleys)
-"""
+    @staticmethod
+    def identify_signals(data_peaks_valleys):
+        """Summary:
+        Identify buy and sell signals based on ZigZag peaks and valleys.
+
+        Explanation:
+        This static method identifies buy and sell signals based on the ZigZag peaks and valleys. A buy signal is generated when a valley is followed by a peak higher than the previous peak, and a sell signal is generated when a peak is followed by a valley lower than the previous valley.
+
+        Args:
+        - data_peaks_valleys: DataFrame containing date and ZigZag values for peaks and valleys.
+
+        Returns:
+        - DataFrame with buy and sell signals.
+        """
+        signals = pd.DataFrame(columns=['date', 'signal'])
+        last_peak = last_valley = None
+
+        for i in range(1, len(data_peaks_valleys)):
+            row = data_peaks_valleys.iloc[i]
+            prev_row = data_peaks_valleys.iloc[i-1]
+            if row['type'] == 'high' and prev_row['type'] == 'low':
+                if last_peak is None or row['zigzag_y'] > last_peak:
+                    signals = signals.append({'date': row['date'], 'signal': 'buy'}, ignore_index=True)
+                last_peak = row['zigzag_y']
+            elif row['type'] == 'low' and prev_row['type'] == 'high':
+                if last_valley is None or row['zigzag_y'] < last_valley:
+                    signals = signals.append({'date': row['date'], 'signal': 'sell'}, ignore_index=True)
+                last_valley = row['zigzag_y']
+
+        return signals
+
+# Пример использования
+# data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+# print(data)
+# data_peaks_valleys = ZigZagIndicator.calculate_zigzag(data, percent_change=0.036098)
+# signals = ZigZagIndicator.identify_signals(data_peaks_valleys)
+# print(signals)
+# ZigZagIndicator.plot_zigzag(data_peaks_valleys)

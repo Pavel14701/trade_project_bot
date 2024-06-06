@@ -76,3 +76,4 @@ async def main():
 # Запуск основной асинхронной функции
 if __name__ == '__main__':
     asyncio.run(main())
+    print("hello")
