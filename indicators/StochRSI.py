@@ -2,7 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import talib
 import pandas as pd
-#from test_data_loading import LoadDataFromYF
+
+
+# from test_data_loading import LoadDataFromYF
 
 
 class StochRSICalculator:
@@ -19,8 +21,7 @@ class StochRSICalculator:
     - For calculate_stochrsi: Tuple containing input data, Fast %D values, and Fast %K values.
     - For plot_stochrsi: None
     """
-    
-    
+
     @staticmethod
     def calculate_stochrsi(data):
         """Summary:
@@ -72,12 +73,15 @@ class StochRSICalculator:
         plt.plot(fastd, label='Fast %D line', color='orange')
         plt.fill_between(data.index, fastk, fastd, where=fastk > fastd, color='lightgreen', alpha=0.5)
         plt.fill_between(data.index, fastk, fastd, where=fastk < fastd, color='lightcoral', alpha=0.5)
-        plt.plot(data.index[buy_signals], fastk[buy_signals], '^', markersize=10, color='g', lw=0, label='Сигнал к покупке')
-        plt.plot(data.index[sell_signals], fastk[sell_signals], 'v', markersize=10, color='r', lw=0, label='Сигнал к продаже')
+        plt.plot(data.index[buy_signals], fastk[buy_signals], '^', markersize=10, color='g', lw=0,
+                 label='Сигнал к покупке')
+        plt.plot(data.index[sell_signals], fastk[sell_signals], 'v', markersize=10, color='r', lw=0,
+                 label='Сигнал к продаже')
         plt.title('Stochastic RSI (StochRSI)')
         plt.legend()
         plt.tight_layout()
         plt.show()
+
 
 """
 #Пример использования

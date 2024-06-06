@@ -2,7 +2,9 @@ import talib
 import matplotlib.pyplot as plt
 import mplcursors
 from matplotlib.widgets import Cursor
-#from test_data_loading import LoadDataFromYF
+
+
+# from test_data_loading import LoadDataFromYF
 
 
 class CloudsRsi:
@@ -22,8 +24,7 @@ class CloudsRsi:
     - For calculate_rsi_clouds: DataFrame with RSI Short EMA, RSI Long EMA, Cross Up, and Cross Down signals.
     - For create_vizualization_rsi_clouds: None
     """
-    
-    
+
     @staticmethod
     def calculate_rsi_clouds(data, rsi_period_short, rsi_period_long, ema_period):
         """Summary:
@@ -51,13 +52,14 @@ class CloudsRsi:
         data['RSI_Short_EMA'] = rsi_short_ema
         data['RSI_Long_EMA'] = rsi_long_ema
         # Сигналы пересечения
-        cross_up = (data['RSI_Short_EMA'] > data['RSI_Long_EMA']) & (data['RSI_Short_EMA'].shift(1) <= data['RSI_Long_EMA'].shift(1))
-        cross_down = (data['RSI_Short_EMA'] < data['RSI_Long_EMA']) & (data['RSI_Short_EMA'].shift(1) >= data['RSI_Long_EMA'].shift(1))
+        cross_up = (data['RSI_Short_EMA'] > data['RSI_Long_EMA']) & (
+                    data['RSI_Short_EMA'].shift(1) <= data['RSI_Long_EMA'].shift(1))
+        cross_down = (data['RSI_Short_EMA'] < data['RSI_Long_EMA']) & (
+                    data['RSI_Short_EMA'].shift(1) >= data['RSI_Long_EMA'].shift(1))
         # Добавляем сигналы в DataFrame
         data['Cross_Up'] = cross_up
         data['Cross_Down'] = cross_down
         return data
-
 
     @staticmethod
     def create_vizualization_rsi_clouds(data):
@@ -77,16 +79,20 @@ class CloudsRsi:
         oversold = 30
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
         ax1.plot(data.index, data['Close'], label='AAPL Close Price', color='black')
-        ax1.scatter(data.index[data['Cross_Up']], data['Close'][data['Cross_Up']], color='green', label='Cross Up', marker='^', alpha=1)
-        ax1.scatter(data.index[data['Cross_Down']], data['Close'][data['Cross_Down']], color='red', label='Cross Down', marker='v', alpha=1)
+        ax1.scatter(data.index[data['Cross_Up']], data['Close'][data['Cross_Up']], color='green', label='Cross Up',
+                    marker='^', alpha=1)
+        ax1.scatter(data.index[data['Cross_Down']], data['Close'][data['Cross_Down']], color='red', label='Cross Down',
+                    marker='v', alpha=1)
         ax1.set_title('AAPL Stock Price')
         ax1.set_ylabel('Price', color='black')
         ax1.tick_params(axis='y', labelcolor='black')
         ax1.legend(loc='upper left')
         ax2.plot(data.index, data['RSI_Short_EMA'], label='RSI Short EMA (7)', color='blue')
         ax2.plot(data.index, data['RSI_Long_EMA'], label='RSI Long EMA (14)', color='orange')
-        ax2.scatter(data.index[data['Cross_Up']], data['RSI_Short_EMA'][data['Cross_Up']], color='green', label='Cross Up', marker='^', alpha=1)
-        ax2.scatter(data.index[data['Cross_Down']], data['RSI_Short_EMA'][data['Cross_Down']], color='red', label='Cross Down', marker='v', alpha=1)
+        ax2.scatter(data.index[data['Cross_Up']], data['RSI_Short_EMA'][data['Cross_Up']], color='green',
+                    label='Cross Up', marker='^', alpha=1)
+        ax2.scatter(data.index[data['Cross_Down']], data['RSI_Short_EMA'][data['Cross_Down']], color='red',
+                    label='Cross Down', marker='v', alpha=1)
         ax2.axhline(y=overbought, color='darkred', linestyle='--', label='Overbought (70)')
         ax2.axhline(y=oversold, color='darkgreen', linestyle='--', label='Oversold (30)')
         ax2.set_title('RSI Cloud Indicator with Signals')

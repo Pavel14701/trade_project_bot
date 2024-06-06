@@ -39,7 +39,8 @@ class KAMA:
         kama = np.zeros(len(data))
         kama[period] = (data['High'].iloc[period] + data['Low'].iloc[period]) / 2 # используем среднее между high и low
         for i in range(period + 1, len(data)):
-            kama[i] = kama[i-1] + sc.iloc[i] * ((data['High'].iloc[i] + data['Low'].iloc[i]) / 2 - kama[i-1]) # используем .iloc[] для sc
+            # используем .iloc[] для sc
+            kama[i] = kama[i-1] + sc.iloc[i] * ((data['High'].iloc[i] + data['Low'].iloc[i]) / 2 - kama[i-1])
         return kama
 
 
@@ -47,7 +48,13 @@ class KAMA:
     def calculate_kama(data, period, fast, slow):
 
         # Добавляем колонку с KAMA в датафрейм
-        data['KAMA_H'] = KAMA.kama(data, period, fast, slow)
+        data['KAMA'] = KAMA.kama(data, period, fast, slow)
+
+        # Генерация сигналов покупки и продажи
+        data['Signal'] = 0  # Инициализация колонки сигналов
+        data.loc[data['Close'] > data['KAMA'], 'Signal'] = 1  # Сигнал на покупку
+        data.loc[data['Close'] < data['KAMA'], 'Signal'] = -1  # Сигнал на продажу
+
         return data
     
 
@@ -80,3 +87,4 @@ print(data)
 data = KAMA.calculate_kama(data, period = 54, fast = 3, slow = 34)
 KAMA.create_visualization_kama(data)
 """
+
