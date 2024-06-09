@@ -101,33 +101,7 @@ class AVSLIndicator:
             last_bar_signal = 'cross_down'
         return cross_up, cross_down, AVSL, close_prices, last_bar_signal
 
-    @staticmethod
-    def avsl_visualization(cross_up, cross_down, AVSL, close_prices, data):
-        """
-        Visualizes AVSL indicators with price data.
 
-        Args:
-        - cross_up (array): Array indicating upward crosses.
-        - cross_down (array): Array indicating downward crosses.
-        - AVSL (array): Array of AVSL values.
-        - close_prices (array): Array of close prices.
-        - data (DataFrame): Input data for visualization.
-
-        Returns:
-        None
-        """
-        fig, ax = plt.subplots(figsize=(14, 7))
-        ax.plot(data.index, close_prices, label='Цена закрытия', color='blue')
-        ax.plot(data.index, AVSL, label='AVSL', color='orange')
-        ax.scatter(data.index[cross_up], close_prices[cross_up], color='green', label='Пересечение вверх', marker='^',
-                   alpha=0.7)
-        ax.scatter(data.index[cross_down], close_prices[cross_down], color='red', label='Пересечение вниз', marker='v',
-                   alpha=0.7)
-        ax.legend()
-        ax.set_title('Визуализация AVSL')
-        ax.set_xlabel('Дата')
-        ax.set_ylabel('Цена')
-        plt.show()
 
 """
 data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")

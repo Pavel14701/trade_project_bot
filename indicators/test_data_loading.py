@@ -1,5 +1,6 @@
 import yfinance as yf
 
+
 class LoadDataFromYF:
     """Summary:
     Class for loading test data from Yahoo Finance.
@@ -16,8 +17,7 @@ class LoadDataFromYF:
     Returns:
     - The loaded test data.
     """
-    
-    
+
     @staticmethod
     def load_test_data(ticker, start, end, timeframe):
         """Summary:
@@ -38,8 +38,8 @@ class LoadDataFromYF:
         # sourcery skip: inline-immediately-returned-variable
         data = yf.download(ticker, start, end, interval=timeframe)
         return data
-    
+
+
 data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
 print(data)
-print(type(data))    
-
+print(type(data))

@@ -2,8 +2,9 @@ import matplotlib.pyplot as plt
 import talib
 import numpy as np
 
+from test_data_loading import LoadDataFromYF
+from graphics.IndicatorDrawer import IndicatorDrawer
 
-# from test_data_loading import LoadDataFromYF
 
 class BollindgerBands:
     """
@@ -43,29 +44,6 @@ class BollindgerBands:
         return data
 
     @staticmethod
-    def create_vizualization_bb(data):
-        """
-        Creates a visualization of stock price with Bollinger Bands.
-
-        Args:
-        - data (DataFrame): Input data containing 'Close', 'Upper Band', 'Middle Band', and 'Lower Band' values.
-
-        Returns:
-        None
-        """
-        fig, ax = plt.subplots(figsize=(14, 7))
-        ax.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
-        ax.plot(data.index, data['Upper Band'], label='Верхняя полоса', color='red', linestyle='--')
-        ax.plot(data.index, data['Middle Band'], label='Средняя полоса', color='black', linestyle='-.')
-        ax.plot(data.index, data['Lower Band'], label='Нижняя полоса', color='green', linestyle='--')
-        ax.fill_between(data.index, data['Upper Band'], data['Lower Band'], color='grey', alpha=0.1)
-        ax.legend()
-        ax.set_title('Визуализация полос Боллинджера')
-        ax.set_xlabel('Дата')
-        ax.set_ylabel('Цена')
-        plt.show()
-
-    @staticmethod
     def generate_signals(data):
         """
         Generates trading signals based on the position of the closing price relative to the Bollinger Bands.
@@ -93,34 +71,11 @@ class BollindgerBands:
         data['Sell Signal'] = sell_signal
         return data
 
-    @staticmethod
-    def create_vizualization_bb_with_signals(data):
-        """
-        Creates a visualization of stock price with Bollinger Bands and trading signals.
-
-        Args:
-        - data (DataFrame): Input data containing 'Close', 'Upper Band', 'Middle Band', 'Lower Band', 'Buy Signal', and 'Sell Signal'.
-
-        Returns:
-        None
-        """
-        fig, ax = plt.subplots(figsize=(14, 7))
-        # Existing code for visualization
-        ax.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
-        ax.plot(data.index, data['Upper Band'], label='Верхняя полоса', color='red', linestyle='--')
-        ax.plot(data.index, data['Middle Band'], label='Средняя полоса', color='black', linestyle='-.')
-        ax.plot(data.index, data['Lower Band'], label='Нижняя полоса', color='green', linestyle='--')
-        ax.fill_between(data.index, data['Upper Band'], data['Lower Band'], color='grey', alpha=0.1)
-        # Signals visualization
-        ax.scatter(data.index, data['Buy Signal'], label='Сигнал к покупке', marker='^', color='green')
-        ax.scatter(data.index, data['Sell Signal'], label='Сигнал к продаже', marker='v', color='red')
-        ax.legend()
-        plt.show()
 
 # Пример использования новых методов
-# data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-# print(data)
-# data = BollindgerBands.calculate_bands(data, lenghts=34, stdev=2)
-# print(data)
-# data = BollindgerBands.generate_signals(data)
-# BollindgerBands.create_vizualization_bb_with_signals(data)
+data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+print(data)
+data = BollindgerBands.calculate_bands(data, lenghts=34, stdev=2)
+print(data)
+data = BollindgerBands.generate_signals(data)
+IndicatorDrawer.draw_bb(data)

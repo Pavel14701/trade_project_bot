@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import signal
-#from test_data_loading import LoadDataFromYF
+
+from test_data_loading import LoadDataFromYF
+from graphics.IndicatorDrawer import IndicatorDrawer
 
 
 class ZigZagIndicator:
@@ -74,34 +75,8 @@ class ZigZagIndicator:
                 mask.append(False)
         data_peaks_valleys = data_peaks_valleys[mask]
         return (data_peaks_valleys)
-    
 
-    @staticmethod
-    def plot_zigzag(data_peaks_valleys):
-        """Summary:
-        Plot the ZigZag indicator.
 
-        Explanation:
-        This static method generates a plot of the ZigZag indicator based on the peaks and valleys data provided.
-
-        Args:
-        - data_peaks_valleys: DataFrame containing date and ZigZag values for peaks and valleys.
-
-        Returns:
-        None
-        """
-        plt.figure(figsize=(10, 10))
-        plt.plot(data_peaks_valleys["date"], data_peaks_valleys["zigzag_y"], color="blue", label="ZigZag")
-
-        # Добавляем горизонтальные отрезки для каждой точки ZigZag
-        for i in range(len(data_peaks_valleys) - 1):
-            plt.hlines(y=data_peaks_valleys.iloc[i]["zigzag_y"], xmin=data_peaks_valleys.iloc[i]["date"], xmax=data_peaks_valleys.iloc[i + 1]["date"], color="green", linestyle=":", linewidth=1)
-
-        plt.legend()
-        plt.title('ZigZag Indicator')
-        plt.xlabel('Date')
-        plt.ylabel('Price')
-        plt.show()
 
     @staticmethod
     def identify_signals(data_peaks_valleys):
@@ -135,9 +110,9 @@ class ZigZagIndicator:
         return signals
 
 # Пример использования
-# data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-# print(data)
-# data_peaks_valleys = ZigZagIndicator.calculate_zigzag(data, percent_change=0.036098)
-# signals = ZigZagIndicator.identify_signals(data_peaks_valleys)
-# print(signals)
-# ZigZagIndicator.plot_zigzag(data_peaks_valleys)
+data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+print(data)
+data_peaks_valleys = ZigZagIndicator.calculate_zigzag(data, percent_change=0.036098)
+signals = ZigZagIndicator.identify_signals(data_peaks_valleys)
+print(signals)
+IndicatorDrawer.draw_zigzag(data_peaks_valleys)

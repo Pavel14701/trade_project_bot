@@ -3,7 +3,8 @@ import talib
 
 
 # Здесь должен быть ваш код для загрузки данных, например из Yahoo Finance
-# from test_data_loading import LoadDataFromYF
+from test_data_loading import LoadDataFromYF
+from graphics.IndicatorDrawer import IndicatorDrawer
 
 class MesaAdaptiveMA:
     """Summary:
@@ -43,40 +44,10 @@ class MesaAdaptiveMA:
         sell_signals = (mama < fama) & (mama.shift(1) > fama.shift(1))
         return (mama, fama, data, buy_signals, sell_signals)
 
-    @staticmethod
-    def plot_mama(mama, fama, data, buy_signals, sell_signals):
-        """Summary:
-        Построение MESA Adaptive Moving Average (MAMA) и FAMA.
 
-        Explanation:
-        Этот статический метод визуализирует цену закрытия вместе с значениями MAMA и FAMA, выделяя сигналы покупки и продажи на графике цен.
 
-        Args:
-        - mama: Значения MAMA.
-        - fama: Значения FAMA.
-        - data: Входные данные, содержащие цены закрытия.
-        - buy_signals: Булевый массив, указывающий сигналы покупки.
-        - sell_signals: Булевый массив, указывающий сигналы продажи.
-
-        Returns:
-        None
-        """
-        # Визуализируем данные
-        plt.figure(figsize=(10, 5))
-        plt.plot(data['Close'], label='Цена закрытия')
-        plt.plot(mama, label='MAMA', color='red')
-        plt.plot(fama, label='FAMA', color='green')
-        # Добавляем сигналы на график
-        plt.plot(data.index[buy_signals], data['Close'][buy_signals], '^', markersize=10, color='g', lw=0,
-                 label='Сигнал покупки')
-        plt.plot(data.index[sell_signals], data['Close'][sell_signals], 'v', markersize=10, color='r', lw=0,
-                 label='Сигнал продажи')
-        plt.title('MESA Adaptive Moving Average (MAMA) и FAMA')
-        plt.legend()
-        plt.show()
-
-# Пример использования
-# data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-# print(data)
-# mama, fama, data, buy_signals, sell_signals = MesaAdaptiveMA.calculate_mama(data)
-# MesaAdaptiveMA.plot_mama(mama, fama, data, buy_signals, sell_signals)
+#Пример использования
+data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+print(data)
+mama, fama, data, buy_signals, sell_signals = MesaAdaptiveMA.calculate_mama(data)
+IndicatorDrawer.draw_mama(mama, fama, data, buy_signals, sell_signals)

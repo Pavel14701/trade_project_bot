@@ -1,0 +1,11 @@
+pandas~=2.2.2
+redis~=5.0.4
+python-dotenv~=1.0.1
+websockets~=12.0
+SQLAlchemy~=2.0.30
+matplotlib~=3.9.0
+numpy~=1.26.4
+mplcursors~=0.5.3
+yfinance~=0.2.40
+scipy~=1.13.1
+schedule~=1.2.2
