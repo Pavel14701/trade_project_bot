@@ -39,15 +39,16 @@ class MesaAdaptiveMA:
         mid_prices = (data['High'] + data['Low']) / 2
         # Вычисляем MAMA и FAMA, используя средние цены
         mama, fama = talib.MAMA(mid_prices, fastlimit=0.5, slowlimit=0.05)
-        # Создаем сигналы для покупки и продажи
-        buy_signals = (mama > fama) & (mama.shift(1) < fama.shift(1))
-        sell_signals = (mama < fama) & (mama.shift(1) > fama.shift(1))
-        return (mama, fama, data, buy_signals, sell_signals)
+        data['MAMA'] = mama
+        data['FAMA'] = fama
+
+        return data
 
 
 
 #Пример использования
 data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+
 print(data)
 mama, fama, data, buy_signals, sell_signals = MesaAdaptiveMA.calculate_mama(data)
 IndicatorDrawer.draw_mama(mama, fama, data, buy_signals, sell_signals)

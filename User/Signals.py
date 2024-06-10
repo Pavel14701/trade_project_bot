@@ -1,6 +1,5 @@
 from datetime import datetime
-import pandas as pd
-from indicators.AVSL import AVSLIndicator
+from indicators.separate_files.AVSL import AVSLIndicator
 from datasets.database import DataAllDatasets
 from User.LoadSettings import LoadUserSettingData
 

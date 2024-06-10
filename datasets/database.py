@@ -18,12 +18,12 @@ class DataAllDatasets:
     Returns:
         None.
     """
+
     def __init__(self, instIds, flag, timeframes, Session=None):
         self.instIds = instIds
         self.timeframes = timeframes
         self.Session = Session
         self.flag = flag
-
 
     # Функция для создания классов с заданными параметрами
     def create_classes(self, Base):
@@ -58,7 +58,6 @@ class DataAllDatasets:
         print(classes)
         return classes
 
-    
     def create_TradeUserData(self, Base):
         """
         Creates a TradeUserData class for managing positions and orders.
@@ -84,8 +83,8 @@ class DataAllDatasets:
             "money_in_deal": Column(Integer),
             "side_of_trade": Column(String),
             "order_volume": Column(Integer),
-            "leverage":  Column(Integer),
-            "time" : Column(DateTime),
+            "leverage": Column(Integer),
+            "time": Column(DateTime),
             "status": Column(Boolean),
             "tp_price": Column(Numeric(10, 4)),
             "tp_order_id": Column(String),
@@ -101,7 +100,6 @@ class DataAllDatasets:
         TradeUserData = class_
         return TradeUserData
 
-    
     # Вывод данных из бд в дикте
     # Метод для получения данных из таблиц
     def get_bd_marketdata(self, classes, timeframe):
@@ -145,20 +143,19 @@ class DataAllDatasets:
             d = dict(
                 (col, [row[i] for row in query]) for i, col in enumerate(
                     ['date', 'open', 'close', 'high', 'low', 'volume', 'volume_usdt']
-                    ))
+                ))
             # Добавляем ключ и значение в словарь
             data[timeframe] = d
         # Возвращаем словарь данных
         return data
 
-    
     # Запрос на получение последних данных из биржи
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
     def get_charts(
             self, Base, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = None
-            ):
+            load_data_after=None, load_data_before=None,
+            lenghts=None
+    ):
         """
         Requests and stores market data from an API.
 
@@ -172,7 +169,7 @@ class DataAllDatasets:
         Returns:
             None.
         """
-        
+
         if load_data_before is None:
             load_data_before = ''
         if load_data_after is None:
@@ -187,12 +184,12 @@ class DataAllDatasets:
                     after=load_data_after,
                     before=load_data_before,
                     bar=timeframe,
-                    limit=lenghts # 300 Лимит Okx на 1 реквест
+                    limit=lenghts  # 300 Лимит Okx на 1 реквест
                 )
                 print(result)
                 # sourcery skip: remove-zero-from-range
-                for i in range(0, lenghts-1):
-                    time = datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3)
+                for i in range(0, lenghts - 1):
+                    time = datetime.fromtimestamp(int(result["data"][i][0]) / 1000) + timedelta(hours=3)
                     open_ = result["data"][i][1]
                     close = result["data"][i][2]
                     high = result["data"][i][3]
@@ -217,17 +214,15 @@ class DataAllDatasets:
                                 VOLUME_USDT=volume_usdt
                             )
                             session.add(data)
-                            #Применяем изменения
+                            # Применяем изменения
                             session.commit()
 
-
-    
     @staticmethod
     def get_current_chart_data(
             flag, instId, timeframe, Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = None
-            ):
+            load_data_after=None, load_data_before=None,
+            lenghts=None
+    ):
         """
         Requests and stores current market data from an API.
 
@@ -258,7 +253,7 @@ class DataAllDatasets:
             after=load_data_after,
             before=load_data_before,
             bar=timeframe,
-            limit=lenghts # 300 Лимит Okx на 1 реквест
+            limit=lenghts  # 300 Лимит Okx на 1 реквест
         )
         lenghts = len(result["data"])
         print(result)
@@ -271,7 +266,7 @@ class DataAllDatasets:
             # Итерируемся по данным и заполняем список словарей
             for i in range(lenghts):
                 data_dict = {
-                    'Datetime': datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3),
+                    'Datetime': datetime.fromtimestamp(int(result["data"][i][0]) / 1000) + timedelta(hours=3),
                     'Open': float(result["data"][i][1]),
                     'High': float(result["data"][i][2]),
                     'Low': float(result["data"][i][3]),
@@ -296,8 +291,7 @@ class DataAllDatasets:
         else:
             print("Данные отсутствуют или неполные")
         return data_frame
-                    
-    
+
     @staticmethod
     def add_data_to_db(Session, data_list, classes_dict, instId, timeframe):
         print('\n\nenter in bd function\n\n')
@@ -327,14 +321,10 @@ class DataAllDatasets:
                 session.commit()
             except Exception as e:
                 print(f"Ошибка при добавлении данных: {e}")
-                session.rollback()     
+                session.rollback()
+
     """
     #Пример использования
     data_class = DataAllDatasets(instIds, flag, timeframes, Session)
     data_class.get_charts(Base, classes_dict, None, None, 300)
     """
-
-
-
-
-

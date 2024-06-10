@@ -96,7 +96,7 @@ class IndicatorDrawer:
         plt.show()
 
     @staticmethod
-    def draw_bb(data):
+    def draw_bollinger_bands(data):
         """
         Creates a visualization of stock price with Bollinger Bands and trading signals.
 
@@ -133,7 +133,7 @@ class IndicatorDrawer:
         # Строим график цены и KAMA
         plt.figure(figsize=(12,8))
         plt.plot(data['Close'], label='Price')
-        plt.plot(data['KAMA_H'], label='KAMA_H')
+        plt.plot(data['KAMA'], label='KAMA')
         plt.title('Btc Price and KAMA')
         plt.xlabel('Date')
         plt.ylabel('USD')
