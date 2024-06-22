@@ -11,6 +11,15 @@ class StreamData:
     - load_data_for_period(Session, classes_dict, data): Loads data for a specific period.
     """
     def __init__(self, lengths, instId, timeframe, flag):
+        """
+        Initializes the object with provided parameters.
+
+        Args:
+        - lengths: The lengths parameter.
+        - instId: The instId parameter.
+        - timeframe: The timeframe parameter.
+        - flag: The flag parameter.
+        """
         super().__init__(lengths, instId, timeframe, flag)
         
     def load_data(self, Session, classes_dict):
