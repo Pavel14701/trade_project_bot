@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import talib
-#from test_data_loading import LoadDataFromYF
+from test_data_loading import LoadDataFromYF
 
 
 class BollindgerBands:
@@ -11,9 +11,14 @@ class BollindgerBands:
     - calculate_bands(data, lenghts, stdev): Calculates Bollinger Bands based on the given data, lengths, and standard deviations.
     - create_vizualization_bb(data): Creates a visualization of stock price with Bollinger Bands.
     """
+    def __init__ (self, data, lenghts, stdev):
+        self.data = data
+        self.lenghts = lenghts
+        self.stdev = stdev 
+
     
-    @staticmethod
-    def calculate_bands(data, lenghts, stdev):
+
+    def calculate_bands(self):
         """
         Calculates Bollinger Bands based on the given data, lengths, and standard deviations.
 
@@ -30,9 +35,9 @@ class BollindgerBands:
         # Рассчитываем полосы Боллинджера на основе среднего значения между High и Low
         upper_band, middle_band, lower_band = talib.BBANDS(
             high_low_average,
-            timeperiod=lenghts, # Defolt 20
-            nbdevup=stdev, # cтандарт 2
-            nbdevdn=stdev, # стандарт 2 не знаю нахуя тут два пункта
+            timeperiod=self.lenghts, # Defolt 20
+            nbdevup=self.stdev, # cтандарт 2
+            nbdevdn=self.stdev, # стандарт 2 не знаю нахуя тут два пункта
             matype=0 # тип скользящей 
         )
         # Добавляем результаты в DataFrame
@@ -65,11 +70,11 @@ class BollindgerBands:
         ax.set_ylabel('Цена')
         plt.show()
 
-""""
+
 #Пример использования
-data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
 print(data)
 data = BollindgerBands.calculate_bands(data, lenghts=34, stdev=2)
 print(data)
 BollindgerBands.create_vizualization_bb(data)
-"""
+

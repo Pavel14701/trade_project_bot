@@ -13,7 +13,7 @@ class SQLStateStorage(Base):
     VOLUME = Column(Numeric(10, 4), nullable=True) #ever
     TIME = Column(DateTime) #ever(check)
 
-class States:
+class StateRequest:
     def __init__(self, IntsId, timeframe, AsyncSessionLocal):
         self.InstId = IntsId
         self.timeframe = timeframe
