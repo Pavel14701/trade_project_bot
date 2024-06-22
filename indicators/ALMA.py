@@ -1,14 +1,28 @@
+from functools import singledispatchmethod
 import numpy as np
 import matplotlib.pyplot as plt
+from pandas import DataFrame
 #from test_data_loading import LoadDataFromYF
 
 
 class AlmaIndicator:
+    def __init__(
+        self, data:DataFrame, lenghts:int, lenghtsVSlow=None|int, lenghtsVFast=None|int,
+        lenghtsSlow=None|int, lenghtsMiddle=None|int, lenghtsFast=None|int
+        ):
+        self.data = data
+        if lenghts is None:
+            self.lenghts = lenghtsVSlow
+            self.lenghtsVSlow = lenghtsVSlow
+            self.lenghtsSlow = lenghtsSlow
+            self.lenghtsMiddle = lenghtsMiddle
+            self.lenghtsFast = lenghtsFast
+            self.lenghtsVFast = lenghtsVFast
+        else:
+            self.lenghts = lenghts
 
     
-    
-    @staticmethod
-    def calculate_alma(data, lenghts):
+    def calculate_alma(self):
         """
         Calculate ALMA indicator based on the given data and lengths.
 
@@ -19,13 +33,15 @@ class AlmaIndicator:
         Returns:
             Pandas DataFrame with ALMA values added as a new column.
         """
+        if self.lenghts is None:
+            raise NotImplementedError("lenghts param must be integer")
         # Вычисляем ALMA с длиной окна 20 и стандартными параметрами
-        m = (lenghts - 1) / 2
-        sigma = lenghts / 6
-        w = np.exp(-(np.arange(lenghts) - m)**2 / (2 * sigma**2))
+        m = (self.lenghts - 1) / 2
+        sigma = self.lenghts / 6
+        w = np.exp(-(np.arange(self.lenghts) - m)**2 / (2 * sigma**2))
         w = w / w.sum()
-        data["ALMA"] = data["Close"].rolling(lenghts).apply(lambda x: np.dot(x, w), raw=True)
-        return data
+        self.data["ALMA"] = self.data["Close"].rolling(self.lenghts).apply(lambda x: np.dot(x, w), raw=True)
+        return self.data
     
 
     @staticmethod
@@ -51,7 +67,7 @@ class AlmaIndicator:
 
 
     @staticmethod
-    def calculate_alma_ribbon(data, lenghtsVSlow, lenghtsSlow, lenghtsMiddle, lenghtsFast, lenghtsVFast):
+    def calculate_alma_ribbon(self):
         """
         Calculates multiple ALMA indicators based on different lengths for the given data.
 
