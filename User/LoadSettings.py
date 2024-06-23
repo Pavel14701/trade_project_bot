@@ -1,33 +1,19 @@
 import os, time, hmac, base64, hashlib, logging
-from functools import singledispatchmethod
 from dotenv import load_dotenv
-from datasets.cache 
+from datasets.RedisCache import RedisCache
 
 class LoadUserSettingData:
-    @singledispatchmethod
-    def process(self, cls):
-        raise NotImplementedError("Unsupported shape type")
-
-    @process.register
-    def _(self, cls: ):
-        self.host = str(os.getenv("HOST"))
-        self.port = int(os.getenv("PORT"))
-        self.db = int(os.getenv("DB"))
-
-    @process.register
-    def _(self, cls: Square):
-        print(f"Processing square: {shape.name}")
-
     def __init__(self):
-        load_dotenv('.env')
+        load_dotenv()
         self.flag = str(os.getenv("FLAG"))
         self.timeframes = tuple(str(os.getenv("TIMEFRAMES")).split(','))
         self.instIds = tuple(str(os.getenv("INSTIDS")).split(','))
         self.passphrase = str(os.getenv("PASSPHRASE"))
         self.api_key = str(os.getenv("API_KEY"))
         self.secret_key = str(os.getenv("SECRET_KEY"))
-
-
+        self.host = str(os.getenv("HOST"))
+        self.port = int(os.getenv("PORT"))
+        self.db = int(os.getenv("DB"))
 
 
     #Создание подписи для private подписки

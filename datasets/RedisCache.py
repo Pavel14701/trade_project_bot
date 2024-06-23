@@ -1,23 +1,25 @@
 import pickle, time, json
 from redis import Redis
 import pandas as pd
+from User.LoadSettings import LoadUserSettingData
 
 
-class RedisCache:    
-    def __init__(self, data, instId, timeframe, host, port, bd):
+class RedisCache(LoadUserSettingData): 
+    def __init__(self, data: pd.DataFrame, instId: str, timeframe: str):
+        super().__init__(self.host, self.port, self.db)
         self.data = data
         self.instId = instId
         self.timeframe = timeframe
-        self.r = Redis(host, port, bd)
+        self.r = Redis(self.host, self.port, self.db)
         
         
     def add_data_to_cache(self):
         pickled_df = pickle.dumps(self.data)
-        self.r.set('my_dataframe', pickled_df)
+        self.r.set(f'df_{self.instId}_{self.timeframe}', pickled_df)
 
 
     def load_data_from_cache(self):
-        data = pickle.loads(self.r.get('my_dataframe'))
+        data = pickle.loads(self.r.get(f'df_{self.instId}_{self.timeframe}'))
         return pd.DataFrame(data)
         
         

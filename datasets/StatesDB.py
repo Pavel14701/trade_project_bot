@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
+from utils.DataLoadSettings import DataLoadSetting
 
 Base = declarative_base()
 
@@ -13,10 +14,9 @@ class SQLStateStorage(Base):
     VOLUME = Column(Numeric(10, 4), nullable=True) #ever
     TIME = Column(DateTime) #ever(check)
 
-class StateRequest:
-    def __init__(self, IntsId, timeframe, AsyncSessionLocal):
-        self.InstId = IntsId
-        self.timeframe = timeframe
+class StateRequest(DataLoadSetting):
+    def __init__(self, AsyncSessionLocal):
+        super().__init__(self.timeframe, self.instId)
         self.AsyncSessionLocal = AsyncSessionLocal
 
 
