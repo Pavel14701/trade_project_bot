@@ -1,41 +1,24 @@
+import sys
+sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from sqlalchemy.sql import exists
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 import pandas as pd
+from sqlalchemy.orm import declarative_base
 from datetime import datetime, timedelta
 from okx import MarketData
+from User.LoadSettings import LoadUserSettingData
 
+Base = declarative_base()
 
-class DataAllDatasets:
-    """
-    Initializes DataAllDatasets with provided parameters.
-
-    Args:
-        instIds: List of instrument IDs.
-        flag: Flag for DataAllDatasets.
-        timeframes: List of timeframes.
-        Session: Session for database interaction.
-
-    Returns:
-        None.
-    """
-    def __init__(self, instIds, flag, timeframes, Session=None):
-        self.instIds = instIds
-        self.timeframes = timeframes
+class DataAllDatasets(LoadUserSettingData):
+    def __init__(self, Session=None):
+        super().__init__()
         self.Session = Session
-        self.flag = flag
+
 
 
     # Функция для создания классов с заданными параметрами
     def create_classes(self, Base):
-        """
-        Creates classes with specified parameters.
-
-        Args:
-            Base: The base class for creating classes.
-
-        Returns:
-            A dictionary containing created classes.
-        """
         classes = {}
         for inst_id in self.instIds:
             for timeframe in self.timeframes:
@@ -60,15 +43,6 @@ class DataAllDatasets:
 
     
     def create_TradeUserData(self, Base):
-        """
-        Creates a TradeUserData class for managing positions and orders.
-
-        Args:
-            Base: The base class for TradeUserData.
-
-        Returns:
-            The TradeUserData class.
-        """
         # sourcery skip: inline-immediately-returned-variable
         class_name = "TradeUserData"
         table_name = "positions_and_orders"
@@ -104,20 +78,7 @@ class DataAllDatasets:
     
     # Вывод данных из бд в дикте
     # Метод для получения данных из таблиц
-    def get_bd_marketdata(self, classes, timeframe):
-        """
-        Retrieves market data from tables.
-
-        Args:
-            classes: A dictionary containing classes.
-            timeframe: The timeframe to retrieve data for.
-
-        Returns:
-            A dictionary containing market data.
-
-        Raises:
-            None.
-        """
+    def get_bd_marketdata(self, classes, timeframe: str):
         # sourcery skip: collection-builtin-to-comprehension
         # Создаем пустой словарь для хранения данных
         data = {}
@@ -156,29 +117,15 @@ class DataAllDatasets:
     # Допили работу с сессияими нужно каким-то хуем импортировать классы которые создаёт функция
     def get_charts(
             self, Base, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = None
+            load_data_after = None|str, load_data_before = None|str,
+            lenghts_data = None|int
             ):
-        """
-        Requests and stores market data from an API.
-
-        Args:
-            Base: The base class for creating classes.
-            classes_dict: A dictionary containing classes.
-            load_data_after: Timestamp to load data after.
-            load_data_before: Timestamp to load data before.
-            lengths: Number of data points to retrieve.
-
-        Returns:
-            None.
-        """
-        
         if load_data_before is None:
             load_data_before = ''
         if load_data_after is None:
             load_data_after = ''
-        if lenghts is None:
-            lenghts = ''
+        if lenghts_data is None:
+            lenghts_data= ''
         marketDataAPI = MarketData.MarketAPI(self.flag)
         for instId in self.instIds:
             for timeframe in self.timeframes:
@@ -187,11 +134,10 @@ class DataAllDatasets:
                     after=load_data_after,
                     before=load_data_before,
                     bar=timeframe,
-                    limit=lenghts # 300 Лимит Okx на 1 реквест
+                    limit=lenghts_data # 300 Лимит Okx на 1 реквест
                 )
-                print(result)
                 # sourcery skip: remove-zero-from-range
-                for i in range(0, lenghts-1):
+                for i in range(0, lenghts_data-1):
                     time = datetime.fromtimestamp(int(result["data"][i][0])/1000) + timedelta(hours=3)
                     open_ = result["data"][i][1]
                     close = result["data"][i][2]
@@ -224,27 +170,10 @@ class DataAllDatasets:
     
     @staticmethod
     def get_current_chart_data(
-            flag, instId, timeframe, Base, Session, classes_dict,
-            load_data_after = None, load_data_before = None,
-            lenghts = None
+            flag:str, instId:str, timeframe:str, Base, Session, classes_dict,
+            load_data_after = None|str, load_data_before = None|str,
+            lenghts = None|int
             ):
-        """
-        Requests and stores current market data from an API.
-
-        Args:
-            flag: Flag for the data request.
-            instId: Instrument ID for the data request.
-            timeframe: Timeframe for the data request.
-            Base: The base class for creating classes.
-            Session: Session for database interaction.
-            classes_dict: A dictionary containing classes.
-            load_data_after: Timestamp to load data after.
-            load_data_before: Timestamp to load data before.
-            lenghts: Number of data points to retrieve.
-
-        Returns:
-            pd.DataFrame: DataFrame containing market data.
-        """
         if load_data_before is None:
             load_data_before = ''
         if load_data_after is None:
@@ -299,7 +228,7 @@ class DataAllDatasets:
                     
     
     @staticmethod
-    def add_data_to_db(Session, data_list, classes_dict, instId, timeframe):
+    def add_data_to_db(Session, data_list, classes_dict, instId:str, timeframe:str):
         print('\n\nenter in bd function\n\n')
         class_name = f"ChartsData_{instId}_{timeframe}"
         active_class = classes_dict[class_name]

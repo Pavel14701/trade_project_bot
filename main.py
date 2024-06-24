@@ -2,13 +2,13 @@
 import json, time, logging, asyncio, threading
 import datetime, websockets
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import declarative_base, sessionmaker
-from datasets.database import DataAllDatasets
+from sqlalchemy.orm import sessionmaker
+from datasets.database import DataAllDatasets, Base
 from User.LoadSettings import LoadUserSettingData
 
 # Асинхронный движок для подключения к базе данных
 engine = create_async_engine("sqlite+aiosqlite:///./datasets/TradeUserDatasets.db")
-Base = declarative_base()
+
 
 # Асинхронная фабрика сессий
 AsyncSessionLocal = sessionmaker(bind=engine, class_=AsyncSession)

@@ -1,37 +1,25 @@
+import sys
+sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 import matplotlib.pyplot as plt
 import talib
-from test_data_loading import LoadDataFromYF
+from pandas import DataFrame
+from User.LoadSettings import LoadUserSettingData
+from datasets.RedisCache import RedisCache
+#from test_data_loading import LoadDataFromYF
 
 
-class BollindgerBands:
-    """
-    A class for calculating and visualizing Bollinger Bands on stock price data.
-
-    Methods:
-    - calculate_bands(data, lenghts, stdev): Calculates Bollinger Bands based on the given data, lengths, and standard deviations.
-    - create_vizualization_bb(data): Creates a visualization of stock price with Bollinger Bands.
-    """
-    def __init__ (self, data, lenghts, stdev):
+class BollindgerBands(LoadUserSettingData, RedisCache):
+    def __init__ (self, data: DataFrame):
+        super().__init__()
         self.data = data
-        self.lenghts = lenghts
-        self.stdev = stdev 
+        self.lenghts = self.bollinger_bands_settings['lenghts']
+        self.stdev = self.bollinger_bands_settings['stdev']
 
     
 
     def calculate_bands(self):
-        """
-        Calculates Bollinger Bands based on the given data, lengths, and standard deviations.
-
-        Args:
-        - data (DataFrame): Input data containing 'High' and 'Low' prices.
-        - lenghts (int): Length of the moving average window.
-        - stdev (int): Standard deviation multiplier for the bands.
-
-        Returns:
-        - DataFrame: Data with added columns for Upper Band, Middle Band, and Lower Band.
-        """
         # Рассчитываем среднее значение между максимальной и минимальной ценой для каждого периода
-        high_low_average = (data['High'] + data['Low']) / 2
+        high_low_average = (self.data['High'] + self.data['Low']) / 2
         # Рассчитываем полосы Боллинджера на основе среднего значения между High и Low
         upper_band, middle_band, lower_band = talib.BBANDS(
             high_low_average,
@@ -41,23 +29,14 @@ class BollindgerBands:
             matype=0 # тип скользящей 
         )
         # Добавляем результаты в DataFrame
-        data['Upper Band'] = upper_band
-        data['Middle Band'] = middle_band
-        data['Lower Band'] = lower_band
-        return data
+        self.data['Upper Band'] = upper_band
+        self.data['Middle Band'] = middle_band
+        self.data['Lower Band'] = lower_band
+        return self.data
 
 
     @staticmethod
     def create_vizualization_bb(data):
-        """
-        Creates a visualization of stock price with Bollinger Bands.
-
-        Args:
-        - data (DataFrame): Input data containing 'Close', 'Upper Band', 'Middle Band', and 'Lower Band' values.
-
-        Returns:
-        None
-        """
         fig, ax = plt.subplots(figsize=(14, 7))  # Исправление здесь
         ax.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
         ax.plot(data.index, data['Upper Band'], label='Верхняя полоса', color='red', linestyle='--')
@@ -70,11 +49,11 @@ class BollindgerBands:
         ax.set_ylabel('Цена')
         plt.show()
 
-
+"""
 #Пример использования
 data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
 print(data)
 data = BollindgerBands.calculate_bands(data, lenghts=34, stdev=2)
 print(data)
 BollindgerBands.create_vizualization_bb(data)
-
+"""

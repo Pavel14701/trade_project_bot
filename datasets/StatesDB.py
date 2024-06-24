@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
-
-Base = declarative_base()
+from database import Base
 
 class SQLStateStorage(Base):
     __tablename__ = 'States'

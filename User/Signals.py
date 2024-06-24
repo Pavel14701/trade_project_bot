@@ -1,36 +1,46 @@
+import sys
+sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from datetime import datetime
 import pandas as pd
 from indicators.AVSL import AVSLIndicator
-from datasets.database import DataAllDatasets
-from User.LoadSettings import LoadUserSettingData
+from datasets.RedisCache import RedisCache
+from LoadSettings import LoadUserSettingData
+from datasets.LoadDataStream import StreamData
 
-class CheckSignalData:
-    """Summary:
-    Initialize parameters for checking signal data.
+# Супер залупер класс
+class CheckSignalData(LoadUserSettingData):
+    def __init__ (self, Session, classes_dict, instId:str, timeframe:str, lenghtsSt:int, channel:str):
+        super().__init__()
+        self.lenghtsSt = lenghtsSt
+        self.instId = instId
+        self.timeframe = timeframe
+        self.Session = Session
+        self.classes_dict = classes_dict
+        self.channel = channel
+        self.init = StreamData(self.Session, self.classes_dict, self.instId, self.timeframe, self.lenghtsSt)
+        data = self.init.load_data()
+        self.redis_func = RedisCache(self.instId, self.timeframe, self.channel, self.data)
+        self.redis_func.add_data_to_cache(data)
+        
 
-    Explanation:
-    This class initializes the parameters required for checking signal data,
-    such as the flag, instrument ID, database Base and Session,
-    classes dictionary, and optional data loading constraints.
-    """
 
-    @staticmethod         
-    def avsl_signals(flag, instId, timeframe, Base, Session, classes_dict, host, port, db, lenghts):
+        
+    def avsl_signals(self):
         try:
-            data = DataAllDatasets.get_current_chart_data(
-                flag, instId, timeframe, Base, Session, 
-                classes_dict, None, None, lenghts
-                )
-            cross_up, cross_down, AVSL, close_prices, last_bar_signal = AVSLIndicator.calculate_avsl(data)
+            data = self.redis_func.load_data_from_cache()
+            data = self.init.load_data_for_period(data)
+            indicator = AVSLIndicator(data)
+            cross_up, cross_down, AVSL, close_prices, last_bar_signal = indicator.calculate_avsl()
             current_time = datetime.now()
             formatted_time = current_time.isoformat()
             message = dict([
                 ("time", formatted_time),
-                ("instId", instId),
-                ("timeframe", timeframe),
+                ("instId", self.instId),
+                ("timeframe", self.timeframe),
                 ("signal", last_bar_signal)
             ])
-            LoadUserSettingData.publish_message('my-channel', message, host, port, db)
+            self.redis_func.add_data_to_cache(data)
+            self.redis_func.publish_message(message)
         except Exception as e:
             print(f'\nПроизошла ошибка: \n{e}\n')
         

@@ -1,37 +1,27 @@
+import sys
+sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 import numpy as np
 import talib
 import matplotlib.pyplot as plt
 import pandas as pd
+from User.LoadSettings import LoadUserSettingData
+from datasets.RedisCache import RedisCache
+
 #from test_data_loading import LoadDataFromYF
 
 
-class AVSLIndicator:
-    """
-    A class for calculating and visualizing AVSL indicators based on volume and price data.
-
-    Methods:
-    - price_fun(VPC, VPR, VM, src): Calculates the stop-loss step based on volume, price, and source data.
-    - prepare_calculate_avsl(data): Prepares data and parameters for AVSL calculation.
-    - calculate_avsl(data): Calculates AVSL indicators based on the provided data.
-    - avsl_visualization(cross_up, cross_down, AVSL, close_prices, data): Visualizes AVSL indicators with price data.
-    """
-    # Функция для расчета stop-loss шага в зависимости от объема и минимальной цены
-    
+class AVSLIndicator(LoadUserSettingData):
+    def __init__ (self, data: pd.DataFrame):
+        super().__init__()
+        self.lenghtsFast = self.avsl_configs['lenghtsFast']
+        self.lenghtsSlow = self.avsl_configs['lenghtsSlow']
+        self.lenT = self.avsl_configs['lenT']
+        self.standDiv = self.avsl_configs['standDiv']
+        self.offset = self.avsl_configs['offset']
+        self.data = data
     
     @staticmethod
     def price_fun(VPC, VPR, VM, src):
-        """
-        Calculates the price step based on volume, price, and source data.
-
-        Args:
-        - VPC (array): Array of VPC values.
-        - VPR (array): Array of VPR values.
-        - VM (array): Array of VM values.
-        - src (array): Source data array.
-
-        Returns:
-        - PriceV (array): Array of calculated price steps.
-        """
         PriceV = np.zeros_like(VPC)  # Создаем массив нулей той же формы, что и VPC
         for i in range(len(VPC)):
             VPCI = VPC[i] * VPR[i] * VM[i]
@@ -45,54 +35,30 @@ class AVSLIndicator:
         return PriceV
 
 
-    @staticmethod
-    def prepare_calculate_avsl(data):
-        """
-        Prepares data and parameters for calculating AVSL indicators.
 
-        Args:
-        - data (DataFrame): Input data containing 'Adj Close', 'Low', and 'Volume' columns.
-
-        Returns:
-        - Tuple: A tuple containing processed data and parameters for AVSL calculation.
-        """
+    def prepare_calculate_avsl(self):
         # Подготовка данных
-        close_prices = data['Close'].values.astype('float64')
-        low_prices = data['Low'].values.astype('float64')
-        volumes = data['Volume'].values.astype('float64')
-        # Параметры
-        lenghtsFast = 34  # Быстрая скользящая средняя
-        lenghtsSlow = 134  # Медленная скользящая средняя
-        lenT = 9   # Сигнал для VPCI
-        standDiv = 3.0 # Стандартное отклонение
-        offset = 2 # Смещение
+        close_prices = self.data['Close'].values.astype('float64')
+        low_prices = self.data['Low'].values.astype('float64')
+        volumes = self.data['Volume'].values.astype('float64')
         # Расчеты
-        VWmaS = talib.WMA(close_prices, timeperiod=lenghtsSlow)  # Медленная VWMA
-        VWmaF = talib.WMA(close_prices, timeperiod=lenghtsFast)  # Быстрая VWMA
-        AvgS = talib.SMA(close_prices, timeperiod=lenghtsSlow)   # Медленная средняя объема
-        AvgF = talib.SMA(close_prices, timeperiod=lenghtsFast)   # Быстрая средняя объема
+        VWmaS = talib.WMA(close_prices, timeperiod=self.lenghtsSlow)  # Медленная VWMA
+        VWmaF = talib.WMA(close_prices, timeperiod=self.lenghtsFast)  # Быстрая VWMA
+        AvgS = talib.SMA(close_prices, timeperiod=self.lenghtsSlow)   # Медленная средняя объема
+        AvgF = talib.SMA(close_prices, timeperiod=self.lenghtsFast)   # Быстрая средняя объема
         VPC = VWmaS - AvgS                                # VPC+/-
         VPR = VWmaF / AvgF                                # Отношение цены к объему
-        VM = talib.SMA(volumes, timeperiod=lenghtsFast) / talib.SMA(volumes, timeperiod=lenghtsSlow)  # Множитель объема
+        VM = talib.SMA(volumes, timeperiod=self.lenghtsFast) / talib.SMA(volumes, timeperiod=self.lenghtsSlow)  # Множитель объема
         VPCI = VPC * VPR * VM                             # Индикатор VPCI
-        DeV = standDiv * VPCI * VM                            # Отклонение
-        return(close_prices, DeV, low_prices, VPC, VPR, VM, lenghtsSlow)
+        DeV = self.standDiv * VPCI * VM                            # Отклонение
+        return(close_prices, DeV, low_prices, VPC, VPR, VM)
 
 
-    @staticmethod
-    def calculate_avsl(data):
-        """
-        Calculates AVSL indicators based on the provided data.
 
-        Args:
-        - data (DataFrame): Input data containing 'Adj Close', 'Low', and 'Volume' columns.
-
-        Returns:
-        - Tuple: A tuple containing cross up, cross down signals, AVSL values, close prices and signal at last bar.
-        """
-        close_prices, DeV, low_prices, VPC, VPR, VM, lenghtsSlow = AVSLIndicator.prepare_calculate_avsl(data)
+    def calculate_avsl(self):
+        close_prices, DeV, low_prices, VPC, VPR, VM = AVSLIndicator.prepare_calculate_avsl(self)
         PriceV = AVSLIndicator.price_fun(VPC, VPR, VM, low_prices)
-        AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=lenghtsSlow)
+        AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=self.lenghtsSlow)
         cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
         cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
         # Проверка наличия сигнала на последнем баре
@@ -106,19 +72,6 @@ class AVSLIndicator:
 
     @staticmethod
     def avsl_visualization(cross_up, cross_down, AVSL, close_prices, data):
-        """
-        Visualizes AVSL indicators with price data.
-
-        Args:
-        - cross_up (array): Array indicating upward crosses.
-        - cross_down (array): Array indicating downward crosses.
-        - AVSL (array): Array of AVSL values.
-        - close_prices (array): Array of close prices.
-        - data (DataFrame): Input data for visualization.
-
-        Returns:
-        None
-        """
         fig, ax = plt.subplots(figsize=(14, 7))
         ax.plot(data.index, close_prices, label='Цена закрытия', color='blue')
         ax.plot(data.index, AVSL, label='AVSL', color='orange')
@@ -133,7 +86,8 @@ class AVSLIndicator:
 """
 data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
 # Подготавливаем для расчета
-cross_up, cross_down, AVSL, close_prices, last_bar_signal = AVSLIndicator.calculate_avsl(data)
+indicator = AVSLIndicator(data)
+cross_up, cross_down, AVSL, close_prices, last_bar_signal = indicator.calculate_avsl()
 #AVSLIndicator.avsl_visualization(cross_up, cross_down, AVSL, close_prices, data)
 print(last_bar_signal)
 """

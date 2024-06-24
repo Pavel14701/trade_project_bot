@@ -1,23 +1,7 @@
 import os, time, hmac, base64, hashlib, logging
-from functools import singledispatchmethod
 from dotenv import load_dotenv
-from datasets.cache 
 
 class LoadUserSettingData:
-    @singledispatchmethod
-    def process(self, cls):
-        raise NotImplementedError("Unsupported shape type")
-
-    @process.register
-    def _(self, cls: ):
-        self.host = str(os.getenv("HOST"))
-        self.port = int(os.getenv("PORT"))
-        self.db = int(os.getenv("DB"))
-
-    @process.register
-    def _(self, cls: Square):
-        print(f"Processing square: {shape.name}")
-
     def __init__(self):
         load_dotenv('.env')
         self.flag = str(os.getenv("FLAG"))

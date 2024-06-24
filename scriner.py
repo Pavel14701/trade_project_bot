@@ -2,9 +2,9 @@
 import time
 from threading import Thread
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
 import schedule
-from datasets.database import DataAllDatasets
+from datasets.database import DataAllDatasets, Base
 from User.LoadSettings import LoadUserSettingData
 from utils.StartDelayCalculator import StartDelayCalc
 from User.Signals import CheckSignalData
@@ -14,7 +14,6 @@ flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port = Loa
 
 # Настройка подключения к базе данных
 engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
-Base = declarative_base()
 
 # Создание классов и таблиц
 data_all_datasets = DataAllDatasets(instIds, flag, timeframes)
