@@ -1,6 +1,6 @@
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
-from database import DataAllDatasets, Base
+from datasets.database import DataAllDatasets, Base
 import pandas as pd
 from User.LoadSettings import LoadUserSettingData
 
@@ -15,7 +15,7 @@ class StreamData(LoadUserSettingData):
         self.lenghtsSt = lenghtsSt
 
         
-    def load_data(self, Session, classes_dict):
+    def load_data(self):
         return DataAllDatasets.get_current_chart_data(
             self.flag, self.instId, self.timeframe, Base,
             self.Session, self.classes_dict, None, None, self.lenghtsSt

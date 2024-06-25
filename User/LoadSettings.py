@@ -3,13 +3,35 @@ from dotenv import load_dotenv
 
 class LoadUserSettingData:
     def __init__(self):
-        load_dotenv('.env')
+        load_dotenv()
         self.flag = str(os.getenv("FLAG"))
         self.timeframes = tuple(str(os.getenv("TIMEFRAMES")).split(','))
         self.instIds = tuple(str(os.getenv("INSTIDS")).split(','))
         self.passphrase = str(os.getenv("PASSPHRASE"))
         self.api_key = str(os.getenv("API_KEY"))
         self.secret_key = str(os.getenv("SECRET_KEY"))
+        self.host = str(os.getenv("HOST"))
+        self.port = int(os.getenv("PORT"))
+        self.db = str(os.getenv("DB"))
+        self.avsl_configs = {
+            'lenghtsFast': int(os.getenv("AVSLlenghtsFast")),
+            'lenghtsSlow': int(os.getenv("AVSLlenghtsSlow")),
+            'lenT': int(os.getenv("AVSLlenT")),
+            'standDiv': float(os.getenv("AVSLstandDiv")),
+            'offset': int(os.getenv("AVSLoffset"))
+        }
+        self.bollinger_bands_settings = {
+            'lenghts': int(os.getenv("BBlenghts")),
+            'stdev': float(os.getenv("BBstdev"))
+        }
+        self.alma_configs = {
+            'lenghtsVSlow': int(os.getenv("ALMAlenghtsVSlow")),
+            'lenghtsSlow': int(os.getenv("ALMAlenghtsSlow")),
+            'lenghtsMiddle': int(os.getenv("ALMAlenghtsMiddle")),
+            'lenghtsFast': int(os.getenv("ALMAlenghtsFast")),
+            'lenghtsVFast': int(os.getenv("ALMAlenghtsVFast")),
+            'lenghts': int(os.getenv("ALMAlenghts"))
+        }
 
 
 

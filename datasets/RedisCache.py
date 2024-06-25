@@ -7,7 +7,7 @@ from User.LoadSettings import LoadUserSettingData
 
 class RedisCache(LoadUserSettingData): 
     def __init__(self, instId:str, timeframe:str, channel:str, data=None|pd.DataFrame):
-        super().__init__(self.host, self.port, self.db)
+        super().__init__()
         self.data = data
         self.instId = instId
         self.timeframe = timeframe
