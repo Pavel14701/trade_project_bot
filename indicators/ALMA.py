@@ -4,6 +4,7 @@ from pandas import DataFrame
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from User.LoadSettings import LoadUserSettingData
+from utils.AddDeprecateMethod import deprecated
 #from test_data_loading import LoadDataFromYF
 
 
@@ -22,13 +23,27 @@ class AlmaIndicator(LoadUserSettingData):
     def calculate_alma(self):
         if self.lenghts is None:
             raise NotImplementedError("lenghts param must be integer, watch alma env configs")
+        close_prices = self.data['Close'].values.astype('float64')
         # Вычисляем ALMA с длиной окна 20 и стандартными параметрами
         m = (self.lenghts - 1) / 2
         sigma = self.lenghts / 6
         w = np.exp(-(np.arange(self.lenghts) - m)**2 / (2 * sigma**2))
         w = w / w.sum()
-        self.data["ALMA"] = self.data["Close"].rolling(self.lenghts).apply(lambda x: np.dot(x, w), raw=True)
-        return self.data
+        ALMA = self.data["Close"].rolling(self.lenghts).apply(lambda x: np.dot(x, w), raw=True)
+        cross_up = (close_prices > ALMA) & (np.roll(close_prices, 1) <= np.roll(ALMA, 1))
+        cross_down = (close_prices < ALMA) & (np.roll(close_prices, 1) >= np.roll(ALMA, 1))
+        # Проверка положения alma относительно цены
+        Price_Above_ALMA = (self.data["Close"] > self.data["ALMA"]).astype(int)
+        Price_Below_ALMA = (self.data["Close"] < self.data["ALMA"]).astype(int)
+        # Проверка наличия сигнала на последнем баре
+        last_bar_signal = None
+        if cross_up[-1]:
+            last_bar_signal = 'cross_up'
+        elif cross_down[-1]:
+            last_bar_signal = 'cross_down'
+        
+        return (cross_up, cross_down, close_prices, last_bar_signal)
+
     
 
     @staticmethod
@@ -43,7 +58,7 @@ class AlmaIndicator(LoadUserSettingData):
         plt.legend()
         plt.show()
 
-
+    @deprecated
     def calculate_alma_ribbon(self):
         # Вычисляем ALMA с длиной окна 20 и стандартными параметрами
         m = (self.lenghtsVSlow - 1) / 2
@@ -91,10 +106,12 @@ class AlmaIndicator(LoadUserSettingData):
         plt.show()
         
         
-""""
+"""
 #пример применения
-data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
+data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1D")
 print(data)
-data = AlmaIndicator.calculate_alma_ribbon(data, lenghtsVSlow=144, lenghtsSlow=89, lenghtsMiddle=55, lenghtsFast=34, lenghtsVFast=21)
+alma = AlmaIndicator(data)
+data = alma.calculate_alma_ribbon()
 AlmaIndicator.create_vizualization_alma_ribbon(data)
 """
+

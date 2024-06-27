@@ -67,7 +67,7 @@ class AVSLIndicator(LoadUserSettingData):
             last_bar_signal = 'cross_up'
         elif cross_down[-1]:
             last_bar_signal = 'cross_down'
-        return (cross_up, cross_down, AVSL, close_prices, last_bar_signal)
+        return (cross_up, cross_down, AVSL[-1], close_prices, last_bar_signal)
 
 
     @staticmethod

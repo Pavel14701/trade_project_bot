@@ -1,20 +1,20 @@
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from datetime import datetime
-import pandas as pd
 from indicators.AVSL import AVSLIndicator
+from indicators.ADX import ADXTrend
 from datasets.RedisCache import RedisCache
-from LoadSettings import LoadUserSettingData
+from User.LoadSettings import LoadUserSettingData
 from datasets.LoadDataStream import StreamData
-
-
+from indicators.RsiClouds import CloudsRsi
+from sqlalchemy.orm import sessionmaker
 from datasets.database import DataAllDatasets, Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Супер залупер класс
 class CheckSignalData(LoadUserSettingData):
-    def __init__ (self, Session, classes_dict, instId:str, timeframe:str, lenghtsSt:int, channel:str):
+    def __init__ (self, Session:sessionmaker, classes_dict:dict, instId:str, timeframe:str, lenghtsSt:int, channel:str):
         super().__init__()
         self.lenghtsSt = lenghtsSt
         self.instId = instId
@@ -30,19 +30,25 @@ class CheckSignalData(LoadUserSettingData):
 
 
 
-    def avsl_signals(self):
+    def create_signals(self):
         try:
             data = self.redis_func.load_data_from_cache()
             data = self.init.load_data_for_period(data)
-            indicator = AVSLIndicator(data)
-            cross_up, cross_down, AVSL, close_prices, last_bar_signal = indicator.calculate_avsl()
+            indicator_avsl = AVSLIndicator(data)
+            indicator_rsi_clouds = CloudsRsi(data)
+            indicator_adx = ADXTrend(data)
+            cross_up, cross_down, avsl, close_prices, last_bar_signal = indicator_avsl.calculate_avsl()
+            rsi = indicator_rsi_clouds.calculate_rsi_clouds()
+            adx = indicator_adx.calculate_adx()
             current_time = datetime.now()
             formatted_time = current_time.isoformat()
             message = dict([
                 ("time", formatted_time),
                 ("instId", self.instId),
                 ("timeframe", self.timeframe),
-                ("signal", last_bar_signal)
+                ("trend_strenghts", adx),
+                ("signal", rsi),
+                ("slPrice", avsl)
             ])
             self.redis_func.add_data_to_cache(data)
             self.redis_func.publish_message(self.channel, message)

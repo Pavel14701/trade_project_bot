@@ -3,10 +3,11 @@ sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from datasets.database import DataAllDatasets, Base
 import pandas as pd
 from User.LoadSettings import LoadUserSettingData
+from sqlalchemy.orm import sessionmaker
 
 
 class StreamData(LoadUserSettingData):
-    def __init__(self, Session, classes_dict: dict, instId: str, timeframe: str, lenghtsSt: int):
+    def __init__(self, Session: sessionmaker, classes_dict: dict, instId: str, timeframe: str, lenghtsSt: int):
         super().__init__()
         self.instId = instId
         self.Session = Session

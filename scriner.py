@@ -9,21 +9,19 @@ from User.LoadSettings import LoadUserSettingData
 from utils.StartDelayCalculator import StartDelayCalc
 from User.Signals import CheckSignalData
 
-# Загрузка пользовательских настроек
-flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port = LoadUserSettingData.load_user_settings()
 
 # Настройка подключения к базе данных
 engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
 
 # Создание классов и таблиц
-data_all_datasets = DataAllDatasets(instIds, flag, timeframes)
+data_all_datasets = DataAllDatasets()
 classes_dict = data_all_datasets.create_classes(Base)
 TradeSignals = data_all_datasets.create_TradeUserData(Base)
 Base.metadata.create_all(engine)
 print(f'\n\n{classes_dict}\n\n')
 # Создание сессии
 Session = sessionmaker(bind=engine)
-
+print(type(classes_dict))
 # Функции для проверки сигналов
 def check_signal_15m():
     signal = CheckSignalData.avsl_signals(flag, instIds[1], timeframes[0],

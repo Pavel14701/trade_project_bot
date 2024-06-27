@@ -27,13 +27,18 @@ class RedisCache(LoadUserSettingData):
         
     #Настройка и подключение слушателя редис
     def listen_to_redis_channel(self):
-        pubsub = self.r.pubsub()
-        pubsub.subscribe('my-channel')
-        while True:
-            message = pubsub.get_message()
-            if message and message['type'] == 'message':
-                print(f"Получено сообщение: {message['data'].decode('utf-8')}")
-            time.sleep(1)
+        try:
+            pubsub = self.r.pubsub()
+            pubsub.subscribe('my-channel')
+            while True:
+                message = pubsub.get_message()
+                if message and message['type'] == 'message':
+                    print(f"Получено сообщение: {message['data'].decode('utf-8')}")
+                message_json = json.dumps(message)
+                self.r.set(f'messagee_{self.instId}_{self.timeframe}', message_json)
+                time.sleep(1)
+        except Exception as e:
+            print(e)
 
 
     # Функция для публикации сообщения
@@ -41,3 +46,11 @@ class RedisCache(LoadUserSettingData):
         message_json = json.dumps(message)
         self.r.publish(channel, message_json)
         print(message_json)
+        
+        
+    def load_message_from_cache(self):
+        try:
+            message = json.loads(self.r.get(f'messagee_{self.instId}_{self.timeframe}'))
+            return message
+        except Exception as e:
+            print(e)

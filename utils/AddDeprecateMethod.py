@@ -24,7 +24,7 @@ class MyMeta(type):
 
 
 
-
+"""
 class Shape(metaclass=MyMeta):
     def __init__(self, name):
         self.name = name
@@ -60,3 +60,4 @@ triangle = Triangle("Triangle")
 obj.process(circle)
 obj.process(square)
 obj.process(triangle)
+"""

@@ -13,6 +13,9 @@ class LoadUserSettingData:
         self.host = str(os.getenv("HOST"))
         self.port = int(os.getenv("PORT"))
         self.db = str(os.getenv("DB"))
+        self.leverage = int(os.getenv('LEVERAGE'))
+        self.risk = float(os.getenv('RISK'))
+        self.mgnMode = str(os.getenv('MGNMODE')) # cross or isolated
         self.avsl_configs = {
             'lenghtsFast': int(os.getenv("AVSLlenghtsFast")),
             'lenghtsSlow': int(os.getenv("AVSLlenghtsSlow")),
@@ -32,7 +35,33 @@ class LoadUserSettingData:
             'lenghtsVFast': int(os.getenv("ALMAlenghtsVFast")),
             'lenghts': int(os.getenv("ALMAlenghts"))
         }
+        self.rsi_configs = {
+            'rsi_period_short': int(os.getenv("RSIShortLenghts")),
+            'rsi_period_long': int(os.getenv("RSILongLenghts")),
+            'ema_period': int(os.getenv("RSIEmaLenghts"))
+        }
+        self.stoch_rsi_configs = {
+            'stoch_rsi_timeperiod': int(os.getenv('STOCHRSITIMEPERIOD')),
+            'stoch_rsi_fastk_period': int(os.getenv('STOCHRSIFASTKPERIOD')),
+            'stoch_rsi_fastd_period': int(os.getenv('STOCHRSIFASTDPERIOD')),
+            'stoch_rsi_fastd_matype': int(os.getenv('STOCHRSIFASTDMATYPE'))
+        }
+        self.adx_timeperiod = int(os.getenv("ADXTIMEPERIOD"))
 
+    @staticmethod
+    def load_user_settings():
+        load_dotenv()
+        flag = str(os.getenv("FLAG"))
+        timeframes = tuple(str(os.getenv("TIMEFRAMES")).split(','))
+        instIds = tuple(str(os.getenv("INSTIDS")).split(','))
+        passphrase = str(os.getenv("PASSPHRASE"))
+        api_key = str(os.getenv("API_KEY"))
+        secret_key = str(os.getenv("SECRET_KEY"))
+        host = str(os.getenv("HOST"))
+        port = int(os.getenv("PORT"))
+        db = str(os.getenv("DB"))
+        return (flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port)
+    
 
 
 

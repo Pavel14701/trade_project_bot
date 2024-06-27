@@ -2,45 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import talib
 import pandas as pd
+from User.LoadSettings import LoadUserSettingData
 #from test_data_loading import LoadDataFromYF
 
 
-class StochRSICalculator:
-    """Summary:
-    Class for calculating and visualizing Stochastic RSI (StochRSI).
-
-    Explanation:
-    This class provides static methods to calculate StochRSI values, including Fast %K and Fast %D lines, and visualize the StochRSI indicator with buy and sell signals based on the provided data.
-
-    Args:
-    - data: The input data containing Close prices.
-
-    Returns:
-    - For calculate_stochrsi: Tuple containing input data, Fast %D values, and Fast %K values.
-    - For plot_stochrsi: None
-    """
+class StochRSICalculator(LoadUserSettingData):
+    def __init__(self, data: pd.DataFrame):
+        super().__init__()
+        self.data = data
+        self.timeperiod = self.stoch_rsi_configs['stoch_rsi_timeperiod']
+        self.fastk_period = self.stoch_rsi_configs['stoch_rsi_fastk_period']
+        self.fastd_period = self.stoch_rsi_configs['stoch_rsi_fastd_period']
+        self.fastd_matype = self.stoch_rsi_configs['stoch_rsi_fastd_matype']
     
     
     @staticmethod
-    def calculate_stochrsi(data):
-        """Summary:
-        Calculate Stochastic RSI (StochRSI) values.
-
-        Explanation:
-        This static method calculates the Stochastic RSI (StochRSI) values based on the Close prices in the provided data.
-
-        Args:
-        - data: The input data containing Close prices.
-
-        Returns:
-        - Tuple containing the input data, Fast %D values, and Fast %K values.
-        """
+    def calculate_stochrsi(self):
         # Рассчитываем StochRSI
-        fastk, fastd = talib.STOCHRSI(data['Close'], timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0)
+        fastk, fastd = talib.STOCHRSI(self.data['Close'], self.timeperiod, self.fastk_period, self.fastd_period, self.fastd_matype)
         # Преобразуем numpy массивы в pandas Series с правильным индексом
-        fastk = pd.Series(fastk, index=data.index)
-        fastd = pd.Series(fastd, index=data.index)
-        return (data, fastd, fastk)
+        fastk = pd.Series(fastk, index=self.data.index)
+        fastd = pd.Series(fastd, index=self.data.index)
+        return (self.data, fastd, fastk)
 
     @staticmethod
     def plot_stochrsi(fastk, fastd, data):

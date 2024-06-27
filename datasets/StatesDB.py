@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from database import Base
 
@@ -8,20 +8,19 @@ class SQLStateStorage(Base):
     SURROGATE_KEY = Column(Integer, primary_key=True, autoincrement=True)
     INST_ID = Column(String) #ever(check)
     TIMEFRAME = Column(String) #15m 1h 4h 1d
-    POSITION = Column(String, nullable=True) #long short
+    POSITION = Column(String, nullable=True) #long or short
     VOLUME = Column(Numeric(10, 4), nullable=True) #ever
     TIME = Column(DateTime) #ever(check)
 
 class StateRequest:
-    def __init__(self, IntsId, timeframe, AsyncSessionLocal):
+    def __init__(self, IntsId:str, timeframe:str, Session:sessionmaker):
         self.InstId = IntsId
         self.timeframe = timeframe
-        self.AsyncSessionLocal = AsyncSessionLocal
+        self.Session = Session
 
 
-    async def check_state(self):
-        async with self.AsyncSessionLocal as session:
-            async with session.begin():
+    def check_state(self):
+        with self.Session as session:
                 if (
                     last_state := session.query(SQLStateStorage)
                     .filter_by(INST_ID=self.InstId, TIMEFRAME=self.timeframe)
@@ -40,36 +39,34 @@ class StateRequest:
                     return None
 
 
-    async def save_position_state(self, position, volume):
-        async with self.AsyncSessionLocal() as session:
-            async with session.begin():
-                # Создание нового объекта состояния
-                new_state = SQLStateStorage(
-                    INST_ID=self.InstId,
-                    TIMEFRAME=self.timeframe,
-                    POSITION=position,
-                    VOLUME=volume,
-                    TIME=datetime.now()  # Запись текущего времени
-                )
-                # Добавление нового объекта состояния в сессию
-                await session.add(new_state)
-                # Сохранение изменений в базу данных
-                await session.commit()
+    def save_position_state(self, position, volume):
+        with self.Session() as session:
+            # Создание нового объекта состояния
+            new_state = SQLStateStorage(
+                INST_ID=self.InstId,
+                TIMEFRAME=self.timeframe,
+                POSITION=position,
+                VOLUME=volume,
+                TIME=datetime.now()  # Запись текущего времени
+            )
+            # Добавление нового объекта состояния в сессию
+            session.add(new_state)
+            # Сохранение изменений в базу данных
+            session.commit()
 
 
-    async def save_none_state(self):
-        async with self.AsyncSessionLocal() as session:
-            async with session.begin():
-                # Создание нового объекта состояния
-                new_state = SQLStateStorage(
-                    INST_ID=self.InstId,
-                    TIMEFRAME=self.timeframe,
-                    POSITION=None,
-                    VOLUME=None,
-                    TIME=datetime.now()  # Запись текущего времени
-                )
-                # Добавление нового объекта состояния в сессию
-                await session.add(new_state)
-                # Сохранение изменений в базу данных
-                await session.commit()
+    def save_none_state(self):
+        with self.Session() as session:
+            # Создание нового объекта состояния
+            new_state = SQLStateStorage(
+                INST_ID=self.InstId,
+                TIMEFRAME=self.timeframe,
+                POSITION=None,
+                VOLUME=None,
+                TIME=datetime.now()  # Запись текущего времени
+            )
+            # Добавление нового объекта состояния в сессию
+            session.add(new_state)
+            # Сохранение изменений в базу данных
+            session.commit()
 

@@ -3,7 +3,7 @@ sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from sqlalchemy.sql import exists
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 import pandas as pd
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime, timedelta
 from okx import MarketData
 from User.LoadSettings import LoadUserSettingData
@@ -11,7 +11,7 @@ from User.LoadSettings import LoadUserSettingData
 Base = declarative_base()
 
 class DataAllDatasets(LoadUserSettingData):
-    def __init__(self, Session=None):
+    def __init__(self, Session=None|sessionmaker):
         super().__init__()
         self.Session = Session
 
