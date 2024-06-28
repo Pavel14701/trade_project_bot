@@ -1,7 +1,7 @@
 from decimal import Decimal
 import okx.Account as Account
 import okx.Trade as Trade
-from LoadSettings import LoadUserSettingData
+from User.LoadSettings import LoadUserSettingData
 
 
 """

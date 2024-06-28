@@ -1,14 +1,22 @@
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from sqlalchemy.sql import exists
-from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
-import pandas as pd
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Numeric, Boolean
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker
+import pandas as pd
 from datetime import datetime, timedelta
 from okx import MarketData
 from User.LoadSettings import LoadUserSettingData
 
+
+engine1 = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
+engine2 = create_async_engine("sqlite+aiosqlite:///./datasets/TradeUserDatasets.db")
+
+# Асинхронная фабрика сессий
+AsyncSessionLocal = sessionmaker(bind=engine2, class_=AsyncSession)
 Base = declarative_base()
+Session = sessionmaker(bind=engine1)
 
 class DataAllDatasets(LoadUserSettingData):
     def __init__(self, Session=None|sessionmaker):
@@ -61,9 +69,9 @@ class DataAllDatasets(LoadUserSettingData):
             "leverage":  Column(Integer),
             "time" : Column(DateTime),
             "status": Column(Boolean),
-            "tp_price": Column(Numeric(10, 4)),
-            "tp_order_id": Column(String),
-            "tp_order_volume": Column(Integer),
+            "tp_price": Column(Numeric(10, 4), nullable=True),
+            "tp_order_id": Column(String, nullable=True),
+            "tp_order_volume": Column(Integer, nullable=True),
             "sl_price": Column(Numeric(10, 4)),
             "sl_order_id": Column(String),
             "sl_order_volume": Column(Integer),
@@ -170,7 +178,7 @@ class DataAllDatasets(LoadUserSettingData):
     
     @staticmethod
     def get_current_chart_data(
-            flag:str, instId:str, timeframe:str, Base, Session, classes_dict,
+            flag:str, instId:str, timeframe:str, Base, Session: sessionmaker, classes_dict: dict,
             load_data_after = None|str, load_data_before = None|str,
             lenghts = None|int
             ):
@@ -256,7 +264,16 @@ class DataAllDatasets(LoadUserSettingData):
                 session.commit()
             except Exception as e:
                 print(f"Ошибка при добавлении данных: {e}")
-                session.rollback()     
+                session.rollback()    
+
+async def create_tables(): 
+    data_all_datasets = DataAllDatasets()
+    classes_dict = data_all_datasets.create_classes(Base)
+    TradeUserData = data_all_datasets.create_TradeUserData(Base)
+    print(type(TradeUserData))
+    async with engine2.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
     """
     #Пример использования
     data_class = DataAllDatasets(instIds, flag, timeframes, Session)

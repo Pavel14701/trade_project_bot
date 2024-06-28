@@ -137,3 +137,16 @@ Connected 2024-06-03T19:19:14.619465 - Response: {"event":"login","msg":"","code
 Connected 2024-06-03T19:27:24.409519 - Response: {"event":"login","msg":"","code":"0","connId":"64dc8e78"}
 Connected 2024-06-04T00:00:57.106041 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"1f040752"}
 Connected 2024-06-14T03:33:15.343426 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"805a2b44"}
+Connected 2024-06-28T09:46:13.934028 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"0a653aac"}
+Connected 2024-06-28T09:48:50.947789 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"b8213bc3"}
+Connected 2024-06-28T10:14:20.227120 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"a8b2eb88"}
+Connected 2024-06-28T10:56:36.250005 - Response: {"event":"login","msg":"","code":"0","connId":"94ce0339"}
+Connected 2024-06-28T11:52:52.143106 - Response: {"event":"login","msg":"","code":"0","connId":"3013568d"}
+Connected 2024-06-28T12:40:43.533804 - Response: {"event":"error","msg":"Timestamp request expired","code":"60006","connId":"d0362576"}
+Connected 2024-06-28T12:41:56.887520 - Response: {"event":"login","msg":"","code":"0","connId":"490c89cb"}
+Connected 2024-06-28T12:50:29.246122 - Response: {"event":"login","msg":"","code":"0","connId":"a44a8677"}
+Connected 2024-06-28T15:46:27.466664 - Response: {"event":"login","msg":"","code":"0","connId":"2e75d2e2"}
+Connected 2024-06-28T15:51:24.737929 - Response: {"event":"login","msg":"","code":"0","connId":"58cce286"}
+Connected 2024-06-28T16:15:19.819479 - Response: {"event":"login","msg":"","code":"0","connId":"a9f24a2f"}
+Connected 2024-06-28T16:17:59.142366 - Response: {"event":"login","msg":"","code":"0","connId":"e4ece642"}
+Connected 2024-06-28T16:46:39.812747 - Response: {"event":"login","msg":"","code":"0","connId":"e3b2574f"}

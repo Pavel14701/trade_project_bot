@@ -1,23 +1,25 @@
+import contextlib
 from datetime import datetime, timedelta
 import okx.Account as Account
 import okx.Trade as Trade
-from datasets.database import TradeUserData
-from datasets.database import Session
-from UserInfoFunctions import UserInfo
-from LoadSettings import LoadUserSettingData
+from datasets.database import DataAllDatasets, Base
+from datasets.database import AsyncSessionLocal, Session
+from User.UserInfoFunctions import UserInfo
+from User.LoadSettings import LoadUserSettingData
 
 
 # !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
 #flag = "1"  live trading: 0, demo trading: 1
 #instType = 'SWAP'
-
+bd = DataAllDatasets(Session)
+TradeUserData = bd.create_TradeUserData(Base)
 
 class PlaceOrders(LoadUserSettingData):    
     def __init__(
             self, tradeAction: str,
             instId=None|str, size=None|float, posSide=None|str,
             leverage=None|int, risk=None|float, tpPrice=None|float,
-            slPrice=None|float, mgnMode=None|str
+            slPrice=None|float
             ):
         super().__init__()
         self.instId = instId
@@ -27,11 +29,10 @@ class PlaceOrders(LoadUserSettingData):
         self.slPrice = slPrice
         self.tradeAction = tradeAction # buy or sell
         self.leverage = leverage
+        self.UserInfo = UserInfo()
         self.accountApi = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
         self.tradeAPI = Trade.TradeAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
-        self.leverage = UserInfo.set_leverage_inst(self.api_key, self.secret_key, 
-                                                   self.passphrase, False, self.flag, 
-                                                   instId, leverage, mgnMode)
+        self.leverage = self.UserInfo.set_leverage_inst(instId, leverage, self.mgnMode)
 
         
     # Создание маркет ордера long с Tp и Sl
@@ -39,7 +40,7 @@ class PlaceOrders(LoadUserSettingData):
         # sourcery skip: extract-method, switch
         # установка левериджа
         result = self.leverage
-        usdt_balance = UserInfo.check_balance(self.api_key, self.secret_key, self.passphrase, self.flag)
+        usdt_balance = self.UserInfo.check_balance()
         # Создаём ордер лонг по маркету
         result = self.tradeAPI.place_order(
             instId=self.instId,
@@ -52,14 +53,15 @@ class PlaceOrders(LoadUserSettingData):
         if result["code"] == "0":
             print("Successful order request,order_id = ",result["data"][0]["ordId"])
             order_id_market = result["data"][0]["ordId"]
-            enter_price = float(result["data"][0]["avgPx"])
+            #Хуй сосать
+            #enter_price = float(result["data"][0]["avgPx"])
             # Создаем ордер tp
             if self.tradeAction == 'buy':
                 tpslTradeAction = 'sell'
             elif self.tradeAction == 'sell':
                 tpslTradeAction = 'buy'
             if self.tpPrice is None:
-                pass
+                order_id_tp_market = None
             else:
                 result_tp = self.tradeAPI.place_algo_order(
                     instId=self.instId,
@@ -86,6 +88,7 @@ class PlaceOrders(LoadUserSettingData):
                 slTriggerPxType="last"
             )
             order_id_sl_market = result_sl["data"][0]["algoId"]
+            print(result_sl)
             outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
             with Session() as session:
                 order_id = TradeUserData(
@@ -98,7 +101,7 @@ class PlaceOrders(LoadUserSettingData):
                     instrument=self.instId,
                     leverage=self.leverage,
                     side_of_trade=self.posSide,
-                    enter_price=enter_price,
+                    enter_price=None,
                     time=outTime,
                     tp_order_id=order_id_tp_market,
                     tp_price=self.tpPrice,
@@ -108,9 +111,10 @@ class PlaceOrders(LoadUserSettingData):
                 session.add(order_id)
                 session.commit()
         else:
-            print("Unsuccessful order request, error_code = ",result["data"][0]["test.log"], ", Error_message = ", result["data"][0]["sMsg"])
-
-
+            print("Unsuccessful order request, error_code = ",result["data"][0], ", Error_message = ", result["data"][0]["sMsg"])
+        return order_id_market, order_id_sl_market 
+        
+        
     # Размещение лимитного ордера
     def place_limit_order(self, price):
         # Установка левериджа
@@ -172,6 +176,7 @@ class PlaceOrders(LoadUserSettingData):
     
     @staticmethod
     def calculate_posSize(risk, leverage, slPrice):
+        # sourcery skip: inline-immediately-returned-variable
         user = UserInfo()
         balance = user.check_balance()
         size = (balance * leverage * risk) / slPrice
@@ -180,7 +185,6 @@ class PlaceOrders(LoadUserSettingData):
 
 
     # Открытые ордера
-    @staticmethod
     def get_all_order_list(self):
         result = self.tradeAPI.get_order_list()
         print(result)
@@ -188,7 +192,6 @@ class PlaceOrders(LoadUserSettingData):
 
 
     # Открытые позиции
-    @staticmethod
     def get_all_opened_positions(self):
         result = self.accountAPI.get_positions()
         print(result)
@@ -196,7 +199,6 @@ class PlaceOrders(LoadUserSettingData):
 
 
     # История торгов за три дня
-    @staticmethod
     def get_history_3days(self, instType):
         result = self.tradeAPI.get_fills(
             instType = instType #скорее всего всегда SWAP
@@ -206,7 +208,6 @@ class PlaceOrders(LoadUserSettingData):
 
 
     # История торгов за 3 месяца
-    @staticmethod
     def get_history_3months(self, instType):
         result = self.tradeAPI.get_fills_history(
             instType = instType #скорее всего всегда SWAP
@@ -216,11 +217,11 @@ class PlaceOrders(LoadUserSettingData):
 
     
     # Просмотр инфы по позиции через её id
-    @staticmethod
     def check_position(self, ordId):
         result = self.tradeAPI.get_order(instId=self.instId, ordId=ordId)
         print(result)
-        enter_price = float(result["data"][0]["avgPx"])
+        with contextlib.suppress(Exception):
+            enter_price = float(result["data"][0]["avgPx"])
         print(enter_price)
         return result
 

@@ -67,13 +67,14 @@ class LoadUserSettingData:
 
     #Создание подписи для private подписки
     def create_signature(self):
+        print(self.secret_key)
         timestamp = int(time.time())
         sign = f'{timestamp}GET/users/self/verify'
         total_params = bytes(sign, encoding='utf-8')
         signature = hmac.new(bytes(self.secret_key, encoding='utf-8'), total_params, digestmod=hashlib.sha256).digest()
         signature = base64.b64encode(signature)
         signature = str(signature, 'utf-8')
-        return signature
+        return timestamp, signature
 
 
     @staticmethod
