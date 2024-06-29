@@ -107,3 +107,35 @@ class OKXTradeRequests(LoadUserSettingData):
             enter_price = float(result["data"][0]["avgPx"])
         print(enter_price)
         return result
+    
+    
+    # Открытые ордера
+    def get_all_order_list(self):
+        result = self.tradeAPI.get_order_list()
+        print(result)
+        return result
+
+
+    # Открытые позиции
+    def get_all_opened_positions(self):
+        result = self.accountAPI.get_positions()
+        print(result)
+        return result
+
+
+    # История торгов за три дня
+    def get_history_3days(self, instType):
+        result = self.tradeAPI.get_fills(
+            instType = instType #скорее всего всегда SWAP
+        )
+        print(result)
+        return result
+
+
+    # История торгов за 3 месяца
+    def get_history_3months(self, instType):
+        result = self.tradeAPI.get_fills_history(
+            instType = instType #скорее всего всегда SWAP
+        )
+        print(result)
+        return result
