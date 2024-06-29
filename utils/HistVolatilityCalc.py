@@ -4,32 +4,7 @@ import decimal
 
 
 class CalculateHistoricVolatility:
-    """Summary:
-    Class for calculating historic volatility coefficients using two different approaches.
-
-    Explanation:
-    This class provides methods for calculating historic volatility coefficients based on the provided data, timeframes, and instrument ID using two different calculation approaches.
-
-    Returns:
-    - For calc_volat_coef_v1 and calc_volat_coef_v2: A tuple of volatility coefficients for different timeframes.
-    """
-    
-    
     def __init__(self, data, timeframes, instId):
-        """Summary:
-        Initialize data, timeframes, and instrument ID for volatility calculation.
-
-        Explanation:
-        This function initializes the data, timeframes, and instrument ID required for calculating volatility coefficients.
-
-        Args:
-        - data: The data dictionary containing time intervals and values.
-        - timeframes: The list of timeframes for volatility calculation.
-        - instId: The instrument ID for which volatility is being calculated.
-
-        Returns:
-        None
-        """
         self.data = data
         self.timeframes = timeframes
         self.instId = instId
@@ -37,15 +12,6 @@ class CalculateHistoricVolatility:
 
     # Рассчёт коэффициента волатильности(два варианта хз какой использовать) вариант 1
     def calc_volat_coef_v1(self):  # sourcery skip: class-extract-method, extract-duplicate-method
-        """Summary:
-        Calculate volatility coefficients using the first approach.
-
-        Explanation:
-        This function calculates volatility coefficients for different timeframes based on the provided data dictionary containing time intervals and values.
-
-        Returns:
-        - A tuple of volatility coefficients for 15 minutes, 1 hour, 4 hours, and 1 day timeframes.
-        """
         # Можно вытянуть часть этой функции в класс DataBase
         # Разбиваем словарь на несколько словарей по временным интервалам
         data_15m = data['15m']
@@ -109,15 +75,6 @@ class CalculateHistoricVolatility:
 
     # Рассчёт коэффициента волатильности(два варианта хз какой использовать) вариант 2
     def calc_volat_coef_v2(self):
-        """Summary:
-        Calculate volatility coefficients using the second approach.
-
-        Explanation:
-        This function calculates volatility coefficients for different timeframes based on the provided data dictionary containing time intervals and values using a specific calculation approach.
-
-        Returns:
-        - A tuple of volatility coefficients for 15 minutes, 1 hour, 4 hours, and 1 day timeframes.
-        """
         # Можно вытянуть часть этой функции в класс DataBase
         # Разбиваем словарь на несколько словарей по временным интервалам
         data_15m = data['15m']

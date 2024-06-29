@@ -54,3 +54,5 @@ class UserInfo(LoadUserSettingData):
             posMode="long_short_mode"
         )
         print(result)
+    
+    

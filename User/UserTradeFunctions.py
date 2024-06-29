@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 import okx.Account as Account
 import okx.Trade as Trade
 from datasets.database import DataAllDatasets, Base
-from datasets.database import AsyncSessionLocal, Session
+from datasets.database import Session
 from User.UserInfoFunctions import UserInfo
 from User.LoadSettings import LoadUserSettingData
+from User.TradeRequests import OKXTradeRequests
 
 
 # !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
@@ -14,82 +15,37 @@ from User.LoadSettings import LoadUserSettingData
 bd = DataAllDatasets(Session)
 TradeUserData = bd.create_TradeUserData(Base)
 
-class PlaceOrders(LoadUserSettingData):    
+class PlaceOrders(LoadUserSettingData, OKXTradeRequests):    
     def __init__(
             self, tradeAction: str,
-            instId=None|str, size=None|float, posSide=None|str,
-            leverage=None|int, risk=None|float, tpPrice=None|float,
+            instId=None|str, size=None|float, posSide=None|str, tpPrice=None|float,
             slPrice=None|float
             ):
-        super().__init__()
-        self.instId = instId
-        self.size = size
-        self.posSide = posSide #long or short
-        self.tpPrice = tpPrice
-        self.slPrice = slPrice
-        self.tradeAction = tradeAction # buy or sell
-        self.leverage = leverage
-        self.UserInfo = UserInfo()
-        self.accountApi = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
-        self.tradeAPI = Trade.TradeAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
-        self.leverage = self.UserInfo.set_leverage_inst(instId, leverage, self.mgnMode)
+        super().__init__(tradeAction, instId, size, posSide, tpPrice, slPrice)
+        self.leverage = self.UserInfo.set_leverage_inst(self.instId, self.leverage, self.mgnMode)
 
         
     # Создание маркет ордера long с Tp и Sl
     def place_market_order(self):
         # sourcery skip: extract-method, switch
+        if self.tradeAction == 'buy':
+                tpslTradeAction = 'sell'
+        elif self.tradeAction == 'sell':
+                tpslTradeAction = 'buy'
         # установка левериджа
         result = self.leverage
         usdt_balance = self.UserInfo.check_balance()
         # Создаём ордер лонг по маркету
-        result = self.tradeAPI.place_order(
-            instId=self.instId,
-            tdMode=self.mgnMode,
-            side=self.tradeAction,
-            posSide=self.posSide,
-            ordType="market",
-            sz=self.size
-        )
-        if result["code"] == "0":
-            print("Successful order request,order_id = ",result["data"][0]["ordId"])
-            order_id_market = result["data"][0]["ordId"]
-            #Хуй сосать
-            #enter_price = float(result["data"][0]["avgPx"])
-            # Создаем ордер tp
-            if self.tradeAction == 'buy':
-                tpslTradeAction = 'sell'
-            elif self.tradeAction == 'sell':
-                tpslTradeAction = 'buy'
+        order_id_market, outTime = super().construct_market_order()
+        if order_id_market is not None:
+            # Получаем точку входа
+            enter_price = float((super().check_position(order_id_market))["data"][0]["avgPx"])
             if self.tpPrice is None:
                 order_id_tp_market = None
             else:
-                result_tp = self.tradeAPI.place_algo_order(
-                    instId=self.instId,
-                    tdMode=self.mgnMode,
-                    side=tpslTradeAction,
-                    posSide=self.posSide,
-                    ordType="conditional",
-                    sz=self.size,
-                    tpTriggerPx=self.tpPrice,
-                    tpOrdPx="-1",
-                    tpTriggerPxType="last"
-                )
-                order_id_tp_market = result_tp["data"][0]["algoId"]
+                order_id_tp_market = super().construct_takeprofit_order(tpslTradeAction)
             # Создаём ордер sl
-            result_sl = self.tradeAPI.place_algo_order(
-                instId=self.instId,
-                tdMode=self.mgnMode,
-                side=tpslTradeAction,
-                posSide=self.posSide,
-                ordType="conditional",
-                sz=self.size,
-                slTriggerPx=self.slPrice,
-                slOrdPx="-1",
-                slTriggerPxType="last"
-            )
-            order_id_sl_market = result_sl["data"][0]["algoId"]
-            print(result_sl)
-            outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
+            order_id_sl_market = super().construct_stoploss_order(tpslTradeAction)
             with Session() as session:
                 order_id = TradeUserData(
                     order_id=order_id_market,
@@ -101,7 +57,7 @@ class PlaceOrders(LoadUserSettingData):
                     instrument=self.instId,
                     leverage=self.leverage,
                     side_of_trade=self.posSide,
-                    enter_price=None,
+                    enter_price=enter_price,
                     time=outTime,
                     tp_order_id=order_id_tp_market,
                     tp_price=self.tpPrice,
@@ -112,7 +68,6 @@ class PlaceOrders(LoadUserSettingData):
                 session.commit()
         else:
             print("Unsuccessful order request, error_code = ",result["data"][0], ", Error_message = ", result["data"][0]["sMsg"])
-        return order_id_market, order_id_sl_market 
         
         
     # Размещение лимитного ордера
@@ -122,24 +77,11 @@ class PlaceOrders(LoadUserSettingData):
         # Баланс
         balance = self.balance
         # limit order
-        result = self.tradeAPI.place_order(
-            instId=self.instId,
-            tdMode=self.mgnMode,
-            side=self.tradeAction,
-            posSide=self.posSide,
-            ordType="limit",
-            px=price,
-            sz=self.size
-        )
-        print(result)
-        if result["code"] == "0":
-            print("Successful order request, order_id = ",result["data"][0]["ordId"])
-            outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
-            order_id_limit = result["data"][0]["ordId"]
-            # Нужно встроить логику нахождения стопа и сохранять его в бд
+        order_id, outTime = super().construct_limit_order(price)
+        if order_id is not None:
             with Session() as session:
                 order_id = TradeUserData(
-                order_id=order_id_limit,
+                order_id=order_id,
                 status=False,
                 order_volume=self.size,
                 balance=balance,
@@ -154,34 +96,6 @@ class PlaceOrders(LoadUserSettingData):
             print("Unsuccessful order request，error_code = ",result["data"][0]["sCode"], ", Error_message = ", result["data"][0]["sMsg"])
 
 
-    #Калькулятор стопа
-    @staticmethod 
-    def calculate_stop_loss(leverage, instId, volat, enter_price, balance, direction, timeframe, calc_stop):
-        print(volat)
-        risk = 0.03
-        if calc_stop == True:
-            if direction == "long":
-                # Рассчитываем стоп-лос
-                slPrice = enter_price - (enter_price * volat[f'{instId}_{timeframe}'] / leverage)
-            elif direction == "short":
-                # Рассчитываем стоп-лос
-                slPrice = enter_price + (enter_price * volat[f'{instId}_{timeframe}'] / leverage)
-        # Рассчитываем размер позиции
-        P = (balance * leverage * risk) / slPrice
-        #   Выводим результаты
-        print(f"Стоп-лос: {slPrice:.2f}")
-        print(f"Размер позиции: {P:.2f}")
-        return slPrice, P
-    
-    
-    @staticmethod
-    def calculate_posSize(risk, leverage, slPrice):
-        # sourcery skip: inline-immediately-returned-variable
-        user = UserInfo()
-        balance = user.check_balance()
-        size = (balance * leverage * risk) / slPrice
-        return size
-        
 
 
     # Открытые ордера
