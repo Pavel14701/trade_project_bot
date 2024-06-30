@@ -17,28 +17,28 @@ class LoadUserSettingData:
         self.risk = float(os.getenv('RISK'))
         self.mgnMode = str(os.getenv('MGNMODE')) # cross or isolated
         self.avsl_configs = {
-            'lenghtsFast': int(os.getenv("AVSLlenghtsFast")),
-            'lenghtsSlow': int(os.getenv("AVSLlenghtsSlow")),
-            'lenT': int(os.getenv("AVSLlenT")),
-            'standDiv': float(os.getenv("AVSLstandDiv")),
-            'offset': int(os.getenv("AVSLoffset"))
+            'lenghtsFast': int(os.getenv("AVSLLENGHTSFAST")),
+            'lenghtsSlow': int(os.getenv("AVSLLENGHTSSLOW")),
+            'lenT': int(os.getenv("AVSLLENT")),
+            'standDiv': float(os.getenv("AVSLSTANDDIV")),
+            'offset': int(os.getenv("AVSLOFFSET"))
         }
         self.bollinger_bands_settings = {
-            'lenghts': int(os.getenv("BBlenghts")),
-            'stdev': float(os.getenv("BBstdev"))
+            'lenghts': int(os.getenv("BBLENGHTS")),
+            'stdev': float(os.getenv("BBSTDEV"))
         }
         self.alma_configs = {
-            'lenghtsVSlow': int(os.getenv("ALMAlenghtsVSlow")),
-            'lenghtsSlow': int(os.getenv("ALMAlenghtsSlow")),
-            'lenghtsMiddle': int(os.getenv("ALMAlenghtsMiddle")),
-            'lenghtsFast': int(os.getenv("ALMAlenghtsFast")),
-            'lenghtsVFast': int(os.getenv("ALMAlenghtsVFast")),
-            'lenghts': int(os.getenv("ALMAlenghts"))
+            'lenghtsVSlow': int(os.getenv("ALMALENGHTSVSLOW")),
+            'lenghtsSlow': int(os.getenv("ALMALENGHTSSLOW")),
+            'lenghtsMiddle': int(os.getenv("ALMALENGHTSSMIDDLE")),
+            'lenghtsFast': int(os.getenv("ALMALENGHTSFAST")),
+            'lenghtsVFast': int(os.getenv("ALMALENGHTSVFAST")),
+            'lenghts': int(os.getenv("ALMALENGHTS"))
         }
-        self.rsi_configs = {
-            'rsi_period_short': int(os.getenv("RSIShortLenghts")),
-            'rsi_period_long': int(os.getenv("RSILongLenghts")),
-            'ema_period': int(os.getenv("RSIEmaLenghts"))
+        self.clouds_rsi_configs = {
+            'rsi_period_short': int(os.getenv("RSISHORTLENGHTS")),
+            'rsi_period_long': int(os.getenv("RSILONGLENGHTS")),
+            'ema_period': int(os.getenv("RSIEMALENGHTS"))
         }
         self.stoch_rsi_configs = {
             'stoch_rsi_timeperiod': int(os.getenv('STOCHRSITIMEPERIOD')),
@@ -47,6 +47,7 @@ class LoadUserSettingData:
             'stoch_rsi_fastd_matype': int(os.getenv('STOCHRSIFASTDMATYPE'))
         }
         self.adx_timeperiod = int(os.getenv("ADXTIMEPERIOD"))
+        self.adx_trigger = int(os.getenv('ADXTRIGGER'))
 
     @staticmethod
     def load_user_settings():

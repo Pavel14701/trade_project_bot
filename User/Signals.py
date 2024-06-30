@@ -54,17 +54,10 @@ class CheckSignalData(LoadUserSettingData):
                 ("slPrice", avsl)
             ])
             self.redis_func.add_data_to_cache(data)
-            self.redis_func.publish_message(self.channel, message)
+            if rsi is not None and adx >= self.adx_tigger:
+                self.redis_func.publish_message(self.channel, message)
         except Exception as e:
             print(f'\nПроизошла ошибка: \n{e}\n')
-            
-            
-    def load_signal(self, channel):
-        message = self.redis_func.load_message_from_cache(channel)
-        instId = message['instId']
-        trend_signal = message['trend_strenghts']
-        posSide = message['rsi']
-        slPrice = message['slPrice']
 
 
 """

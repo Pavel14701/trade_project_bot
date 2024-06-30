@@ -63,6 +63,7 @@ class PlaceOrders(LoadUserSettingData, OKXTradeRequests):
                 session.commit()
         else:
             print("Unsuccessful order request, error_code = ",result["data"][0], ", Error_message = ", result["data"][0]["sMsg"])
+        return order_id_market
         
         
     # Размещение лимитного ордера
