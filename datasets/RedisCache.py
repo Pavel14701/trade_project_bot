@@ -1,5 +1,4 @@
-import contextlib
-import pickle, time, json, sys
+import pickle, sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from redis import Redis
 import pandas as pd
@@ -7,15 +6,16 @@ from User.LoadSettings import LoadUserSettingData
 
 
 class RedisCache(LoadUserSettingData): 
-    def __init__(self, instId:str, channel=None|str, timeframe=None|str, data=None|pd.DataFrame):
+    def __init__(self, instId=None|str, channel=None|str, timeframe=None|str, key=None|str, data=None|pd.DataFrame):
         super().__init__()
         self.data = data
         self.instId = instId
         self.timeframe = timeframe
         self.channel = channel
+        self.key = key
         self.r = Redis(self.host, self.port, self.db)
-        
-        
+
+
     def add_data_to_cache(self, data):
         pickled_df = pickle.dumps(data)
         self.r.set(f'df_{self.instId}_{self.timeframe}', pickled_df)
@@ -39,9 +39,10 @@ class RedisCache(LoadUserSettingData):
         return self.command
             
     
-    def send_redis_command(self, message):
+    def send_redis_command(self, message, key:str):
         message_pickle = pickle.dumps(message)
-        self.r.set(f'message_{self.instId}_{self.timeframe}', message_pickle)
+        self.r.set(key, message_pickle)
+
 
 
 
@@ -53,7 +54,7 @@ class RedisCache(LoadUserSettingData):
         
     def load_message_from_cache(self):
         try:
-            return pickle.loads(self.r.get(f'message_{self.instId}_{self.timeframe}'))
+            return pickle.loads(self.r.get(self.key))
         except Exception as e:
             print(e)
 

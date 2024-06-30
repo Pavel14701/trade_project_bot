@@ -1,7 +1,10 @@
 from decimal import Decimal
 import okx.Account as Account
 import okx.Trade as Trade
+import okx.MarketData as MarketData
 from User.LoadSettings import LoadUserSettingData
+from datasets.RedisCache import RedisCache
+from docx import Document
 
 
 """
@@ -11,12 +14,11 @@ from User.LoadSettings import LoadUserSettingData
 то он автоматически удалиться через 14 дней.
 """
 
-class UserInfo(LoadUserSettingData):
+class UserInfo(LoadUserSettingData, RedisCache):
     def __init__(self):
-        super().__init__()
-        self.tradeApi = Trade.TradeAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
+        super().__init__(key='contracts_prices')
         self.accountAPI = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
-        
+        self.marketDataAPI = MarketData.MarketAPI(flag=self.flag)
 
     # Проверка баланса
     def check_balance(self):
@@ -54,5 +56,37 @@ class UserInfo(LoadUserSettingData):
             posMode="long_short_mode"
         )
         print(result)
+        
+    def check_instrument_info(self, instId:str):
+        result = self.marketDataAPI.get_ticker(instId=instId)
+        print(result)
+
+
+    def check_contract_price(self, save=None|bool):
+        result = self.accountAPI.get_instruments(instType="SWAP")
+        if save:
+            doc = Document()
+            doc.add_paragraph(str(result))
+            doc.save('SWAPINFO.docx')
+        elif save == False:
+            super().send_redis_command(result, self.key)
+
+    
+    
+    def check_contract_price_cache(self, instId:str):
+        result = super().load_message_from_cache()
+        return float(next(
+                (
+                    instrument['ctVal']
+                    for instrument in result['data']
+                    if instrument['instId'] == instId
+                ),
+                None,
+            ))
+        
+
+
+
+
     
     

@@ -2,13 +2,14 @@ import logging, json
 import websockets, datetime
 from User.LoadSettings import LoadUserSettingData
 from datasets.database import create_tables
+from datasets.RedisCache import RedisCache
 
 ws_logger = logging.getLogger('websocket')
 ws_logger.setLevel(logging.DEBUG)
 ws_file_handler = logging.FileHandler("test.log")
 ws_logger.addHandler(ws_file_handler)
 
-class OKXWebsocketsChannel(LoadUserSettingData):
+class OKXWebsocketsChannel(LoadUserSettingData, RedisCache):
     def __init__(self):
         super().__init__()
         a = LoadUserSettingData()
@@ -33,7 +34,7 @@ class OKXWebsocketsChannel(LoadUserSettingData):
         async with websockets.connect('wss://wspap.okx.com:8443/ws/v5/private?brokerId=9999') as websocket:
             await websocket.send(json.dumps(msg))
             response = await websocket.recv()
-            ws_logger.info(f'Connected {datetime.datetime.now().isoformat()} - Response: {response}')
+            ws_logger.info(f'{datetime.datetime.now().isoformat()}\nConnected - Response: {response}')
 
             subs = {
                 "op": "subscribe",
@@ -47,4 +48,5 @@ class OKXWebsocketsChannel(LoadUserSettingData):
             await websocket.send(json.dumps(subs))
             async for msg in websocket:
                 msg = json.loads(msg)
-                print(f"\n\n\nСобытие: {msg}\n\n\n")
+                ws_logger.info(f"{datetime.datetime.now().isoformat()}\nСобытие: {msg}")
+                

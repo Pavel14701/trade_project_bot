@@ -2,7 +2,7 @@ from datasets.database import DataAllDatasets, Base
 from datasets.database import Session
 from User.LoadSettings import LoadUserSettingData
 from User.TradeRequests import OKXTradeRequests
-
+from utils.RiskManagment import RiskManadgment
 
 # !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
 #flag = "1"  live trading: 0, demo trading: 1
@@ -10,7 +10,7 @@ from User.TradeRequests import OKXTradeRequests
 bd = DataAllDatasets(Session)
 TradeUserData = bd.create_TradeUserData(Base)
 
-class PlaceOrders(LoadUserSettingData, OKXTradeRequests):    
+class PlaceOrders(LoadUserSettingData, OKXTradeRequests, RiskManadgment):    
     def __init__(
             self,
             instId=None|str, size=None|float, posSide=None|str, tpPrice=None|float,
@@ -30,6 +30,8 @@ class PlaceOrders(LoadUserSettingData, OKXTradeRequests):
         # установка левериджа
         result = self.leverage
         usdt_balance = self.UserInfo.check_balance()
+        
+        
         # Создаём ордер лонг по маркету
         order_id_market, outTime = super().construct_market_order()
         if order_id_market is not None:
@@ -90,7 +92,7 @@ class PlaceOrders(LoadUserSettingData, OKXTradeRequests):
                 session.commit    
         else:
             print("Unsuccessful order request，error_code = ",result["data"][0]["sCode"], ", Error_message = ", result["data"][0]["sMsg"])
-
+        return order_id
 
 
 
