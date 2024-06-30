@@ -3,10 +3,9 @@ from datasets.RedisCache import RedisCache
 from User.UserTradeFunctions import PlaceOrders
 
 def init_pos_data(message):
-    instId = message['instId']
     posSide = message['signal']
     slPrice = message['slPrice']
-    return instId, posSide, slPrice
+    return posSide, slPrice
     
 
 
