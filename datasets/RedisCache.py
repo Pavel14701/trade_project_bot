@@ -1,3 +1,4 @@
+import contextlib
 import pickle, time, json, sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from redis import Redis
@@ -26,20 +27,23 @@ class RedisCache(LoadUserSettingData):
         
         
     #Настройка и подключение слушателя редис
-    def listen_to_redis_channel(self):
-        try:
-            pubsub = self.r.pubsub()
-            pubsub.subscribe(self.channel)
-            while True:
-                message = pubsub.get_message()
-                if message and message['type'] == 'message':
-                    command = pickle.loads(message['data'])
-                    print(command, type(command))
-                    message_pickle = pickle.dumps(command)
-                    self.r.set(f'message_{self.instId}_{self.timeframe}', message_pickle)
-                time.sleep(1)
-        except Exception as e:
-            print(e)
+    def subscribe_to_redis_channel(self):
+        self.pubsub = self.r.pubsub()
+        self.pubsub.subscribe(self.channel)
+    
+            
+    def check_redis_message(self):
+        message = self.pubsub.get_message()
+        if message and message['type'] == 'message':
+            self.command = pickle.loads(message['data'])
+            print(self.command)
+            
+    
+    def send_redis_command(self):
+        print(self.command)
+        message_pickle = pickle.dumps(self.command)
+        self.r.set(f'message_{self.instId}_{self.timeframe}', message_pickle)
+
 
 
     # Функция для публикации сообщения
@@ -54,12 +58,17 @@ class RedisCache(LoadUserSettingData):
         except Exception as e:
             print(e)
 
-
+"""
 from threading import Thread
 a = RedisCache('asdas12312', 'fuck', 'fr', None)
 print('class created')
 def test():
-    a.listen_to_redis_channel()
+    a.subscribe_to_redis_channel()
+    while True:
+        with contextlib.suppress(Exception):
+            a.check_redis_message()
+            a.send_redis_command()
+            time.sleep(1)
 thread = Thread(target=test)
 thread.start()
 print('thread started')
@@ -68,4 +77,4 @@ a.publish_message(list)
 print('message published')
 c = a.load_message_from_cache()
 print(c)
-
+"""
