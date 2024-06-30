@@ -36,7 +36,7 @@ class OKXTradeRequests(LoadUserSettingData):
             print("Successful order request,order_id = ",result["data"][0]["ordId"])
         outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
         order_id = result["data"][0]["ordId"]
-        return order_id, outTime
+        return result, order_id, outTime
 
 
 
@@ -89,7 +89,7 @@ class OKXTradeRequests(LoadUserSettingData):
             print("Successful order request, order_id = ",result["data"][0]["ordId"])
         outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
         order_id = result["data"][0]["ordId"]
-        return order_id, outTime
+        return result, order_id, outTime
 
 
     def calculate_posSize(self):

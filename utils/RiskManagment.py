@@ -41,5 +41,5 @@ class RiskManadgment(LoadUserSettingData):
         return slPrice
 
 
-    def calculate_pos_size(self):
-        return (self.balance * self.leverage * self.risk) / self.slPrice
+    def calculate_pos_size(self, contract_price):
+        return ((self.balance * self.leverage * self.risk) / self.slPrice) / contract_price
