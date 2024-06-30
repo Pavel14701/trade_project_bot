@@ -36,12 +36,11 @@ class RedisCache(LoadUserSettingData):
         message = self.pubsub.get_message()
         if message and message['type'] == 'message':
             self.command = pickle.loads(message['data'])
-            print(self.command)
+        return self.command
             
     
-    def send_redis_command(self):
-        print(self.command)
-        message_pickle = pickle.dumps(self.command)
+    def send_redis_command(self, message):
+        message_pickle = pickle.dumps(message)
         self.r.set(f'message_{self.instId}_{self.timeframe}', message_pickle)
 
 
