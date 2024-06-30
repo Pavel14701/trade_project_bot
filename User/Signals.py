@@ -8,9 +8,12 @@ from User.LoadSettings import LoadUserSettingData
 from datasets.LoadDataStream import StreamData
 from indicators.RsiClouds import CloudsRsi
 from sqlalchemy.orm import sessionmaker
+from User.UserTradeFunctions import PlaceOrders
+
+
 from datasets.database import DataAllDatasets, Base
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+
 
 # Супер залупер класс
 class CheckSignalData(LoadUserSettingData):
@@ -21,7 +24,7 @@ class CheckSignalData(LoadUserSettingData):
         self.timeframe = timeframe
         self.Session = Session
         self.classes_dict = classes_dict
-        self.channel = channel
+        self.channel = f'channel_{self.instId}_{self.timeframe}'
         self.init = StreamData(self.Session, self.classes_dict, self.instId, self.timeframe, self.lenghtsSt)
         data = self.init.load_data()
         self.redis_func = RedisCache(self.instId, self.timeframe, self.channel, data)
@@ -54,6 +57,15 @@ class CheckSignalData(LoadUserSettingData):
             self.redis_func.publish_message(self.channel, message)
         except Exception as e:
             print(f'\nПроизошла ошибка: \n{e}\n')
+            
+            
+    def load_signal(self, channel):
+        message = self.redis_func.load_message_from_cache(channel)
+        instId = message['instId']
+        trend_signal = message['trend_strenghts']
+        posSide = message['rsi']
+        slPrice = message['slPrice']
+
 
 """
 #Это надо встроить в маин            

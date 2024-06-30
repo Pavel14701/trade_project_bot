@@ -1,6 +1,5 @@
 import contextlib
-import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 import okx.Account as Account
 import okx.Trade as Trade
 from User.LoadSettings import LoadUserSettingData
@@ -9,7 +8,7 @@ from User.UserInfoFunctions import UserInfo
 
 class OKXTradeRequests(LoadUserSettingData):
     def __init__(
-            self, tradeAction: str,
+            self,
             instId=None|str, size=None|float, posSide=None|str, tpPrice=None|float,
             slPrice=None|float
             ):
@@ -23,13 +22,13 @@ class OKXTradeRequests(LoadUserSettingData):
         self.tradeAPI = Trade.TradeAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
 
 
-    def construct_market_order(self):  
+    def construct_market_order(self, side):  
         # sourcery skip: class-extract-method
         result = self.tradeAPI.place_order(
             instId=self.instId,
             tdMode=self.mgnMode,
-            side=self.tradeAction,
-            posSide=self.posSide,
+            side=side,
+            posSide=side,
             ordType="market",
             sz=self.size
         )
@@ -41,11 +40,11 @@ class OKXTradeRequests(LoadUserSettingData):
 
 
 
-    def construct_stoploss_order(self, tpslTradeAction):
+    def construct_stoploss_order(self, side):
         result = self.tradeAPI.place_algo_order(
             instId=self.instId,
             tdMode=self.mgnMode,
-            side=tpslTradeAction,
+            side=side,
             posSide=self.posSide,
             ordType="conditional",
             sz=self.size,
@@ -58,11 +57,11 @@ class OKXTradeRequests(LoadUserSettingData):
             return result['data'][0]['ordId']
         
         
-    def construct_takeprofit_order(self, tpslTradeAction):
+    def construct_takeprofit_order(self, side):
         result = self.tradeAPI.place_algo_order(
             instId=self.instId,
             tdMode=self.mgnMode,
-            side=tpslTradeAction,
+            side=side,
             posSide=self.posSide,
             ordType="conditional",
             sz=self.size,

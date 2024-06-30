@@ -1,10 +1,5 @@
-import contextlib
-from datetime import datetime, timedelta
-import okx.Account as Account
-import okx.Trade as Trade
 from datasets.database import DataAllDatasets, Base
 from datasets.database import Session
-from User.UserInfoFunctions import UserInfo
 from User.LoadSettings import LoadUserSettingData
 from User.TradeRequests import OKXTradeRequests
 
@@ -17,11 +12,11 @@ TradeUserData = bd.create_TradeUserData(Base)
 
 class PlaceOrders(LoadUserSettingData, OKXTradeRequests):    
     def __init__(
-            self, tradeAction: str,
+            self,
             instId=None|str, size=None|float, posSide=None|str, tpPrice=None|float,
             slPrice=None|float
             ):
-        super().__init__(tradeAction, instId, size, posSide, tpPrice, slPrice)
+        super().__init__(instId, size, posSide, tpPrice, slPrice)
         self.leverage = self.UserInfo.set_leverage_inst(self.instId, self.leverage, self.mgnMode)
 
         
