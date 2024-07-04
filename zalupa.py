@@ -1,27 +1,16 @@
-import asyncio, time
-from threading import Thread
-from User.WebsocketsChannel import OKXWebsocketsChannel
-from User.UserTradeFunctions import PlaceOrders
+from okx import MarketData
+from User.LoadSettings import LoadUserSettingData
 
-okx_channel = OKXWebsocketsChannel()
-
-def second_thread():  
-    time.sleep(30)
-    trade = PlaceOrders('buy', 'ETH-USDT-SWAP', 1, 'long', 20, 0.03, None, 3432.0)
-    order_id, order_sl_id = trade.place_market_order()
-    trade.check_position(order_id)
-    trade.check_position(order_sl_id)
-
-    
-thread = Thread(target=second_thread)
-thread.start()
-
-# Запуск основной асинхронной функции
-if __name__ == '__main__':
-    asyncio.run(okx_channel.main())
-    
+settings = LoadUserSettingData()
+user_settings = settings.load_user_settings()
 
 
-
-
-
+marketDataAPI = MarketData.MarketAPI(user_settings[0])
+result = marketDataAPI.get_candlesticks(
+    instId='ETH-USDT-SWAP',
+    after='',
+    before='',
+    bar='15m',
+    limit=300 # 300 Лимит Okx на 1 реквест
+)
+print(len(result['data']))

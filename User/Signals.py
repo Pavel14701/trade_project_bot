@@ -1,23 +1,28 @@
-import sys
+import sys, logging
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from datetime import datetime
-from indicators.AVSL import AVSLIndicator
-from indicators.ADX import ADXTrend
-from datasets.RedisCache import RedisCache
+from sqlalchemy.orm import sessionmaker
 from User.LoadSettings import LoadUserSettingData
 from datasets.LoadDataStream import StreamData
+from datasets.StatesDB import SQLStateStorage, StateRequest
+from indicators.AVSL import AVSLIndicator
+from indicators.ADX import ADXTrend
 from indicators.RsiClouds import CloudsRsi
-from sqlalchemy.orm import sessionmaker
-from User.UserTradeFunctions import PlaceOrders
+from datasets.RedisCache import RedisCache
+from utils.DataFrameUtils import create_message_state
 
 
-from datasets.database import DataAllDatasets, Base
-from sqlalchemy import create_engine
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('signals.log')
+file_handler.setLevel(logging.ERROR)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 
-# Супер залупер класс
 class CheckSignalData(LoadUserSettingData):
-    def __init__ (self, Session:sessionmaker, classes_dict:dict, instId:str, timeframe:str, lenghtsSt:int, channel:str):
+    def __init__ (self, Session:sessionmaker, classes_dict:dict, instId:str, timeframe:str, lenghtsSt:int):
         super().__init__()
         self.lenghtsSt = lenghtsSt
         self.instId = instId
@@ -29,44 +34,43 @@ class CheckSignalData(LoadUserSettingData):
         data = self.init.load_data()
         self.redis_func = RedisCache(self.instId, self.timeframe, self.channel, data)
         self.redis_func.add_data_to_cache(data)
-        
 
 
-
-    def create_signals(self):
+    def create_signals(self) -> None:
         try:
             data = self.redis_func.load_data_from_cache()
             data = self.init.load_data_for_period(data)
             indicator_avsl = AVSLIndicator(data)
             indicator_rsi_clouds = CloudsRsi(data)
             indicator_adx = ADXTrend(data)
-            cross_up, cross_down, avsl, close_prices, last_bar_signal = indicator_avsl.calculate_avsl()
+            avsl = indicator_avsl.calculate_avsl()
             rsi = indicator_rsi_clouds.calculate_rsi_clouds()
             adx = indicator_adx.calculate_adx()
-            current_time = datetime.now()
-            formatted_time = current_time.isoformat()
-            message = dict([
-                ("time", formatted_time),
-                ("instId", self.instId),
-                ("timeframe", self.timeframe),
-                ("trend_strenghts", adx),
-                ("signal", rsi),
-                ("slPrice", avsl)
-            ])
+            message = create_message_state(self.instId, self.timeframe, avsl, adx, rsi)
             self.redis_func.add_data_to_cache(data)
             if rsi is not None and adx >= self.adx_tigger:
                 self.redis_func.publish_message(self.channel, message)
         except Exception as e:
-            print(f'\nПроизошла ошибка: \n{e}\n')
+            logger.error(f"\n{datetime.datetime.now().isoformat()} Error create signals:\n{e}")
 
 
-"""
-#Это надо встроить в маин            
-engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
-data_all_datasets = DataAllDatasets()
-classes_dict = data_all_datasets.create_classes(Base)   
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)   
-signal = CheckSignalData(Session, classes_dict, 'ETH-USDT-SWAP', '4H', 300, 'my_channel')
-signal.avsl_signals()
-"""
+    def trailing_stoploss(self) -> None: #Базирован на индикаторе авсл
+        try:
+            data = self.redis_func.load_data_from_cache()
+            data = self.init.load_data_for_period(data)
+            indicator_avsl = AVSLIndicator(data)
+            avsl = indicator_avsl.calculate_avsl()
+            message = create_message_state(self.instId, self.timeframe, avsl)
+            self.redis_func.publish_message(self.channel, message)
+        except Exception as e:
+            logger.error(f"\n{datetime.datetime.now().isoformat()} Error trailing stoploss:\n{e}")
+            
+
+    def check_active_state(self):
+        state_instance = StateRequest(self.instId, self.timeframe, self.Session)
+        state_params = state_instance.check_state()
+        if state_params:
+            return state_params['position']
+        else:
+            return None
+            

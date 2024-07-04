@@ -22,7 +22,11 @@ class OKXTradeRequests(LoadUserSettingData):
         self.tradeAPI = Trade.TradeAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
 
 
-    def construct_market_order(self, side):  
+    def construct_market_order(self, side) -> dict:
+        if self.posSide == 'long':
+                    side = 'buy'
+        elif self.posSide == 'short':
+                    side = 'sell'
         # sourcery skip: class-extract-method
         result = self.tradeAPI.place_order(
             instId=self.instId,
@@ -32,15 +36,19 @@ class OKXTradeRequests(LoadUserSettingData):
             ordType="market",
             sz=self.size
         )
-        if result["code"] == "0":
-            print("Successful order request,order_id = ",result["data"][0]["ordId"])
+        if result['code'] != '0':
+            raise ValueError(f'Construct market order, code: {result['code']}')
         outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
         order_id = result["data"][0]["ordId"]
-        return order_id, outTime
+        return {'result': result, 'order_id': order_id, 'outTime': outTime}
 
 
 
-    def construct_stoploss_order(self, side):
+    def construct_stoploss_order(self) -> str:
+        if self.posSide == 'long':
+                    side = 'sell'
+        elif self.posSide == 'short':
+                    side = 'buy'
         result = self.tradeAPI.place_algo_order(
             instId=self.instId,
             tdMode=self.mgnMode,
@@ -52,12 +60,16 @@ class OKXTradeRequests(LoadUserSettingData):
             slOrdPx="-1",
             slTriggerPxType="last"
         )
-        if result['code'] == '0':
-            print("Successful order request,order_id = ",result["data"][0]["ordId"])
-            return result['data'][0]['ordId']
+        if result['code'] != '0':
+            raise ValueError(f'Construct stoploss order, code: {result['code']}')
+        return result['data'][0]['ordId']
         
         
-    def construct_takeprofit_order(self, side):
+    def construct_takeprofit_order(self, side) -> str:
+        if self.posSide == 'long':
+                    side = 'sell'
+        elif self.posSide == 'short':
+                    side = 'buy'
         result = self.tradeAPI.place_algo_order(
             instId=self.instId,
             tdMode=self.mgnMode,
@@ -69,72 +81,61 @@ class OKXTradeRequests(LoadUserSettingData):
             tpOrdPx="-1",
             tpTriggerPxType="last"
         )
-        if result['code'] == '0':
-            print("Successful order request,order_id = ",result["data"][0]["ordId"])
-            return result['data'][0]['ordId']
+        if result['code'] != '0':
+            raise ValueError(f'Construct takeprofit order, code: {result['code']}')
+        return result['data'][0]['ordId']
 
 
-    def costruct_limit_order(self, price):
+    def costruct_limit_order(self, price) -> dict:
+        if self.posSide == 'long':
+                    side = 'buy'
+        elif self.posSide == 'short':
+                    side = 'sell'
         result = self.tradeAPI.place_order(
             instId=self.instId,
             tdMode=self.mgnMode,
-            side=self.tradeAction,
+            side=side,
             posSide=self.posSide,
             ordType="limit",
             px=price,
             sz=self.size
         )
-        print(result)
-        if result["code"] == "0":
-            print("Successful order request, order_id = ",result["data"][0]["ordId"])
+        if result["code"] != "0":
+            raise ValueError(f'Construct limit order, code: {result['code']}')
         outTime = datetime.fromtimestamp(int(result['outTime'])/1000000) + timedelta(hours=3)
         order_id = result["data"][0]["ordId"]
-        return order_id, outTime
+        return {'result': result, 'order_id': order_id, 'outTime': outTime}
 
 
-    def calculate_posSize(self):
+    def calculate_posSize(self) -> float:
         # sourcery skip: inline-immediately-returned-variable
         user = UserInfo()
         balance = user.check_balance()
-        size = (balance * self.leverage * self.risk) / self.slPrice
-        return size
+        return (balance * self.leverage * self.risk) / self.slPrice
     
-    def check_position(self, ordId):
+    def check_position(self, ordId) -> dict:
         result = self.tradeAPI.get_order(instId=self.instId, ordId=ordId)
-        print(result)
-        with contextlib.suppress(Exception):
-            enter_price = float(result["data"][0]["avgPx"])
-        print(enter_price)
-        return result
+        if result["code"] != "0":
+            raise ValueError(f'Check position, code: {result['code']}')
+        return float(result["data"][0]["avgPx"])
+
     
     
     # Открытые ордера
-    def get_all_order_list(self):
-        result = self.tradeAPI.get_order_list()
-        print(result)
-        return result
+    def get_all_order_list(self) -> dict:
+        return self.tradeAPI.get_order_list()
 
 
     # Открытые позиции
-    def get_all_opened_positions(self):
-        result = self.accountAPI.get_positions()
-        print(result)
-        return result
+    def get_all_opened_positions(self) -> dict:
+        return self.accountAPI.get_positions()
 
 
     # История торгов за три дня
-    def get_history_3days(self, instType):
-        result = self.tradeAPI.get_fills(
-            instType = instType #скорее всего всегда SWAP
-        )
-        print(result)
-        return result
+    def get_history_3days(self) -> dict:
+        return self.tradeAPI.get_fills(instType = 'SWAP') #скорее всего всегда SWAP
 
 
     # История торгов за 3 месяца
-    def get_history_3months(self, instType):
-        result = self.tradeAPI.get_fills_history(
-            instType = instType #скорее всего всегда SWAP
-        )
-        print(result)
-        return result
+    def get_history_3months(self) -> dict:
+        return self.tradeAPI.get_fills_history(instType = 'SWAP') #скорее всего всегда SWAP

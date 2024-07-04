@@ -1,32 +1,36 @@
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
-from datasets.database import DataAllDatasets, Base
 import pandas as pd
-from User.LoadSettings import LoadUserSettingData
+from pandas import DataFrame
 from sqlalchemy.orm import sessionmaker
+from User.LoadSettings import LoadUserSettingData
+from User.UserInfoFunctions import UserInfo
+from datasets.database import DataAllDatasets, Base
 
 
-class StreamData(LoadUserSettingData):
-    def __init__(self, Session: sessionmaker, classes_dict: dict, instId: str, timeframe: str, lenghtsSt: int):
-        super().__init__()
+
+
+class StreamData(UserInfo, LoadUserSettingData):
+    def __init__(
+        self, Session=None|sessionmaker, classes_dict=None|dict, instId=None|str, timeframe=None|str,
+        lenghts=None|int, load_data_after=None|str, load_data_before=None|str
+        ):
+        super.__init__(instId, timeframe, lenghts, load_data_after, load_data_before)
         self.instId = instId
+        self.timeframe = timeframe
+        self.lenghts = lenghts
         self.Session = Session
         self.classes_dict = classes_dict
-        self.timeframe = timeframe
-        self.lenghtsSt = lenghtsSt
+
 
         
-    def load_data(self):
-        return DataAllDatasets.get_current_chart_data(
-            self.flag, self.instId, self.timeframe, Base,
-            self.Session, self.classes_dict, None, None, self.lenghtsSt
-        )
+    def load_data(self) -> dict:
+        return super().get_market_data()
 
     
-    def load_data_for_period(self, data: pd.DataFrame):
+    def load_data_for_period(self, data:DataFrame) -> pd.DataFrame:
+        bd = DataAllDatasets(self.instId, self.timeframe, self.Session, self.classes_dict)
+        
         data = data.drop(data.index[:1])
-        new_data = DataAllDatasets.get_current_chart_data(
-            self.flag, self.instId, self.timeframe, Base,
-            self.Session, self.classes_dict, None, None, lenghts = 1
-        )
+        new_data = super().get_market_data(lenghts=1)
         return pd.concat([data, new_data], ignore_index=True)
