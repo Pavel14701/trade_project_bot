@@ -3,13 +3,21 @@ import websockets, datetime
 from User.LoadSettings import LoadUserSettingData
 from datasets.database import create_tables
 from datasets.RedisCache import RedisCache
+from utils.LoggingFormater import MultilineJSONFormatter
+from utils.IventListner import OKXIventListner
+
 
 ws_logger = logging.getLogger('websocket')
 ws_logger.setLevel(logging.DEBUG)
-ws_file_handler = logging.FileHandler("test.log")
+ws_file_handler = logging.FileHandler("listner.log")
+ws_file_handler.setFormatter(MultilineJSONFormatter())
+ws_handler = logging.StreamHandler()
+ws_handler.setFormatter(MultilineJSONFormatter())
 ws_logger.addHandler(ws_file_handler)
+ws_logger.addHandler(ws_handler)
 
-class OKXWebsocketsChannel(LoadUserSettingData, RedisCache):
+
+class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
     def __init__(self):
         super().__init__()
         a = LoadUserSettingData()
@@ -46,7 +54,23 @@ class OKXWebsocketsChannel(LoadUserSettingData, RedisCache):
                 ]
             }
             await websocket.send(json.dumps(subs))
+            subs = {
+                "op": "subscribe",
+                "args": [
+                    {
+                        "channel": "positions",
+                        "instType": "ANY",
+                        "extraParams": "{\"updateInterval\": \"0\"}"
+                    }
+                ]
+            }
+            await websocket.send(json.dumps(subs))
             async for msg in websocket:
                 msg = json.loads(msg)
-                ws_logger.info(f"{datetime.datetime.now().isoformat()}\nСобытие: {msg}")
-                
+                print((f"{datetime.datetime.now().isoformat()}\nСобытие: {msg}"))
+                print(type(msg))
+                if msg['arg']['channel'] == 'positions':
+                    ws_logger.info(f"\n\nConnected: {datetime.datetime.now().isoformat()} Responce:")
+                    ws_logger.info(msg)
+                    listner = OKXIventListner(None, None)
+                    await listner.ivent_reaction(msg)

@@ -92,8 +92,8 @@ if __name__ == '__main__':
         nest_asyncio.apply()  # вызываем функцию nest_asyncio.apply()
         asyncio.run(main())  # заменяем loop.run_until_complete(main()) на asyncio.run(main())
     except KeyboardInterrupt as e:
-        ws_logger.info(f'\n Бот остановлен вручную')
+        ws_logger.info(f'\n\n Бот остановлен вручную')
     except OkxAPIException as e:
-        ws_logger.exception(f'{e}')
+        ws_logger.exception(f'\n\n{e}')
     except Exception as e:
-        ws_logger.exception(f'{e}')
+        ws_logger.exception(f'\n\n{e}')

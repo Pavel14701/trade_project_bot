@@ -1,28 +1,19 @@
 #!/usr/bin/env python3
 import time
 from threading import Thread
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 import schedule
-from datasets.database import DataAllDatasets, Base
+from datasets.database import create_classes, Base, Session
 from User.LoadSettings import LoadUserSettingData
 from utils.StartDelayCalculator import StartDelayCalc
 from User.Signals import CheckSignalData
 
+# При инициализации нужно написать функцию, которая будет проверять есть ли стейт в SQL и вешать None, -++++
+# если соответствующий стейт не обнаружен и делать это она должна внутри !!!
+Session, classes_dict, TradeUserData = create_classes(Base)
 
-# Настройка подключения к базе данных
-engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
 
-# Создание классов и таблиц
-data_all_datasets = DataAllDatasets()
-classes_dict = data_all_datasets.create_classes(Base)
-TradeSignals = data_all_datasets.create_TradeUserData(Base)
-Base.metadata.create_all(engine)
-print(f'\n\n{classes_dict}\n\n')
-# Создание сессии
-Session = sessionmaker(bind=engine)
-print(type(classes_dict))
-# Функции для проверки сигналов
+
+
 def check_signal_15m():
     signal = CheckSignalData.avsl_signals(flag, instIds[1], timeframes[0],
                                           Base, Session, classes_dict,

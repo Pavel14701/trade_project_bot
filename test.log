@@ -1,152 +1,277 @@
-Connected 2024-02-19T20:22:29.126374
-
- {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': '421fe1f9'} 
- 
 
 
- {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': '421fe1f9'} 
- 
+Connected: 2024-07-02T05:48:25.313172 Responce:
+{
+    "arg": {
+        "channel": "account",
+        "uid": "386428458307340665"
+    },
+    "data": [
+        {
+            "adjEq": "34672.940257571834",
+            "borrowFroz": "0",
+            "details": [
+                {
+                    "availBal": "30374.643380394013",
+                    "availEq": "30374.643380394013",
+                    "borrowFroz": "0",
+                    "cashBal": "34913.35756424401",
+                    "ccy": "USDT",
+                    "clSpotInUseAmt": "",
+                    "coinUsdPrice": "0.9993",
+                    "crossLiab": "0",
+                    "disEq": "34888.91821394904",
+                    "eq": "34913.35756424401",
+                    "eqUsd": "34888.91821394904",
+                    "fixedBal": "0",
+                    "frozenBal": "4538.71418385",
+                    "imr": "",
+                    "interest": "0",
+                    "isoEq": "0",
+                    "isoLiab": "0",
+                    "isoUpl": "0",
+                    "liab": "0",
+                    "maxLoan": "0",
+                    "maxSpotInUseAmt": "",
+                    "mgnRatio": "",
+                    "mmr": "",
+                    "notionalLever": "",
+                    "ordFrozen": "4322.5849370000005",
+                    "rewardBal": "",
+                    "smtSyncEq": "0",
+                    "spotInUseAmt": "",
+                    "spotIsoBal": "0",
+                    "stgyEq": "0",
+                    "twap": "0",
+                    "uTime": "1719886373133",
+                    "upl": "0",
+                    "uplLiab": "0"
+                }
+            ],
+            "imr": "4319.5591275441",
+            "isoEq": "0",
+            "mgnRatio": "18.194003085634",
+            "mmr": "1693.986265419492",
+            "notionalUsd": "0",
+            "ordFroz": "4319.5591275441",
+            "totalEq": "34888.91821394904",
+            "uTime": "1719888503004",
+            "upl": "0"
+        }
+    ]
+}
 
 
- {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
- 
+Connected: 2024-07-02T05:48:25.523982 Responce:
+{
+    "arg": {
+        "channel": "account",
+        "uid": "386428458307340665"
+    },
+    "data": [
+        {
+            "adjEq": "34675.941366963656",
+            "borrowFroz": "0",
+            "details": [
+                {
+                    "availBal": "30462.29931293398",
+                    "availEq": "30462.299312933985",
+                    "borrowFroz": "0",
+                    "cashBal": "34701.46033903401",
+                    "ccy": "USDT",
+                    "clSpotInUseAmt": "",
+                    "coinUsdPrice": "0.9993",
+                    "crossLiab": "0",
+                    "disEq": "34675.941366963656",
+                    "eq": "34700.23152903398",
+                    "eqUsd": "34675.941366963656",
+                    "fixedBal": "0",
+                    "frozenBal": "4237.9322161",
+                    "imr": "",
+                    "interest": "0",
+                    "isoEq": "0",
+                    "isoLiab": "0",
+                    "isoUpl": "0",
+                    "liab": "0",
+                    "maxLoan": "0",
+                    "maxSpotInUseAmt": "",
+                    "mgnRatio": "",
+                    "mmr": "",
+                    "notionalLever": "",
+                    "ordFrozen": "0",
+                    "rewardBal": "",
+                    "smtSyncEq": "0",
+                    "spotInUseAmt": "",
+                    "spotIsoBal": "0",
+                    "stgyEq": "0",
+                    "twap": "0",
+                    "uTime": "1719888503004",
+                    "upl": "-1.2288100000268223",
+                    "uplLiab": "0"
+                }
+            ],
+            "imr": "4234.96566354873",
+            "isoEq": "0",
+            "mgnRatio": "18.19557786392305",
+            "mmr": "1693.986265419492",
+            "notionalUsd": "423496.566354873",
+            "ordFroz": "0",
+            "totalEq": "34675.941366963656",
+            "uTime": "1719888503006",
+            "upl": "-1.2279498330268035"
+        }
+    ]
+}
 
 
- Бот остановлен вручную
-Connected 2024-02-19T20:23:06.078343
+Connected: 2024-07-02T05:48:25.579948 Responce:
+{
+    "arg": {
+        "channel": "positions",
+        "instType": "ANY",
+        "uid": "386428458307340665"
+    },
+    "data": [
+        {
+            "adl": "1",
+            "availPos": "12288.1",
+            "avgPx": "3448.82",
+            "baseBal": "",
+            "baseBorrowed": "",
+            "baseInterest": "",
+            "bePx": "3452.270545272636",
+            "bizRefId": "",
+            "bizRefType": "",
+            "cTime": "1719888503004",
+            "ccy": "USDT",
+            "clSpotInUseAmt": "",
+            "closeOrderAlgo": [],
+            "deltaBS": "",
+            "deltaPA": "",
+            "fee": "-211.89722521",
+            "fundingFee": "0",
+            "gammaBS": "",
+            "gammaPA": "",
+            "idxPx": "3448.7177",
+            "imr": "4237.9322161",
+            "instId": "ETH-USDT-SWAP",
+            "instType": "SWAP",
+            "interest": "",
+            "last": "3448.81",
+            "lever": "100",
+            "liab": "",
+            "liabCcy": "",
+            "liqPenalty": "0",
+            "liqPx": "3180.734388726421",
+            "margin": "",
+            "markPx": "3448.81",
+            "maxSpotInUseAmt": "",
+            "mgnMode": "cross",
+            "mgnRatio": "18.19557786392305",
+            "mmr": "1695.17288644",
+            "notionalUsd": "423496.566354873",
+            "optVal": "",
+            "pTime": "1719888503006",
+            "pendingCloseOrdLiabVal": "",
+            "pnl": "0",
+            "pos": "12288.1",
+            "posCcy": "",
+            "posId": "1589543541557415936",
+            "posSide": "long",
+            "quoteBal": "",
+            "quoteBorrowed": "",
+            "quoteInterest": "",
+            "realizedPnl": "-211.89722521",
+            "spotInUseAmt": "",
+            "spotInUseCcy": "",
+            "thetaBS": "",
+            "thetaPA": "",
+            "tradeId": "283082335",
+            "uTime": "1719888503004",
+            "upl": "-1.2288100000268223",
+            "uplLastPx": "-1.2288100000268223",
+            "uplRatio": "-0.000289954245225",
+            "uplRatioLastPx": "-0.000289954245225",
+            "usdPx": "",
+            "vegaBS": "",
+            "vegaPA": ""
+        }
+    ]
+}
 
- {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': '1d5a6690'} 
- 
 
 
- {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': '1d5a6690'} 
- 
-
-
- {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
- 
-
-
- Бот остановлен вручную
-Connected 2024-02-19T20:28:45.251579
-
- {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': '4b330182'} 
- 
-
-
- {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': '4b330182'} 
- 
-
-
- {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
- 
-
-Connected 2024-02-19T20:30:50.865684
-
- {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': 'c104abd8'} 
- 
-
-
- {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '2', 'connId': 'c104abd8'} 
- 
-
-
- {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
- 
-
-
- Бот остановлен вручную
-
- {'data_instId': 'BTC-USDT-SWAP', 'data_liqPx': '46592.3377252355', 'data_avgPx': '52089.9', 'data_posSide': 'long', 'data_posId': '675830696044253188', 'data_notionalUsd': '350828.44354070403', 'data_lever': '50', 'data_upl': '0', 'data_pnl': '0'} 
- 
-
-
- {'data_instId': 'BTC-USDT-SWAP', 'data_liqPx': '49225.5836618286', 'data_avgPx': '52089.9116395187034461', 'data_posSide': 'long', 'data_posId': '675830696044253188', 'data_notionalUsd': '636298.3570587421', 'data_lever': '50', 'data_upl': '-1.363899999936053', 'data_pnl': '0'} 
- 
-
-
- {'data_instId': 'BTC-USDT-SWAP', 'data_liqPx': '', 'data_avgPx': '', 'data_posSide': 'long', 'data_posId': '675830696044253188', 'data_notionalUsd': '', 'data_lever': '', 'data_upl': '', 'data_pnl': ''} 
- 
-
-
- Бот остановлен вручную
-Connected 2024-05-28T20:20:48.136864
-
- {'event': 'subscribe', 'arg': {'channel': 'positions', 'instType': 'ANY'}, 'connId': 'd157e96e'} 
- 
-
-
- {'event': 'channel-conn-count', 'channel': 'positions', 'connCount': '1', 'connId': 'd157e96e'} 
- 
-
-
- {'arg': {'channel': 'positions', 'instType': 'ANY', 'uid': '386428458307340665'}, 'data': []} 
- 
-
-
- Бот остановлен вручную
-Connected 2024-05-28T20:26:09.812300
-Connected 2024-05-29T02:31:40.940261
-Connected 2024-05-29T02:47:27.518369
-Connected 2024-05-30T01:31:53.808866
-Connected 2024-05-30T16:19:47.211777
-Connected 2024-05-30T16:20:59.955966
-Connected 2024-05-30T16:21:03.630272
-Connected 2024-05-30T16:23:59.325193
-Connected 2024-05-30T16:28:02.817630
-Connected 2024-05-30T16:29:37.570573
-Connected 2024-05-30T16:32:42.154772
-Connected 2024-05-30T16:33:55.517956
-Connected 2024-05-30T19:55:41.944328
-Connected 2024-05-30T19:56:55.331103
-Connected 2024-05-30T21:23:21.703458
-Connected 2024-05-31T22:09:47.544804
-Connected 2024-05-31T22:15:06.380767
-Connected 2024-05-31T22:16:03.255052
-Connected 2024-05-31T22:19:58.061183
-Connected 2024-05-31T22:35:29.715696
-Connected 2024-05-31T22:35:54.467185
-Connected 2024-05-31T22:38:05.056653
-Connected 2024-05-31T22:44:41.961541
-Connected 2024-05-31T22:45:40.999135
-Connected 2024-05-31T22:58:42.562918 - Response: {"event":"login","msg":"","code":"0","connId":"0b5bcb65"}
-Connected 2024-05-31T23:00:07.083812 - Response: {"event":"login","msg":"","code":"0","connId":"36e1f478"}
-Connected 2024-05-31T23:00:40.550381 - Response: {"event":"login","msg":"","code":"0","connId":"fa7a26d7"}
-Connected 2024-06-01T00:06:36.860375 - Response: {"event":"login","msg":"","code":"0","connId":"2ac4854b"}
-Connected 2024-06-01T15:39:00.678068 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"4366bf21"}
-Connected 2024-06-01T15:41:11.883572 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"8e3f17b2"}
-Connected 2024-06-01T15:43:52.057110 - Response: {"event":"login","msg":"","code":"0","connId":"1ddc07db"}
-Connected 2024-06-01T15:45:48.062061 - Response: {"event":"login","msg":"","code":"0","connId":"0ba49d1c"}
-Connected 2024-06-01T15:57:48.399614 - Response: {"event":"login","msg":"","code":"0","connId":"8995a84f"}
-Connected 2024-06-01T16:07:58.284509 - Response: {"event":"login","msg":"","code":"0","connId":"f57341f7"}
-Connected 2024-06-01T16:10:31.949345 - Response: {"event":"login","msg":"","code":"0","connId":"2eb355e9"}
-Connected 2024-06-01T16:10:59.702476 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"b31ac967"}
-Connected 2024-06-01T16:12:50.292012 - Response: {"event":"login","msg":"","code":"0","connId":"ac85d1a0"}
-Connected 2024-06-01T16:31:20.698891 - Response: {"event":"login","msg":"","code":"0","connId":"52fca058"}
-Connected 2024-06-02T03:48:55.350486 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"cc94eef4"}
-Connected 2024-06-02T03:49:24.780881 - Response: {"event":"login","msg":"","code":"0","connId":"795dc2d4"}
-Connected 2024-06-02T03:49:51.136868 - Response: {"event":"login","msg":"","code":"0","connId":"46c7deb0"}
-Connected 2024-06-03T16:17:28.764965 - Response: {"event":"login","msg":"","code":"0","connId":"dd1f3aa1"}
-Connected 2024-06-03T16:19:49.407732 - Response: {"event":"login","msg":"","code":"0","connId":"889b9dea"}
-Connected 2024-06-03T18:39:10.611119 - Response: {"event":"login","msg":"","code":"0","connId":"4365a5f5"}
-Connected 2024-06-03T19:01:07.599167 - Response: {"event":"login","msg":"","code":"0","connId":"1dbd1f93"}
-Connected 2024-06-03T19:11:57.613820 - Response: {"event":"login","msg":"","code":"0","connId":"ef2aadbc"}
-Connected 2024-06-03T19:15:40.536798 - Response: {"event":"login","msg":"","code":"0","connId":"7954f52c"}
-Connected 2024-06-03T19:17:09.839556 - Response: {"event":"login","msg":"","code":"0","connId":"332ad30c"}
-Connected 2024-06-03T19:19:14.619465 - Response: {"event":"login","msg":"","code":"0","connId":"29020b39"}
-Connected 2024-06-03T19:27:24.409519 - Response: {"event":"login","msg":"","code":"0","connId":"64dc8e78"}
-Connected 2024-06-04T00:00:57.106041 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"1f040752"}
-Connected 2024-06-14T03:33:15.343426 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"805a2b44"}
-Connected 2024-06-28T09:46:13.934028 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"0a653aac"}
-Connected 2024-06-28T09:48:50.947789 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"b8213bc3"}
-Connected 2024-06-28T10:14:20.227120 - Response: {"event":"error","msg":"Invalid sign","code":"60007","connId":"a8b2eb88"}
-Connected 2024-06-28T10:56:36.250005 - Response: {"event":"login","msg":"","code":"0","connId":"94ce0339"}
-Connected 2024-06-28T11:52:52.143106 - Response: {"event":"login","msg":"","code":"0","connId":"3013568d"}
-Connected 2024-06-28T12:40:43.533804 - Response: {"event":"error","msg":"Timestamp request expired","code":"60006","connId":"d0362576"}
-Connected 2024-06-28T12:41:56.887520 - Response: {"event":"login","msg":"","code":"0","connId":"490c89cb"}
-Connected 2024-06-28T12:50:29.246122 - Response: {"event":"login","msg":"","code":"0","connId":"a44a8677"}
-Connected 2024-06-28T15:46:27.466664 - Response: {"event":"login","msg":"","code":"0","connId":"2e75d2e2"}
-Connected 2024-06-28T15:51:24.737929 - Response: {"event":"login","msg":"","code":"0","connId":"58cce286"}
-Connected 2024-06-28T16:15:19.819479 - Response: {"event":"login","msg":"","code":"0","connId":"a9f24a2f"}
-Connected 2024-06-28T16:17:59.142366 - Response: {"event":"login","msg":"","code":"0","connId":"e4ece642"}
-Connected 2024-06-28T16:46:39.812747 - Response: {"event":"login","msg":"","code":"0","connId":"e3b2574f"}
+Connected: 2024-07-02T05:49:22.433018 Responce:
+{
+    "arg": {
+        "channel": "positions",
+        "instType": "ANY",
+        "uid": "386428458307340665"
+    },
+    "data": [
+        {
+            "adl": "",
+            "availPos": "",
+            "avgPx": "",
+            "baseBal": "",
+            "baseBorrowed": "",
+            "baseInterest": "",
+            "bePx": "",
+            "bizRefId": "",
+            "bizRefType": "",
+            "cTime": "1719888503004",
+            "ccy": "USDT",
+            "clSpotInUseAmt": "",
+            "closeOrderAlgo": [],
+            "deltaBS": "",
+            "deltaPA": "",
+            "fee": "",
+            "fundingFee": "",
+            "gammaBS": "",
+            "gammaPA": "",
+            "idxPx": "",
+            "imr": "",
+            "instId": "ETH-USDT-SWAP",
+            "instType": "SWAP",
+            "interest": "",
+            "last": "",
+            "lever": "",
+            "liab": "",
+            "liabCcy": "",
+            "liqPenalty": "",
+            "liqPx": "",
+            "margin": "",
+            "markPx": "",
+            "maxSpotInUseAmt": "",
+            "mgnMode": "cross",
+            "mgnRatio": "",
+            "mmr": "0",
+            "notionalUsd": "",
+            "optVal": "",
+            "pTime": "1719888560137",
+            "pendingCloseOrdLiabVal": "",
+            "pnl": "",
+            "pos": "0",
+            "posCcy": "",
+            "posId": "1589543541557415936",
+            "posSide": "long",
+            "quoteBal": "",
+            "quoteBorrowed": "",
+            "quoteInterest": "",
+            "realizedPnl": "",
+            "spotInUseAmt": "",
+            "spotInUseCcy": "",
+            "thetaBS": "",
+            "thetaPA": "",
+            "tradeId": "283082366",
+            "uTime": "1719888560135",
+            "upl": "",
+            "uplLastPx": "",
+            "uplRatio": "",
+            "uplRatioLastPx": "",
+            "usdPx": "",
+            "vegaBS": "",
+            "vegaPA": ""
+        }
+    ]
+}

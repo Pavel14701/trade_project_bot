@@ -44,8 +44,6 @@ class RedisCache(LoadUserSettingData):
         self.r.set(key, message_pickle)
 
 
-
-
     # Функция для публикации сообщения
     def publish_message(self, message):
         message_pickle = pickle.dumps(message)
@@ -58,23 +56,13 @@ class RedisCache(LoadUserSettingData):
         except Exception as e:
             print(e)
 
-"""
-from threading import Thread
-a = RedisCache('asdas12312', 'fuck', 'fr', None)
-print('class created')
-def test():
-    a.subscribe_to_redis_channel()
-    while True:
-        with contextlib.suppress(Exception):
-            a.check_redis_message()
-            a.send_redis_command()
-            time.sleep(1)
-thread = Thread(target=test)
-thread.start()
-print('thread started')
-list = {'asda': 'asda', 'dsasf': 'adsad', 'adsad': 'asdasdg'}
-a.publish_message(list)
-print('message published')
-c = a.load_message_from_cache()
-print(c)
-"""
+
+    def set_state(self, orderId, instId:str, state:str):
+        key = f'state_{instId}'
+        state_pickle = pickle.dumps([state, instId, orderId])
+        self.redis.set(key, state_pickle)
+
+
+    def load_state(self):
+        key = f'state_{self.instId}'
+        return pickle.loads(self.r.get(key))
