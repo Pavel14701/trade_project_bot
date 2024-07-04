@@ -1,16 +1,14 @@
-import sys
+import sys, logging
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
-import logging
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from User.LoadSettings import LoadUserSettingData
 from datasets.LoadDataStream import StreamData
+from datasets.StatesDB import SQLStateStorage, StateRequest
 from indicators.AVSL import AVSLIndicator
 from indicators.ADX import ADXTrend
 from indicators.RsiClouds import CloudsRsi
 from datasets.RedisCache import RedisCache
-from datasets.StatesDB import SQLStateStorage, StateRequest
-from datasets.database import Session
 from utils.DataFrameUtils import create_message_state
 
 
@@ -62,18 +60,17 @@ class CheckSignalData(LoadUserSettingData):
             data = self.init.load_data_for_period(data)
             indicator_avsl = AVSLIndicator(data)
             avsl = indicator_avsl.calculate_avsl()
-            # Добавить метод для изменения стопа!!!
+            message = create_message_state(self.instId, self.timeframe, avsl)
+            self.redis_func.publish_message(self.channel, message)
         except Exception as e:
             logger.error(f"\n{datetime.datetime.now().isoformat()} Error trailing stoploss:\n{e}")
             
 
-"""
-#Это надо встроить в маин            
-engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
-data_all_datasets = DataAllDatasets()
-classes_dict = data_all_datasets.create_classes(Base)   
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)   
-signal = CheckSignalData(Session, classes_dict, 'ETH-USDT-SWAP', '4H', 300, 'my_channel')
-signal.avsl_signals()
-"""
+    def check_active_state(self):
+        state_instance = StateRequest(self.instId, self.timeframe, self.Session)
+        state_params = state_instance.check_state()
+        if state_params:
+            return state_params['position']
+        else:
+            return None
+            

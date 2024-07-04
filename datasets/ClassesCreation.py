@@ -31,7 +31,7 @@ class ClassCreation(LoadUserSettingData):
 
 #добавлена автоинкрементируемая ячейка для создания доступа к таймфрему в процессе родителе
 #теперь при создании объекта ордера, доступ к данным таймфрема можно будет получить по 
-# уникальному инкрементируемому id(в теории)
+# уникальному инкрементируемому id(в теории)-> Похуй
     def create_TradeUserData(self, Base):
         return type("TradeUserData", (Base,), {
             '__tablename__': "PositionAndOrders",
@@ -47,8 +47,8 @@ class ClassCreation(LoadUserSettingData):
             'BALANCE': Column(Integer),
             'PRICE_OF_CONTRACT': Column(Float),
             'NUMBER_OF_CONTRACTS': Column(Float),
-            'MONEY_IN_DEAL': Column(Float, server_default='BALANCE'*'RISK_COEFFICIENT'+'FEE'),
-            'ENTER_PRICE': Column(Float),
+            'MONEY_IN_DEAL': Column(Float, server_default='BALANCE*RISK_COEFFICIENT+FEE', nullable=True),
+            'ENTER_PRICE': Column(Float, nullable=True),
             'ORDER_VOLUME': Column(Float),
             'TAKEPROFIT_PRICE': Column(Float, nullable=True),
             'TAKEPROFIT_ORDER_ID': Column(String, nullable=True),
@@ -57,8 +57,8 @@ class ClassCreation(LoadUserSettingData):
             'STOPLOSS_ORDER_ID': Column(String),
             'STOPLOSS_ORDER_VOLUME': Column(Float),
             'RISK_COEFFICIENT': Column(Float),
-            'CLOSE_PRICE': Column(Float),
-            'FEE': Column(Float),
-            'MONEY_INCOME': Column(Float, server_default=('ENTER_PRICE'-'CLOSE_PRICE')*'LEVERAGE'-'FEE', nullable=True),
-            'PERCENT_MONEY_INCOME': Column(Float, server_default='MONEY_INCOME'/'BALANCE'*100, nullable=True)
+            'CLOSE_PRICE': Column(Float, nullable=True),
+            'FEE': Column(Float, nullable=True),
+            'MONEY_INCOME': Column(Float, server_default='(ENTER_PRICE-CLOSE_PRICE)*LEVERAGE-FEE', nullable=True),
+            'PERCENT_MONEY_INCOME': Column(Float, server_default='MONEY_INCOME/BALANCE*100', nullable=True)
         })

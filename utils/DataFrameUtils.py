@@ -31,7 +31,7 @@ def prepare_many_data_to_append_db(result, i, instId, timeframe) -> dict:
         "volume_usdt": result["data"][i][7]
     }
     
-def create_dataframe(data_list) -> pd.Dataframe:
+def create_dataframe(data_list) -> pd.DataFrame:
     data_frame = pd.DataFrame(columns=['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume', 'Usdt Volume'])
     data_frame = pd.DataFrame(data_list)
     data_frame['Datetime'] = pd.to_datetime(data_frame['Datetime'])

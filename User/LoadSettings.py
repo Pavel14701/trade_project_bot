@@ -50,24 +50,17 @@ class LoadUserSettingData:
         self.adx_trigger = int(os.getenv('ADXTRIGGER'))
 
     @staticmethod
-    def load_user_settings():
+    def load_user_settings() -> list:
         load_dotenv()
-        flag = str(os.getenv("FLAG"))
-        timeframes = tuple(str(os.getenv("TIMEFRAMES")).split(','))
-        instIds = tuple(str(os.getenv("INSTIDS")).split(','))
-        passphrase = str(os.getenv("PASSPHRASE"))
-        api_key = str(os.getenv("API_KEY"))
-        secret_key = str(os.getenv("SECRET_KEY"))
-        host = str(os.getenv("HOST"))
-        port = int(os.getenv("PORT"))
-        db = str(os.getenv("DB"))
-        return (flag, timeframes, instIds, passphrase, api_key, secret_key, host, db, port)
+        return {
+            'timeframes': list(str(os.getenv("TIMEFRAMES")).split(',')),
+            'instIds': list(str(os.getenv("INSTIDS")).split(','))}
     
 
 
 
     #Создание подписи для private подписки
-    def create_signature(self):
+    def create_signature(self) -> str:
         print(self.secret_key)
         timestamp = int(time.time())
         sign = f'{timestamp}GET/users/self/verify'
@@ -76,12 +69,3 @@ class LoadUserSettingData:
         signature = base64.b64encode(signature)
         signature = str(signature, 'utf-8')
         return timestamp, signature
-
-
-    @staticmethod
-    def set_logging_settings():
-        ws_logger = logging.getLogger('websocket')
-        ws_logger.setLevel(logging.DEBUG)
-        ws_file_handler = logging.FileHandler("test.log")
-        ws_logger.addHandler(ws_file_handler)
-        return ws_logger

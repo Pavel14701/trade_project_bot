@@ -28,7 +28,7 @@ class StreamData(UserInfo, LoadUserSettingData):
         return super().get_market_data()
 
     
-    def load_data_for_period(self, data:DataFrame) -> pd.Dataframe:
+    def load_data_for_period(self, data:DataFrame) -> pd.DataFrame:
         bd = DataAllDatasets(self.instId, self.timeframe, self.Session, self.classes_dict)
         
         data = data.drop(data.index[:1])

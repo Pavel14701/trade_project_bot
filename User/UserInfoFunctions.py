@@ -34,39 +34,31 @@ class UserInfo(RedisCache, LoadUserSettingData):
     def get_market_data(self, lenghts=None|int) -> dict:
         # sourcery skip: remove-redundant-if
         if lenghts:
-            self.lenghts = lenghts
-        if self.load_data_after or self.load_data_before is None:
-            return self.marketDataAPI.get_candlesticks(
-                instId=self.instId,
-                after='',
-                before='',
-                bar=self.timeframe,
-                limit=self.lenghts
-            )
+            limit = lenghts
+        elif self.load_data_after or self.load_data_before is None:
+            after = ' '
+            before = ' '
         elif self.load_data_after and self.load_data_before:
-            return self.marketDataAPI.get_candlesticks(
-                instId=self.instId,
-                after=self.load_data_after,
-                before=self.load_data_before,
-                bar=self.timeframe,
-                limit=''
-            )
+            limit = ' '
         else:
-            return self.marketDataAPI.get_candlesticks(
+            limit = 300
+        result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
-                after='',
-                before='',
+                after=after,
+                before=before,
                 bar=self.timeframe,
-                limit=300 # 300 Лимит Okx на 1 реквест
+                limit=limit
             )
+        if result['code'] != '0':
+            raise ValueError(f'Construct stoploss order, code: {result['code']}')
+        return result
 
 
     def check_balance(self) -> float:
-        result_bal = self.accountAPI.get_account_balance()
-        usdt_balance = Decimal(result_bal["data"][0]["details"][0]["availBal"])  # получаем значение ключа ccy по указанному пути
-        balance = float(usdt_balance)
-        print(f'Баланс: \n {result_bal}\n\n')
-        return balance
+        result = self.accountAPI.get_account_balance()
+        if result['code'] != '0':
+            raise ValueError(f'Check balance, code: {result['code']}')
+        return float(result["data"][0]["details"][0]["availBal"])
 
 
     # Установка левериджа кросс позиций для отдельного инструмента
@@ -89,7 +81,8 @@ class UserInfo(RedisCache, LoadUserSettingData):
             posSide = posSide,
             mgnMode = self.mgnMode
         )
-        print(f'Установка левериджа {self.leverage}x, для изолированных лонг {self.instId}: \n{result}\n\n')
+        if result['code'] != '0':
+            raise ValueError(f'Set leverage for short or long positions, code: {result['code']}')
 
 
     # Установка режима торговли
@@ -97,15 +90,19 @@ class UserInfo(RedisCache, LoadUserSettingData):
         result = self.accountAPI.set_position_mode(
             posMode="long_short_mode"
         )
-        print(result)
+        if result['code'] != '0':
+            raise ValueError(f'Set trading mode, code: {result['code']}')
         
     def check_instrument_info(self, instId:str) -> None:
         result = self.marketDataAPI.get_ticker(instId=instId)
-        print(result)
+        if result['code'] != '0':
+            raise ValueError(f'check instrument info, code: {result['code']}')
 
 
     def check_contract_price(self, save=None|bool) -> None:
         result = self.accountAPI.get_instruments(instType="SWAP")
+        if result['code'] != '0':
+            raise ValueError(f'Check contract price, code: {result['code']}')
         if save:
             doc = Document()
             doc.add_paragraph(str(result))
@@ -127,5 +124,7 @@ class UserInfo(RedisCache, LoadUserSettingData):
 
 
     def check_instrument_price(self, instId:str) -> float:
-        ticker_data = self.marketDataAPI.get_ticker(instId)
-        return float(ticker_data['data'][0]['last'])
+        result = self.marketDataAPI.get_ticker(instId)
+        if result['code'] != '0':
+            raise ValueError(f'Check instrument price, code: {result['code']}')
+        return float(result['data'][0]['last'])

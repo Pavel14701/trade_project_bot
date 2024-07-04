@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
-from database import Base
+from datasets.database import Base
 import logging
 
 

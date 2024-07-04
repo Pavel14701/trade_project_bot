@@ -27,7 +27,6 @@ class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
         
     async def main(self):
         await create_tables()
-        # Ваш код для работы с WebSocket
         msg = {
             "op": "login",
             "args": [
@@ -43,7 +42,6 @@ class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
             await websocket.send(json.dumps(msg))
             response = await websocket.recv()
             ws_logger.info(f'{datetime.datetime.now().isoformat()}\nConnected - Response: {response}')
-
             subs = {
                 "op": "subscribe",
                 "args": [
