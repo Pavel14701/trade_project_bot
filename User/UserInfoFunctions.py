@@ -1,6 +1,5 @@
-from decimal import Decimal
+import aiohttp
 import okx.Account as Account
-import okx.Trade as Trade
 import okx.MarketData as MarketData
 from User.LoadSettings import LoadUserSettingData
 from datasets.RedisCache import RedisCache
@@ -21,6 +20,7 @@ class UserInfo(RedisCache, LoadUserSettingData):
         load_data_after=None, load_data_before=None
         ):
         super().__init__(key='contracts_prices')
+        self.base_url ='https://'
         self.instId = instId
         self.timeframe = timeframe
         self.lenghts = lenghts
@@ -97,8 +97,10 @@ class UserInfo(RedisCache, LoadUserSettingData):
         result = self.marketDataAPI.get_ticker(instId=instId)
         if result['code'] != '0':
             raise ValueError(f'check instrument info, code: {result['code']}')
+        
+        
 
-
+    # Встроить в какой-нибудь синк майн
     def check_contract_price(self, save=None|bool) -> None:
         result = self.accountAPI.get_instruments(instType="SWAP")
         if result['code'] != '0':
@@ -128,3 +130,14 @@ class UserInfo(RedisCache, LoadUserSettingData):
         if result['code'] != '0':
             raise ValueError(f'Check instrument price, code: {result['code']}')
         return float(result['data'][0]['last'])
+    
+    async def check_instrument_price(self, instId: str) -> float:
+        url = f"{self.base_url}/instrument/{instId}/price"  # Замени на конкретный путь API
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    price = data.get("price")
+                    return float(price)
+                else:
+                    raise Exception(f"Ошибка при запросе: {response.status}")

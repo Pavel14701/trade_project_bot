@@ -1,7 +1,7 @@
-import logging, json
+import logging, json, contextlib
 import websockets, datetime
 from User.LoadSettings import LoadUserSettingData
-from datasets.database import create_tables
+from datasets.database import create_tables, Base
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from utils.IventListner import OKXIventListner
@@ -26,7 +26,7 @@ class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
         
         
     async def main(self):
-        await create_tables()
+        await create_tables(Base)
         msg = {
             "op": "login",
             "args": [
@@ -67,8 +67,10 @@ class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
                 msg = json.loads(msg)
                 print((f"{datetime.datetime.now().isoformat()}\nСобытие: {msg}"))
                 print(type(msg))
-                if msg['arg']['channel'] == 'positions':
-                    ws_logger.info(f"\n\nConnected: {datetime.datetime.now().isoformat()} Responce:")
-                    ws_logger.info(msg)
-                    listner = OKXIventListner(None, None)
-                    await listner.ivent_reaction(msg)
+                with contextlib.suppress(Exception):
+                    if msg['arg']['channel'] == 'positions':
+                        listner = OKXIventListner(None, None)
+                        await listner.ivent_reaction(msg)
+                    elif msg['event']:
+                        ws_logger.info(f"\n\nEvent: {datetime.datetime.now().isoformat()} Responce:")
+                        ws_logger.info(msg)

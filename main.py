@@ -1,17 +1,21 @@
-import subprocess
-import concurrent.futures
+import multiprocessing
+import importlib.util
 
 def run_script(script_name):
-    process = subprocess.Popen(['python', script_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    return stdout.decode('utf-8'), stderr.decode('utf-8')
+    try:
+        spec = importlib.util.spec_from_file_location("custom_module", script_name)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module.some_function()  # Замените на имя функции, которую вы хотите вызвать
+    except Exception as e:
+        return None, str(e)
 
 if __name__ == "__main__":
     scripts = ['scriner.py', 'listner.py', 'broker.py']
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(run_script, script) for script in scripts]
-        for future in concurrent.futures.as_completed(futures):
-            stdout, stderr = future.result()
-            print(f"Output:\n{stdout}\n")
+    with multiprocessing.Pool() as pool:
+        results = pool.map(run_script, scripts)
+        for stdout, stderr in results:
+            if stdout is not None:
+                print(f"Output:\n{stdout}\n")
             if stderr:
                 print(f"Error:\n{stderr}\n")

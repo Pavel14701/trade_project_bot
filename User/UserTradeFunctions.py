@@ -107,7 +107,7 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, LoadUserSettingDat
             logger.error(f"\n{datetime.datetime.now().isoformat()} Error place limit order:\n{e}")
 
 
-    def get_current_chart_data(self) -> pd.Dataframe:
+    def get_current_chart_data(self) -> pd.DataFrame:
         try:
             result = super().get_market_data()
             if 'data' in result and len(result["data"]) > 0:

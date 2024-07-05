@@ -26,7 +26,6 @@ class ClassCreation(LoadUserSettingData):
                     'VOLUME_USDT': Column(Numeric(10, 4))
                 })
                 classes[class_name] = class_
-        print(classes)
         return classes
 
 #добавлена автоинкрементируемая ячейка для создания доступа к таймфрему в процессе родителе
