@@ -3,10 +3,10 @@ sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from sqlalchemy.sql import exists
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import declarative_base, sessionmaker
+from datasets.StatesDB import SQLStateStorage
+from sqlalchemy.orm import sessionmaker
 from User.LoadSettings import LoadUserSettingData
-from User.UserInfoFunctions import UserInfo
-from datasets.ClassesCreation import ClassCreation
+from datasets.ClassesCreation import ClassCreation, TradeUserData, Base
 from utils.DataFrameUtils import prepare_many_data_to_append_db
 
 
@@ -15,32 +15,25 @@ engine2 = create_async_engine("sqlite+aiosqlite:///./datasets/TradeUserDatasets.
 
 # Асинхронная фабрика сессий
 AsyncSessionLocal = sessionmaker(bind=engine2, class_=AsyncSession)
-Base = declarative_base()
 Session = sessionmaker(bind=engine1)
 
 
-async def create_tables(Base): 
-    data_all_datasets = ClassCreation()
-    TradeUserData = data_all_datasets.create_TradeUserData(Base)
-    async with engine2.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    return TradeUserData
-
 
 def create_classes(Base):
-    data_all_datasets = ClassCreation()
-    classes_dict = data_all_datasets.create_classes(Base)
-    TradeUserData = data_all_datasets.create_TradeUserData(Base)
+    classes_dict = ClassCreation().create_classes(Base)
     Base.metadata.create_all(engine1)
-    return classes_dict, TradeUserData
+    return classes_dict
+
+classes_dict = create_classes(Base)
     
 
 
-class DataAllDatasets(UserInfo, ClassCreation, LoadUserSettingData):
+class DataAllDatasets(LoadUserSettingData):
     def __init__(
-        self, instId=None|str, timeframe=None|str, Session=None|sessionmaker, classes_dict=None,
-        load_data_after=None|str, load_data_before=None|str, lenghts=None|int):
-        super().__init__(instId, timeframe, lenghts, load_data_after, load_data_before)
+        self, instId=None|str, timeframe=None|str, Session=None|sessionmaker, classes_dict=None):
+        super().__init__()
+        self.instId = instId
+        self.timeframe = timeframe
         self.Session = Session
         self.classes_dict = classes_dict
 
@@ -51,7 +44,6 @@ class DataAllDatasets(UserInfo, ClassCreation, LoadUserSettingData):
         for timeframe in self.timeframes:
             class_name = f"ChartsData_{self.instId}_{self.timeframe}"
             class_ = self.classes_dict[class_name]
-            table_name = class_.mapper.mapped_table.name
             table = class_.mapper.mapped_table
             with self.Session() as session:
                 query = session.query(
@@ -71,37 +63,30 @@ class DataAllDatasets(UserInfo, ClassCreation, LoadUserSettingData):
         return data
 
 
-    def get_charts(self) -> None:
+    def save_charts(self, result:dict) -> None:
         # sourcery skip: extract-method, merge-list-append, move-assign-in-block
-        results_list = []
-        for instId in self.instIds:
-            for timeframe in self.timeframes:
-                result = super().get_market_data()
-                for i in range(len(result['data'])):
-                    data_dict = prepare_many_data_to_append_db(result, i, instId, timeframe)
-                    results_list.append(data_dict)
-        class_name = f"ChartsData_{instId}_{timeframe}"
+        results_dict = prepare_many_data_to_append_db(result)
+        class_name = f"ChartsData_{self.instId}_{self.timeframe}"
         active_class = self.classes_dict[class_name]
         with self.Session() as session:
-            for i in len(data_dict['time']):
-                target_data = session.query(exists().where(active_class.TIMESTAMP == data_dict['time'][i])).scalar()
+            for i in range(len(results_dict['time'])):
+                target_data = session.query(exists().where(active_class.TIMESTAMP == results_dict['time'][i])).scalar()
                 if not target_data:
                     data = active_class(
-                        TIMESTAMP=data_dict['time'][i],
-                        INSTRUMENT=data_dict['instId'][i],
-                        TIMEFRAME=data_dict['timeframe'][i],
-                        OPEN=data_dict['open'][i],
-                        CLOSE=data_dict['close'][i],
-                        HIGH=data_dict['high'][i],
-                        LOW=data_dict['low'][i],
-                        VOLUME=data_dict['volume'][i],
-                        VOLUME_USDT=data_dict['volume_usdt'][i]
+                        TIMESTAMP=results_dict['time'][i],
+                        INSTRUMENT=self.instId,
+                        TIMEFRAME=self.timeframe,
+                        OPEN=results_dict['open'][i],
+                        CLOSE=results_dict['close'][i],
+                        HIGH=results_dict['high'][i],
+                        LOW=results_dict['low'][i],
+                        VOLUME=results_dict['volume'][i],
+                        VOLUME_USDT=results_dict['volume_usdt'][i]
                     )
                     session.add(data)
                     try:
                         session.commit()
-                    except Exception as e:
-                        print(f'Произошла ошибка: {e}')
+                    except Exception:
                         session.rollback()
                     finally:
                         session.close()
@@ -112,7 +97,7 @@ class DataAllDatasets(UserInfo, ClassCreation, LoadUserSettingData):
         active_class = self.classes_dict[class_name]
         with self.Session() as session:
             for data_dict in data_list:
-                for i in len(data_dict['time']):
+                for i in data_dict['time']:
                     data = active_class(
                         TIMESTAMP=data_dict['time'][i],
                         INSTRUMENT=self.instId,
@@ -126,10 +111,40 @@ class DataAllDatasets(UserInfo, ClassCreation, LoadUserSettingData):
                     )
                     if not session.query(exists().where(active_class.TIMESTAMP == data.TIMESTAMP)).scalar():
                         session.add(data)
-                    try:
-                        session.commit()
-                    except Exception as e:
-                        print(f"Ошибка при добавлении данных: {e}")
-                        session.rollback()
-                    finally:
-                        session.close()
+                        try:
+                            session.commit()
+                        except Exception:
+                            session.rollback()
+                        finally:
+                            session.close()
+
+
+    def save_new_order_data(self, result:dict) -> None:
+        with self.Session as session:
+            order_id = TradeUserData(
+                order_id=result['order_id'],
+                status=result['posFlag'],
+                order_volume=result['size'],
+                tp_order_volume=result['size'],
+                sl_order_volume=result['size'],
+                balance=result['balance'],
+                instrument=result['instId'],
+                leverage=result['leverage'],
+                side_of_trade=result['posSide'],
+                enter_price=result['enter_price'],
+                time=result['outTime'],
+                tp_order_id=result['order_id_tp'],
+                tp_price=result['tpPrice'],
+                sl_order_id=result['order_id_sl'],
+                sl_price=result['slPrice']
+            )
+            session.add(order_id)
+            try:
+                session.commit()
+            except Exception:
+                session.rollback()
+            finally:
+                session.close()
+
+
+

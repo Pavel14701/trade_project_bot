@@ -1,10 +1,13 @@
+import time, hmac, hashlib, base64
 import aiohttp
 import okx.Account as Account
 import okx.MarketData as MarketData
-from User.LoadSettings import LoadUserSettingData
+from sqlalchemy.orm import sessionmaker
+from datasets.database import DataAllDatasets, Session, classes_dict
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
+from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe
 
 
 """
@@ -14,16 +17,17 @@ from docx import Document
 то он автоматически удалиться через 14 дней.
 """
 
-class UserInfo(RedisCache, LoadUserSettingData):
+class UserInfo(RedisCache):
     def __init__(
         self, instId=None|str, timeframe=None|str, lenghts=None|int, 
-        load_data_after=None, load_data_before=None
+        load_data_after=None, load_data_before=None, Session=None|sessionmaker, classes_dict=dict|None
         ):
         super().__init__(key='contracts_prices')
-        self.base_url ='https://'
         self.instId = instId
         self.timeframe = timeframe
         self.lenghts = lenghts
+        self.Session = Session
+        self.classes_dict = classes_dict
         self.load_data_after = load_data_after
         self.load_data_before = load_data_before
         self.accountAPI = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
@@ -35,12 +39,20 @@ class UserInfo(RedisCache, LoadUserSettingData):
         # sourcery skip: remove-redundant-if
         if lenghts:
             limit = lenghts
-        elif self.load_data_after or self.load_data_before is None:
+        if self.load_data_after or self.load_data_before is None:
             after = ' '
             before = ' '
-        elif self.load_data_after and self.load_data_before:
+        elif self.load_data_before:
+            after = ' '
+            before = self.load_data_before
+            limit = ' '
+        elif self.load_data_after:
+            after = self.load_data_after
+            before = ' '
             limit = ' '
         else:
+            after = ' '
+            before = ' '
             limit = 300
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
@@ -50,8 +62,13 @@ class UserInfo(RedisCache, LoadUserSettingData):
                 limit=limit
             )
         if result['code'] != '0':
-            raise ValueError(f'Construct stoploss order, code: {result['code']}')
-        return result
+            raise ValueError(f'Get market data, code: {result['code']}')
+        bd = DataAllDatasets(self.instId, self.timeframe, Session, classes_dict)
+        bd.save_charts(result)
+        prepare_df = prepare_many_data_to_append_db(result)
+        df = create_dataframe(prepare_df)
+        print(df)
+        return df
 
 
     def check_balance(self) -> float:
@@ -131,13 +148,21 @@ class UserInfo(RedisCache, LoadUserSettingData):
             raise ValueError(f'Check instrument price, code: {result['code']}')
         return float(result['data'][0]['last'])
     
-    async def check_instrument_price(self, instId: str) -> float:
-        url = f"{self.base_url}/instrument/{instId}/price"  # Замени на конкретный путь API
+    
+    async def get_last_price(self, instId: str) -> float:
+        timestamp = f'{int(time.time() * 1000)}'
+        request_path = f'/api/v5/market/ticker?instId={instId}'
+        body = ''
+        message = f'{timestamp}GET{request_path}{body}'
+        signature = base64.b64encode(hmac.new(self.secret_key.encode(), message.encode(), hashlib.sha256).digest()).decode()
+        headers = {
+            'OK-ACCESS-KEY': self.api_key,
+            'OK-ACCESS-SIGN': signature,
+            'OK-ACCESS-TIMESTAMP': timestamp,
+            'OK-ACCESS-PASSPHRASE': self.passphrase,
+            'Content-Type': "application/json"
+        }
+        url = f'https://www.okx.com/api/v5/market/ticker?instId={instId}'
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    price = data.get("price")
-                    return float(price)
-                else:
-                    raise Exception(f"Ошибка при запросе: {response.status}")
+            async with session.get(url, headers=headers) as response:
+                return await float(response.json()['data'][0]['last'])

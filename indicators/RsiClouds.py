@@ -4,7 +4,6 @@ import mplcursors
 from matplotlib.widgets import Cursor
 from User.LoadSettings import LoadUserSettingData
 from pandas import DataFrame
-#from test_data_loading import LoadDataFromYF
 
 
 class CloudsRsi(LoadUserSettingData):
@@ -17,19 +16,14 @@ class CloudsRsi(LoadUserSettingData):
         
 
     def calculate_rsi_clouds(self):
-        # Вычисляем RSI для двух периодов
         rsi_short = talib.RSI(self.data['Close'].values, timeperiod=self.rsi_period_short)
         rsi_long = talib.RSI(self.data['Close'].values, timeperiod=self.rsi_period_long)
-        # Сглаживаем RSI с помощью EMA
         rsi_short_ema = talib.EMA(rsi_short, timeperiod=self.ema_period)
         rsi_long_ema = talib.EMA(rsi_long, timeperiod=self.ema_period)
-        # Добавляем индикаторы в DataFrame
         self.data['RSI_Short_EMA'] = rsi_short_ema
         self.data['RSI_Long_EMA'] = rsi_long_ema
-        # Сигналы пересечения
         cross_up = (self.data['RSI_Short_EMA'] > self.data['RSI_Long_EMA']) & (self.data['RSI_Short_EMA'].shift(1) <= self.data['RSI_Long_EMA'].shift(1))
         cross_down = (self.data['RSI_Short_EMA'] < self.data['RSI_Long_EMA']) & (self.data['RSI_Short_EMA'].shift(1) >= self.data['RSI_Long_EMA'].shift(1))
-        # Добавляем сигналы в DataFrame
         self.data['Cross_Up'] = cross_up
         self.data['Cross_Down'] = cross_down
         last_bar_signal = None
@@ -41,7 +35,7 @@ class CloudsRsi(LoadUserSettingData):
 
 
     @staticmethod
-    def create_vizualization_rsi_clouds(data):
+    def create_vizualization_rsi_clouds(data) -> plt:
         overbought = 70
         oversold = 30
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
@@ -66,13 +60,3 @@ class CloudsRsi(LoadUserSettingData):
         mplcursors.cursor(hover=True)
         plt.tight_layout()
         plt.show()
-
-
-"""
-#Пример использования
-data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-print(data)
-data = CloudsRsi.calculate_rsi_clouds(data, rsi_period_short = 7, rsi_period_long = 14, ema_period = 9)
-CloudsRsi.create_vizualization_rsi_clouds(data)
-"""
-

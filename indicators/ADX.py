@@ -13,7 +13,7 @@ class ADXTrend(LoadUserSettingData):
         self.data = data
         self.timeperiod = self.adx_timeperiod
         
-    def calculate_adx(self):
+    def calculate_adx(self) -> pd.DataFrame:
         # Вычисляем индикатор ADX
         self.data['ADX'] = talib.ADX(
             self.data['High'].values, 

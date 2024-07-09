@@ -1,9 +1,10 @@
-import contextlib
+
 from datetime import datetime, timedelta
 import okx.Account as Account
 import okx.Trade as Trade
 from User.LoadSettings import LoadUserSettingData
 from User.UserInfoFunctions import UserInfo
+
 
 
 class OKXTradeRequests(LoadUserSettingData):
@@ -163,3 +164,4 @@ class OKXTradeRequests(LoadUserSettingData):
         result = self.tradeAPI.get_fills_history(instType = 'SWAP') #скорее всего всегда SWAP
         if result["code"] != "0":
             raise ValueError(f'Get history from 3 months, code: {result['code']}')
+

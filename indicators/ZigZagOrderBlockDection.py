@@ -103,7 +103,7 @@ class ZigZagIndicator:
         plt.ylabel('Price')
         plt.show()
 
-""""
+"""
 #Пример использования
 data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
 print(data)

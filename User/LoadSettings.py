@@ -60,7 +60,7 @@ class LoadUserSettingData:
 
 
     #Создание подписи для private подписки
-    def create_signature(self) -> str:
+    async def create_signature(self) -> str:
         print(self.secret_key)
         timestamp = int(time.time())
         sign = f'{timestamp}GET/users/self/verify'

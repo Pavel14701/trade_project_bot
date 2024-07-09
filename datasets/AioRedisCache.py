@@ -29,17 +29,17 @@ class AioRedisCache(LoadUserSettingData):
         return self
 
 
-    async def __aexit__(self, exc_type, exc, tb):
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        if exc_type:
+            print(f"Error: {exc_type} - {exc_value}")
+            print("Traceback:")
+            await traceback.print_tb(traceback)
         await self.redis.aclose()
 
 
     async def async_load_message_from_cache(self) -> dict:
-        try:
-            message = await self.redis.get(self.key)
-            return pickle.loads(message) if message else None
-        except Exception as e:
-            print(e)
-            return None
+        message = await self.redis.get(self.key)
+        return pickle.loads(message) if message else None
 
 
     async def async_send_redis_command(self, message:dict, key:str) -> None:

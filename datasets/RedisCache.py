@@ -26,6 +26,7 @@ class RedisCache(LoadUserSettingData):
         self.r = Redis(self.host, self.port, self.db)
 
 
+
     def add_data_to_cache(self, data) -> None:
         pickled_df = pickle.dumps(data)
         self.r.set(f'df_{self.instId}_{self.timeframe}', pickled_df)
@@ -70,15 +71,3 @@ class RedisCache(LoadUserSettingData):
 
     def load_message_from_cache(self) -> dict:
         return pickle.loads(self.r.get(self.key))
-
-
-
-    def set_state(self, orderId, instId:str, state:str) -> None:
-        key = f'state_{instId}'
-        state_pickle = pickle.dumps([state, instId, orderId])
-        self.redis.set(key, state_pickle)
-
-
-    def load_state(self) -> dict:
-        key = f'state_{self.instId}'
-        return pickle.loads(self.r.get(key))

@@ -8,7 +8,7 @@ class KAMA:
     A class for calculating and visualizing KAMA (Kaufman's Adaptive Moving Average) indicators on stock price data.
 
     Methods:
-    - kama(data, period, fast, slow): Calculates the KAMA values based on the given data, period, fast, and slow parameters.
+    - kama(data, period, fast, slow): Calculates the KAMA values d on the given data, period, fast, and slow parameters.
     - calculate_kama(data, period, fast, slow): Calculates KAMA values and adds them to the input data.
     - create_visualization_kama(data): Creates a visualization of stock price with KAMA indicator.
     """
@@ -17,7 +17,7 @@ class KAMA:
     @staticmethod
     def kama(data, period, fast, slow):
         """
-        Calculates the Kaufman's Adaptive Moving Average (KAMA) values based on the given data, period, fast, and slow parameters.
+        Calculates the Kaufman's Adaptive Moving Average (KAMA) values d on the given data, period, fast, and slow parameters.
 
         Args:
         - data (DataFrame): Input data containing 'High' and 'Low' prices.

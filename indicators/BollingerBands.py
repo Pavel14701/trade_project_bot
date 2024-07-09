@@ -5,7 +5,6 @@ import talib
 from pandas import DataFrame
 from User.LoadSettings import LoadUserSettingData
 from datasets.RedisCache import RedisCache
-#from test_data_loading import LoadDataFromYF
 
 
 class BollindgerBands(LoadUserSettingData, RedisCache):
@@ -17,18 +16,15 @@ class BollindgerBands(LoadUserSettingData, RedisCache):
 
     
 
-    def calculate_bands(self):
-        # Рассчитываем среднее значение между максимальной и минимальной ценой для каждого периода
+    def calculate_bands(self) -> DataFrame:
         high_low_average = (self.data['High'] + self.data['Low']) / 2
-        # Рассчитываем полосы Боллинджера на основе среднего значения между High и Low
         upper_band, middle_band, lower_band = talib.BBANDS(
             high_low_average,
-            timeperiod=self.lenghts, # Defolt 20
-            nbdevup=self.stdev, # cтандарт 2
-            nbdevdn=self.stdev, # стандарт 2 не знаю нахуя тут два пункта
-            matype=0 # тип скользящей 
+            timeperiod=self.lenghts,
+            nbdevup=self.stdev,
+            nbdevdn=self.stdev,
+            matype=0
         )
-        # Добавляем результаты в DataFrame
         self.data['Upper Band'] = upper_band
         self.data['Middle Band'] = middle_band
         self.data['Lower Band'] = lower_band
@@ -36,7 +32,7 @@ class BollindgerBands(LoadUserSettingData, RedisCache):
 
 
     @staticmethod
-    def create_vizualization_bb(data):
+    def create_vizualization_bb(data) -> plt:
         fig, ax = plt.subplots(figsize=(14, 7))  # Исправление здесь
         ax.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
         ax.plot(data.index, data['Upper Band'], label='Верхняя полоса', color='red', linestyle='--')
@@ -48,12 +44,3 @@ class BollindgerBands(LoadUserSettingData, RedisCache):
         ax.set_xlabel('Дата')
         ax.set_ylabel('Цена')
         plt.show()
-
-"""
-#Пример использования
-data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
-print(data)
-data = BollindgerBands.calculate_bands(data, lenghts=34, stdev=2)
-print(data)
-BollindgerBands.create_vizualization_bb(data)
-"""

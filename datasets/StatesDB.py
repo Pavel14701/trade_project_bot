@@ -1,109 +1,93 @@
-from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
-from datasets.database import Base
-import logging
+from datasets.ClassesCreation import Base
 
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('states.log')
-file_handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
 class SQLStateStorage(Base):
     __tablename__ = 'States'
+    __table_args__ = {'extend_existing': True}
     ID = Column(Integer, primary_key=True, autoincrement=True)
-    INST_ID = Column(String) #ever(check)
-    TIMEFRAME = Column(String) #15m 1h 4h 1d
-    POSITION = Column(String, nullable=True) #long or short
-    VOLUME = Column(Numeric(10, 4), nullable=True) #ever
-    TIME = Column(DateTime) #ever(check)
+    INST_ID = Column(String)
+    TIMEFRAME = Column(String)
+    POSITION = Column(String, nullable=True)
+    ORDER_ID = Column(String, nullable=True)
+    STRATEGY = Column(String)
     STATUS = Column(Boolean)
 
 class StateRequest:
-    def __init__(self, IntsId:str, timeframe:str, Session:sessionmaker):
-        self.InstId = IntsId
+    def __init__(self, Session:sessionmaker, intsId=None|str, timeframe=None|str, strategy=None|str):
+        self.instId = intsId
         self.timeframe = timeframe
         self.Session = Session
-
-# нужно ввести сортировку не просто последнего стейта, а последнего по по времени, таймфрейму
-# и инструменту
+        self.strategy = strategy
 
     def check_state(self) -> dict:
-        with self.Session as session:
-            try:
-                if (
-                    last_state := session.query(SQLStateStorage)
-                    .filter_by(INST_ID=self.InstId, TIMEFRAME=self.timeframe)
-                    .order_by(SQLStateStorage.TIME.desc())
-                    .first()
-                ):
-                    return {
-                        'id': last_state.ID,
-                        'instId': last_state.INST_ID,
-                        'timeframe': last_state.TIMEFRAME,
-                        'position': last_state.POSITION,
-                        'volume': float(last_state.VOLUME),
-                        'time': last_state.TIME.strftime('%Y-%m-%d %H:%M:%S'),
-                        'status': last_state.STATUS
-                    }
-                else:
-                    return None
-            except Exception as e:
-                logger.error(f" \n{datetime.datetime.now().isoformat()} Error check state:\n{e}")
+        # sourcery skip: use-named-expression
+        with self.Session() as session:
+            last_state = session.query(SQLStateStorage).filter_by(INST_ID=self.instId, TIMEFRAME=self.timeframe, STRATEGY=self.strategy).first()
+            if last_state:
+                return {
+                    'state': last_state.POSITION,
+                }
+            else:
+                return {
+                    'state': None,
+                }
 
 
     def update_state(self, new_state:dict) -> None:
-        with self.Session as session:
-            try:
-                existing_state = session.query(SQLStateStorage).filter_by(
-                    INST_ID=self.InstId, TIMEFRAME=self.timeframe
-                ).first()
-                existing_state.POSITION = new_state['position']
-                existing_state.VOLUME = new_state['volume']
-                existing_state.STATUS = new_state['status']
-                session.commit()
-            except Exception as e:
-                logger.error(f"\n{datetime.datetime.now().isoformat()} Error update state:\n{e}")
-
-
-    def save_position_state(self, position, volume):
         with self.Session() as session:
-            new_state = SQLStateStorage(
-                INST_ID=self.InstId,
-                TIMEFRAME=self.timeframe,
-                POSITION=position,
-                VOLUME=volume,
-                TIME=datetime.now()
-            )
-            try:    
-                session.add(new_state)
+            existing_state = session.query(SQLStateStorage).filter_by(
+                INST_ID=self.instId, TIMEFRAME=self.timeframe
+            ).first()
+            existing_state.POSITION = new_state['state']
+            existing_state.STATUS = new_state['status']
+            existing_state.ORDER_ID = new_state['orderId']
+            try:
                 session.commit()
-            except Exception as e:
-                logger.error(f"\n{datetime.datetime.now().isoformat()} Error save position state:\n{e}")
+            except Exception:
                 session.rollback()
             finally:
                 session.close()
+
+
+    def save_position_state(self, new_state:dict) -> None:
+        with self.Session() as session:
+            state = SQLStateStorage(
+                INST_ID=self.instId,
+                TIMEFRAME=self.timeframe,
+                POSITION=new_state['state'],
+                ORDER_ID=new_state['orderId'],
+                STATUS=new_state['status']
+            ) 
+            session.add(state)
+            try:
+                session.commit()
+            except Exception:
+                session.rollback()
+            finally:
+                session.close()
+
 
 # State == None
-    def save_none_state(self):
+    def save_none_state(self) -> None:
         with self.Session() as session:
             new_state = SQLStateStorage(
-                INST_ID=self.InstId,
+                INST_ID=self.instId,
                 TIMEFRAME=self.timeframe,
                 POSITION=None,
-                VOLUME=None,
-                TIME=datetime.now(),
-                STATUS=False
+                ORDER_ID=None,
+                STATUS=False,
+                STRATEGY = self.strategy
             )
-            try:    
-                session.add(new_state)
+            session.add(new_state)
+            try:
                 session.commit()
-            except Exception as e:
-                logger.error(f"\n{datetime.datetime.now().isoformat()} Error save none state:\n{e}")
+            except Exception:
                 session.rollback()
             finally:
                 session.close()
+            
+
+
+
