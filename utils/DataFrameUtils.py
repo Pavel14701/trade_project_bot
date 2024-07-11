@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datetime import datetime, timedelta
 
 def prepare_data_to_dataframe(result) -> list:
@@ -32,8 +33,8 @@ def prepare_many_data_to_append_db(result) -> dict:
         high.append(result["data"][i][2])
         low.append(result["data"][i][3])
         _close.append(result['data'][i][4])
-        volume.append(result['data'][i][5])
-        volume_usdt.append(result['data'][i][6])
+        volume.append(result['data'][i][6])
+        volume_usdt.append(result['data'][i][5])
     return {
         "time": time,
         "open": _open,
@@ -65,9 +66,13 @@ def create_dataframe(data_list: dict) -> pd.DataFrame:
         )
     ]
     data_frame = pd.DataFrame(data_rows)
-    if 'time' in data_list:
-        data_frame['Datetime'] = pd.to_datetime(data_list['time'])
+    data_frame['Open'] = data_frame['Open'].astype(np.float64)
+    data_frame['High'] = data_frame['High'].astype(np.float64)
+    data_frame['Low'] = data_frame['Low'].astype(np.float64)
+    data_frame['Close'] = data_frame['Close'].astype(np.float64)
+    data_frame['Usdt Volume'] = data_frame['Usdt Volume'].astype(np.float64)
     return data_frame
+
 
 
 def create_message_state_avsl_rsi_clouds(

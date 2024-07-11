@@ -1,4 +1,5 @@
 import yfinance as yf
+import pandas as pd
 
 class LoadDataFromYF:
     """Summary:
@@ -19,7 +20,7 @@ class LoadDataFromYF:
     
     
     @staticmethod
-    def load_test_data(ticker, start, end, timeframe):
+    def load_test_data(ticker:str, start:str, end:str, timeframe:str) -> pd.DataFrame:
         """Summary:
         Load test data from Yahoo Finance.
 

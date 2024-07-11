@@ -2,7 +2,6 @@ import time, hmac, hashlib, base64
 import aiohttp
 import okx.Account as Account
 import okx.MarketData as MarketData
-from sqlalchemy.orm import sessionmaker
 from datasets.database import DataAllDatasets, Session, classes_dict
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
@@ -20,14 +19,12 @@ from utils.DataFrameUtils import prepare_many_data_to_append_db, create_datafram
 class UserInfo(RedisCache):
     def __init__(
         self, instId=None|str, timeframe=None|str, lenghts=None|int, 
-        load_data_after=None, load_data_before=None, Session=None|sessionmaker, classes_dict=dict|None
+        load_data_after=None, load_data_before=None
         ):
         super().__init__(key='contracts_prices')
         self.instId = instId
         self.timeframe = timeframe
         self.lenghts = lenghts
-        self.Session = Session
-        self.classes_dict = classes_dict
         self.load_data_after = load_data_after
         self.load_data_before = load_data_before
         self.accountAPI = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
@@ -66,9 +63,7 @@ class UserInfo(RedisCache):
         bd = DataAllDatasets(self.instId, self.timeframe, Session, classes_dict)
         bd.save_charts(result)
         prepare_df = prepare_many_data_to_append_db(result)
-        df = create_dataframe(prepare_df)
-        print(df)
-        return df
+        return create_dataframe(prepare_df)
 
 
     def check_balance(self) -> float:

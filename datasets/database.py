@@ -38,7 +38,7 @@ class DataAllDatasets(LoadUserSettingData):
         self.classes_dict = classes_dict
 
 
-    def get_bd_marketdata(self) -> dict:
+    def get_all_bd_marketdata(self) -> dict:
         # sourcery skip: collection-builtin-to-comprehension
         data = {}
         for timeframe in self.timeframes:
@@ -92,31 +92,29 @@ class DataAllDatasets(LoadUserSettingData):
                         session.close()
 
 
-    def add_data_to_db(self, data_list:dict) -> None:
+    def add_data_to_db(self, data_dict:dict) -> None:
         class_name = f"ChartsData_{self.instId}_{self.timeframe}"
         active_class = self.classes_dict[class_name]
         with self.Session() as session:
-            for data_dict in data_list:
-                for i in data_dict['time']:
-                    data = active_class(
-                        TIMESTAMP=data_dict['time'][i],
-                        INSTRUMENT=self.instId,
-                        TIMEFRAME=self.timeframe,
-                        OPEN=data_dict['open'][i],
-                        CLOSE=data_dict['close'][i],
-                        HIGH=data_dict['high'][i],
-                        LOW=data_dict['low'][i],
-                        VOLUME=data_dict['volume'][i],
-                        VOLUME_USDT=data_dict['volume'][i]
-                    )
-                    if not session.query(exists().where(active_class.TIMESTAMP == data.TIMESTAMP)).scalar():
-                        session.add(data)
-                        try:
-                            session.commit()
-                        except Exception:
-                            session.rollback()
-                        finally:
-                            session.close()
+            data = active_class(
+                TIMESTAMP=data_dict['time'],
+                INSTRUMENT=self.instId,
+                TIMEFRAME=self.timeframe,
+                OPEN=data_dict['open'],
+                CLOSE=data_dict['close'],
+                HIGH=data_dict['high'],
+                LOW=data_dict['low'],
+                VOLUME=data_dict['volume'],
+                VOLUME_USDT=data_dict['volume']
+            )
+            if not session.query(exists().where(active_class.TIMESTAMP == data.TIMESTAMP)).scalar():
+                session.add(data)
+                try:
+                    session.commit()
+                except Exception:
+                    session.rollback()
+                finally:
+                    session.close()
 
 
     def save_new_order_data(self, result:dict) -> None:

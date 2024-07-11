@@ -20,8 +20,7 @@ class ClassCreation(LoadUserSettingData):
                 class_ = type(class_name, (Base,), {
                     '__tablename__': table_name,
                     '__table_args__': {'extend_existing': True},
-                    'ID': Column(Integer, primary_key=True, autoincrement=True),
-                    'TIMESTAMP': Column(DateTime),
+                    'TIMESTAMP': Column(DateTime, primary_key=True),
                     'INSTRUMENT': Column(String),
                     'TIMEFRAME': Column(String),
                     'OPEN': Column(Numeric(10, 4)),

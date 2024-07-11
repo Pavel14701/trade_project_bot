@@ -5,7 +5,8 @@ from datasets.RedisCache import RedisCache
 from datasets.AioRedisCache import AioRedisCache
 from datasets.database import AsyncSessionLocal, DataAllDatasets
 from datasets.ClassesCreation import Base
-from datasets.StatesDB import StateRequest, AsyncStateRequest
+from datasets.StatesDB import StateRequest
+from datasets.AsyncStatesDB import AsyncStateRequest
 from User.UserTradeFunctions import PlaceOrders
 from User.UserInfoFunctions import UserInfo
 from utils.LoggingFormater import MultilineJSONFormatter

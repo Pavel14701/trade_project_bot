@@ -54,15 +54,14 @@ class AVSLIndicator(LoadUserSettingData):
         close_prices, DeV, low_prices, VPC, VPR, VM = AVSLIndicator.prepare_calculate_avsl(self)
         PriceV = AVSLIndicator.price_fun(VPC, VPR, VM, low_prices)
         AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=self.lenghtsSlow)
-        self.data['cross_up'] = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
-        self.data['cross_down'] = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
+        cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
+        cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
         last_bar_signal = None
-        if self.data['cross_up'][-1]:
+        if cross_up.any() and cross_up[-1]:
             last_bar_signal = 'cross_up'
-        elif self.data['cross_down'][-1]:
+        if cross_down.any() and cross_down[-1]:
             last_bar_signal = 'cross_down'
-        print(self.data)
-        return {'last': AVSL[-1], 'data': self.data,'last_bar_signal': last_bar_signal}
+        return {'last': AVSL[-1], 'last_bar_signal': last_bar_signal}
 
 
     @staticmethod

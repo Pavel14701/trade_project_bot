@@ -31,7 +31,7 @@ class RedisCache(LoadUserSettingData):
         pickled_df = pickle.dumps(data)
         self.r.set(f'df_{self.instId}_{self.timeframe}', pickled_df)
 
-
+    #Тут датафрейму приходит пизда
     def load_data_from_cache(self) -> pd.DataFrame:
         data = pickle.loads(self.r.get(f'df_{self.instId}_{self.timeframe}'))
         return pd.DataFrame(data)

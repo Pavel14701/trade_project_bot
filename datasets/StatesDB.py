@@ -25,14 +25,15 @@ class StateRequest:
         # sourcery skip: use-named-expression
         with self.Session() as session:
             last_state = session.query(SQLStateStorage).filter_by(INST_ID=self.instId, TIMEFRAME=self.timeframe, STRATEGY=self.strategy).first()
-            if last_state:
-                return {
+            return (
+                {
                     'state': last_state.POSITION,
                 }
-            else:
-                return {
+                if last_state
+                else {
                     'state': None,
                 }
+            )
 
 
     def update_state(self, new_state:dict) -> None:

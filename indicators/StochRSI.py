@@ -23,28 +23,20 @@ class StochRSICalculator(LoadUserSettingData):
         # Преобразуем numpy массивы в pandas Series с правильным индексом
         fastk = pd.Series(fastk, index=self.data.index)
         fastd = pd.Series(fastd, index=self.data.index)
-        return (self.data, fastd, fastk)
+        buy_signals = (fastk > fastd) & (fastk.shift(1) < fastd.shift(1)) & (fastk < 20)
+        sell_signals = (fastk < fastd) & (fastk.shift(1) > fastd.shift(1)) & (fastk > 80)
+        if buy_signals and buy_signals[-1]:
+            last_bar_signal = 'long'
+        if sell_signals and sell_signals[-1]:
+            last_bar_signal = 'short'
+        return {
+            'data': self.data, 'signals': [buy_signals, sell_signals],
+            'last_bar_signal': last_bar_signal, }
 
     @staticmethod
     def plot_stochrsi(fastk, fastd, data):
-        """Summary:
-        Plot Stochastic RSI (StochRSI) with buy and sell signals.
-
-        Explanation:
-        This static method visualizes the Stochastic RSI (StochRSI) indicator with Fast %K and Fast %D lines, highlighting buy and sell signals based on the provided data.
-
-        Args:
-        - fastk: The Fast %K line values.
-        - fastd: The Fast %D line values.
-        - data: The input data containing Close prices.
-
-        Returns:
-        None
-        """
-        # Стандартные сигналы для StochRSI
         buy_signals = (fastk > fastd) & (fastk.shift(1) < fastd.shift(1)) & (fastk < 20)
         sell_signals = (fastk < fastd) & (fastk.shift(1) > fastd.shift(1)) & (fastk > 80)
-        # Визуализация
         plt.figure(figsize=(14, 7))
         plt.subplot(2, 1, 1)
         plt.plot(data['Close'], label='Цена закрытия')
@@ -62,10 +54,3 @@ class StochRSICalculator(LoadUserSettingData):
         plt.tight_layout()
         plt.show()
 
-"""
-#Пример использования
-data = LoadDataFromYF.load_test_data("AAPL", start="2022-06-14", end="2024-02-14", timeframe="1h")
-print(data)
-data, fastd, fastk = StochRSICalculator.calculate_stochrsi(data)
-StochRSICalculator.plot_stochrsi(fastk, fastd, data)
-"""
