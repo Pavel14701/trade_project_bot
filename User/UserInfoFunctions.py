@@ -6,7 +6,7 @@ import pandas as pd
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
-from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, create_timestamp
+from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, create_timestamp, validate_get_data_params
 
 
 """
@@ -32,25 +32,14 @@ class UserInfo(RedisCache):
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lengths=None|int, load_data_after=None|'%Y-%m-%d %H:%M:%S', load_data_before=None|'%Y-%m-%d %H:%M:%S') -> pd.DataFrame:
-        # sourcery skip: merge-duplicate-blocks, remove-redundant-if
-        if lengths and (load_data_after or load_data_before):
-            limit = lengths
-            load_data_before = None
-            load_data_after = None
-            print(f'\nWARNING!!!\nUse lengths for get market data download: limit={lengths}\n')                                                                                         
-        elif lengths is None and load_data_after and load_data_before:
-            load_data_before = None
-            print(f'\nWARNING!!!\nUse load_data_after for get market data download: load_data_after={load_data_after}\n')
-        limit = lengths or ' '
-        before = create_timestamp(load_data_before) or ' '
-        after = create_timestamp(load_data_after) or ' '
+    def get_market_data(self, lengths=None|int, load_data_after=None|str, load_data_before=None|str) -> pd.DataFrame:
+        params = validate_get_data_params(lengths, load_data_before, load_data_after)
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
-                after=after,
-                before=before,
+                after=params['after'],
+                before=params['before'],
                 bar=self.timeframe,
-                limit=limit
+                limit=params['limit']
             )
         if result['code'] != '0':
             raise ValueError(f'Get market data, code: {result['code']}')

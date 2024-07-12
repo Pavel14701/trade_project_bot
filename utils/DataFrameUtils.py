@@ -92,7 +92,7 @@ def create_message_state_avsl_rsi_clouds(
 
 
 def create_timestamp(time:str) -> int:
-    formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d']
+    formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d %H', '%Y-%m-%d']
     formated_time = None
     for fmt in formats:
         try:
@@ -110,3 +110,24 @@ def create_timestamp(time:str) -> int:
     date_time_obj = datetime.strptime(formated_time, '%Y-%m-%d %H:%M:%S')
     timestamp = int(date_time_obj.timestamp())
     return timestamp
+
+
+# Можешь добавить рассчёт возможного кол-ва  баров по таймфрему чтобы ошибки не было при вызове after c limit=300
+def validate_get_data_params(lengths:int, load_data_before:str, load_data_after:str, timeframe=None|str) -> dict:
+    if lengths and load_data_after and load_data_before:
+        load_data_before = None
+        load_data_after = None
+        print(f'\nWARNING!!!\nUse limit for get market data download: limit:{lengths}\n')                                                                                         
+    elif lengths is None and load_data_after and load_data_before:
+        lengths = 300
+        load_data_after = None
+        print(f'\nWARNING!!!\nUse load_data_after for get market data download: /
+                load_data_after={load_data_after} with limit:{lengths}\n')
+    elif (lengths and load_data_after and load_data_before) is None:
+        raise ValueError('All parametrs are None')
+    params = {
+        'limit': lengths or ' ',
+        'before': create_timestamp(load_data_before) or ' ',
+        'after': create_timestamp(load_data_after) or ' '
+    }
+    return params
