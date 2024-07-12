@@ -1,11 +1,12 @@
-from decimal import Decimal
+import time, hmac, hashlib, base64
+import aiohttp
 import okx.Account as Account
-import okx.Trade as Trade
 import okx.MarketData as MarketData
-from User.LoadSettings import LoadUserSettingData
+import pandas as pd
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
+from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe
 
 
 """
@@ -15,7 +16,7 @@ from docx import Document
 то он автоматически удалиться через 14 дней.
 """
 
-class UserInfo(RedisCache, LoadUserSettingData):
+class UserInfo(RedisCache):
     def __init__(
         self, instId=None|str, timeframe=None|str, lenghts=None|int, 
         load_data_after=None, load_data_before=None
@@ -31,17 +32,19 @@ class UserInfo(RedisCache, LoadUserSettingData):
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lenghts=None|int) -> dict:
-        # sourcery skip: remove-redundant-if
-        if lenghts:
-            limit = lenghts
-        elif self.load_data_after or self.load_data_before is None:
-            after = ' '
-            before = ' '
-        elif self.load_data_after and self.load_data_before:
-            limit = ' '
-        else:
-            limit = 300
+    def get_market_data(self, lengths=None|int, load_data_after=None|int, load_data_before=None|int) -> pd.DataFrame:
+        # sourcery skip: merge-duplicate-blocks, remove-redundant-if
+        if lengths and (load_data_after or load_data_before):
+            limit = lengths
+            load_data_before = None
+            load_data_after = None
+            print(f'\nWARNING!!!\nUse lengths for get market data download: limit={lengths}\n')                                                                                         
+        elif lengths is None and load_data_after and load_data_before:
+            load_data_before = None
+            print(f'\nWARNING!!!\nUse load_data_after for get market data download: load_data_after={load_data_after}\n')
+        limit = lengths or ' '
+        before = load_data_before or ' '
+        after = load_data_after or ' '
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
                 after=after,
@@ -50,8 +53,9 @@ class UserInfo(RedisCache, LoadUserSettingData):
                 limit=limit
             )
         if result['code'] != '0':
-            raise ValueError(f'Construct stoploss order, code: {result['code']}')
-        return result
+            raise ValueError(f'Get market data, code: {result['code']}')
+        prepare_df = prepare_many_data_to_append_db(result)
+        return create_dataframe(prepare_df)
 
 
     def check_balance(self) -> float:
@@ -97,8 +101,10 @@ class UserInfo(RedisCache, LoadUserSettingData):
         result = self.marketDataAPI.get_ticker(instId=instId)
         if result['code'] != '0':
             raise ValueError(f'check instrument info, code: {result['code']}')
+        
+        
 
-
+    # Встроить в какой-нибудь синк майн
     def check_contract_price(self, save=None|bool) -> None:
         result = self.accountAPI.get_instruments(instType="SWAP")
         if result['code'] != '0':
@@ -128,3 +134,22 @@ class UserInfo(RedisCache, LoadUserSettingData):
         if result['code'] != '0':
             raise ValueError(f'Check instrument price, code: {result['code']}')
         return float(result['data'][0]['last'])
+    
+    
+    async def get_last_price(self, instId: str) -> float:
+        timestamp = f'{int(time.time() * 1000)}'
+        request_path = f'/api/v5/market/ticker?instId={instId}'
+        body = ''
+        message = f'{timestamp}GET{request_path}{body}'
+        signature = base64.b64encode(hmac.new(self.secret_key.encode(), message.encode(), hashlib.sha256).digest()).decode()
+        headers = {
+            'OK-ACCESS-KEY': self.api_key,
+            'OK-ACCESS-SIGN': signature,
+            'OK-ACCESS-TIMESTAMP': timestamp,
+            'OK-ACCESS-PASSPHRASE': self.passphrase,
+            'Content-Type': "application/json"
+        }
+        url = f'https://www.okx.com/api/v5/market/ticker?instId={instId}'
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as response:
+                return await float(response.json()['data'][0]['last'])

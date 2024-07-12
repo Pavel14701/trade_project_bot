@@ -1,9 +1,10 @@
-import contextlib
+
 from datetime import datetime, timedelta
 import okx.Account as Account
 import okx.Trade as Trade
 from User.LoadSettings import LoadUserSettingData
 from User.UserInfoFunctions import UserInfo
+
 
 
 class OKXTradeRequests(LoadUserSettingData):
@@ -32,9 +33,9 @@ class OKXTradeRequests(LoadUserSettingData):
             instId=self.instId,
             tdMode=self.mgnMode,
             side=side,
-            posSide=side,
+            posSide=self.posSide,
             ordType="market",
-            sz=self.size
+            sz=str(self.size)
         )
         if result['code'] != '0':
             raise ValueError(f'Construct market order, code: {result['code']}')
@@ -55,14 +56,25 @@ class OKXTradeRequests(LoadUserSettingData):
             side=side,
             posSide=self.posSide,
             ordType="conditional",
-            sz=self.size,
-            slTriggerPx=self.slPrice,
+            sz=str(self.size),
+            slTriggerPx=str(self.slPrice),
             slOrdPx="-1",
             slTriggerPxType="last"
         )
         if result['code'] != '0':
             raise ValueError(f'Construct stoploss order, code: {result['code']}')
         return result['data'][0]['ordId']
+    
+    
+    def change_stoploss_order(self, price:float, orderId:str) -> None:
+        result = self.tradeAPI.amend_algo_order(
+            instId=self.instId,
+            algoId=orderId,
+            newSlTriggerPx=str(price)
+        )
+        if result['code'] != '0':
+            raise ValueError(f'Change stoploss order, code: {result['code']}')
+        
         
         
     def construct_takeprofit_order(self, side) -> str:
@@ -84,6 +96,16 @@ class OKXTradeRequests(LoadUserSettingData):
         if result['code'] != '0':
             raise ValueError(f'Construct takeprofit order, code: {result['code']}')
         return result['data'][0]['ordId']
+    
+    
+    def change_takeprofit_order(self, tpPrice:float, orderId:str):
+        result = self.tradeAPI.amend_algo_order(
+            instId=self.instId,
+            algoId=orderId,
+            newTpTriggerPx=str(tpPrice)
+        )
+        if result['code'] != '0':
+            raise ValueError(f'Change stoploss order, code: {result['code']}')
 
 
     def costruct_limit_order(self, price) -> dict:
@@ -98,7 +120,7 @@ class OKXTradeRequests(LoadUserSettingData):
             posSide=self.posSide,
             ordType="limit",
             px=price,
-            sz=self.size
+            sz=str(self.size)
         )
         if result["code"] != "0":
             raise ValueError(f'Construct limit order, code: {result['code']}')
@@ -119,23 +141,27 @@ class OKXTradeRequests(LoadUserSettingData):
             raise ValueError(f'Check position, code: {result['code']}')
         return float(result["data"][0]["avgPx"])
 
-    
-    
-    # Открытые ордера
+
     def get_all_order_list(self) -> dict:
-        return self.tradeAPI.get_order_list()
+        result = self.tradeAPI.get_order_list()
+        if result["code"] != "0":
+            raise ValueError(f'Get all order list, code: {result['code']}')
 
 
-    # Открытые позиции
     def get_all_opened_positions(self) -> dict:
-        return self.accountAPI.get_positions()
+        result = self.accountAPI.get_positions()
+        if result["code"] != "0":
+            raise ValueError(f'Get all opened positions, code: {result['code']}')
 
 
-    # История торгов за три дня
     def get_history_3days(self) -> dict:
-        return self.tradeAPI.get_fills(instType = 'SWAP') #скорее всего всегда SWAP
+        result = self.tradeAPI.get_fills(instType = 'SWAP') #скорее всего всегда SWAP
+        if result["code"] != "0":
+            raise ValueError(f'Get history from 3 days, code: {result['code']}')
 
 
-    # История торгов за 3 месяца
     def get_history_3months(self) -> dict:
-        return self.tradeAPI.get_fills_history(instType = 'SWAP') #скорее всего всегда SWAP
+        result = self.tradeAPI.get_fills_history(instType = 'SWAP') #скорее всего всегда SWAP
+        if result["code"] != "0":
+            raise ValueError(f'Get history from 3 months, code: {result['code']}')
+

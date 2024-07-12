@@ -2,9 +2,7 @@ import logging
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
 from datetime import datetime
-from datasets.database import DataAllDatasets, Base
-from datasets.database import Session
-from User.LoadSettings import LoadUserSettingData
+from datasets.database import DataAllDatasets
 from User.TradeRequests import OKXTradeRequests
 from User.UserInfoFunctions import UserInfo
 from utils.RiskManagment import RiskManadgment
@@ -13,8 +11,6 @@ from utils.DataFrameUtils import create_dataframe, prepare_data_to_dataframe
 # !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
 #flag = "1"  live trading: 0, demo trading: 1
 #instType = 'SWAP'
-bd = DataAllDatasets(Session=Session)
-TradeUserData = bd.create_TradeUserData(Base)
 
 
 logger = logging.getLogger(__name__)
@@ -26,15 +22,23 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, LoadUserSettingData):    
+class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, DataAllDatasets):    
     def __init__(
-            self,
+            self, Session:sessionmaker,
             instId=None|str, posSide=None|str, tpPrice=None|float,
             slPrice=None|float
             ):
-        super().__init__(instId, posSide, tpPrice, slPrice)
+        super(OKXTradeRequests).__init__(instId=instId, posSide=posSide, slPrice=slPrice, tpPrice=tpPrice)
+        super(UserInfo).__init__(instId=instId)
+        super(RiskManadgment).__init__(instId=instId, slPrice=slPrice)
+        super(DataAllDatasets).__init__(Session)
+        self.instid = instId
+        self.Session = Session
+        self.posSide = posSide
+        self.tpPrice = tpPrice
+        self.slPrice = slPrice
 
-        
+
     # Создание маркет ордера long с Tp и Sl
     def place_market_order(self) -> str:
         # sourcery skip: extract-method, merge-dict-assign, switch
@@ -62,8 +66,7 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, LoadUserSettingDat
                     result['order_id_sl'] = None
                 else:
                     result['order_id_sl'] = super().construct_stoploss_order()
-                with Session() as session:
-                    prepare_data_order_to_commit(session, result)
+                super().save_new_order_data(result)
             else:
                 print("Unsuccessful order request, error_code = ",result["data"][0], ", Error_message = ", result["data"][0]["sMsg"])
             return result['order_id']
@@ -98,8 +101,7 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, LoadUserSettingDat
             else:
                 result['order_id_tp'] = super().construct_takeprofit_order()
             if order_id is not None:
-                with Session() as session:
-                    prepare_data_order_to_commit(session, result)  
+                super().save_new_order_data(result)
             else:
                 print("Unsuccessful order request, error_code = ",result["data"][0]["sCode"], ", Error_message = ", result["data"][0]["sMsg"])
             return order_id
@@ -107,7 +109,7 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, LoadUserSettingDat
             logger.error(f"\n{datetime.datetime.now().isoformat()} Error place limit order:\n{e}")
 
 
-    def get_current_chart_data(self) -> pd.Dataframe:
+    def get_current_chart_data(self) -> pd.DataFrame:
         try:
             result = super().get_market_data()
             if 'data' in result and len(result["data"]) > 0:
@@ -117,35 +119,3 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, LoadUserSettingDat
                 print("Данные отсутствуют или неполные")
         except Exception as e:
             logger.error(f" \n{datetime.datetime.now().isoformat()} Error get current chart data:\n{e}")
-
-
-
-def prepare_data_order_to_commit(session:sessionmaker, result:dict) -> None:
-    order_id = TradeUserData(
-        order_id=result['order_id'],
-        status=result['posFlag'],
-        order_volume=result['size'],
-        tp_order_volume=result['size'],
-        sl_order_volume=result['size'],
-        balance=result['balance'],
-        instrument=result['instId'],
-        leverage=result['leverage'],
-        side_of_trade=result['posSide'],
-        enter_price=result['enter_price'],
-        time=result['outTime'],
-        tp_order_id=result['order_id_tp'],
-        tp_price=result['tpPrice'],
-        sl_order_id=result['order_id_sl'],
-        sl_price=result['slPrice']
-    )
-    try:
-        session.add(order_id)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-        if result['posFlag']:
-            logger.error(f"\n{datetime.datetime.now().isoformat()} Error save market data in db:\n{e}")
-        else:
-            logger.error(f"\n{datetime.datetime.now().isoformat()} Error save limit data in db:\n{e}")
-    finally:
-        session.close()

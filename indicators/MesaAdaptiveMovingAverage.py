@@ -7,7 +7,7 @@ class MesaAdaptiveMA:
     Class for calculating and plotting the MESA Adaptive Moving Average (MAMA) and FAMA.
 
     Explanation:
-    This class provides static methods to calculate MAMA and FAMA values based on High and Low prices, generate buy and sell signals, and plot the MAMA and FAMA along with buy and sell signals on a price chart.
+    This class provides static methods to calculate MAMA and FAMA values d on High and Low prices, generate buy and sell signals, and plot the MAMA and FAMA along with buy and sell signals on a price chart.
 
     Args:
     - data: The input data containing High and Low prices.

@@ -5,9 +5,6 @@ import talib
 import matplotlib.pyplot as plt
 import pandas as pd
 from User.LoadSettings import LoadUserSettingData
-from datasets.RedisCache import RedisCache
-
-#from test_data_loading import LoadDataFromYF
 
 
 class AVSLIndicator(LoadUserSettingData):
@@ -22,10 +19,10 @@ class AVSLIndicator(LoadUserSettingData):
     
     @staticmethod
     def price_fun(VPC, VPR, VM, src):
-        PriceV = np.zeros_like(VPC)  # Создаем массив нулей той же формы, что и VPC
+        PriceV = np.zeros_like(VPC)
         for i in range(len(VPC)):
             VPCI = VPC[i] * VPR[i] * VM[i]
-            if np.isnan(VPCI):  # Проверяем, является ли VPCI NaN
+            if np.isnan(VPCI):
                 lenV = 0
             else:
                 lenV = int(round(abs(VPCI - 3))) if VPC[i] < 0 else round(VPCI + 3)
@@ -33,7 +30,6 @@ class AVSLIndicator(LoadUserSettingData):
             Price = np.sum(src[i-lenV+1:i+1] / VPCc / VPR[i-lenV+1:i+1]) if lenV > 0 else src[i]
             PriceV[i] = Price / lenV / 100 if lenV > 0 else Price
         return PriceV
-
 
 
     def prepare_calculate_avsl(self):
@@ -54,20 +50,18 @@ class AVSLIndicator(LoadUserSettingData):
         return (close_prices, DeV, low_prices, VPC, VPR, VM)
 
 
-
     def calculate_avsl(self):
         close_prices, DeV, low_prices, VPC, VPR, VM = AVSLIndicator.prepare_calculate_avsl(self)
         PriceV = AVSLIndicator.price_fun(VPC, VPR, VM, low_prices)
         AVSL = talib.SMA(low_prices - PriceV + DeV, timeperiod=self.lenghtsSlow)
-        self.data['cross_up'] = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
-        self.data['cross_down'] = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
-        # Проверка наличия сигнала на последнем баре
+        cross_up = (close_prices > AVSL) & (np.roll(close_prices, 1) <= np.roll(AVSL, 1))
+        cross_down = (close_prices < AVSL) & (np.roll(close_prices, 1) >= np.roll(AVSL, 1))
         last_bar_signal = None
-        if self.data['cross_up'][-1]:
+        if cross_up.any() and cross_up[-1]:
             last_bar_signal = 'cross_up'
-        elif self.data['cross_down'][-1]:
+        if cross_down.any() and cross_down[-1]:
             last_bar_signal = 'cross_down'
-        return {'last': AVSL[-1], 'data': self.data,'last_bar_signal': last_bar_signal}
+        return {'last': AVSL[-1], 'last_bar_signal': last_bar_signal}
 
 
     @staticmethod
@@ -83,11 +77,3 @@ class AVSLIndicator(LoadUserSettingData):
         ax.set_ylabel('Цена')
         plt.show()
 
-"""
-data = LoadDataFromYF.load_test_data("AAPL", start="2023-06-14", end="2024-02-14", timeframe="1h")
-# Подготавливаем для расчета
-indicator = AVSLIndicator(data)
-cross_up, cross_down, AVSL, close_prices, last_bar_signal = indicator.calculate_avsl()
-#AVSLIndicator.avsl_visualization(cross_up, cross_down, AVSL, close_prices, data)
-print(last_bar_signal)
-"""

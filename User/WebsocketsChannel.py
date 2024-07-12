@@ -1,8 +1,8 @@
-import logging, json
+import logging, json, contextlib
 import websockets, datetime
 from User.LoadSettings import LoadUserSettingData
-from datasets.database import create_tables
-from datasets.RedisCache import RedisCache
+from datasets.database import create_classes, Base, AsyncSessionLocal
+from datasets.ClassesCreation import TradeUserData
 from utils.LoggingFormater import MultilineJSONFormatter
 from utils.IventListner import OKXIventListner
 
@@ -17,16 +17,14 @@ ws_logger.addHandler(ws_file_handler)
 ws_logger.addHandler(ws_handler)
 
 
-class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
+class OKXWebsocketsChannel(LoadUserSettingData):
     def __init__(self):
         super().__init__()
-        a = LoadUserSettingData()
-        self.timestamp, self.signature = a.create_signature()
-        
         
         
     async def main(self):
-        await create_tables()
+        self.timestamp, self.signature = await super().create_signature()
+        await create_classes(Base)
         msg = {
             "op": "login",
             "args": [
@@ -67,8 +65,10 @@ class OKXWebsocketsChannel(RedisCache, LoadUserSettingData):
                 msg = json.loads(msg)
                 print((f"{datetime.datetime.now().isoformat()}\nСобытие: {msg}"))
                 print(type(msg))
-                if msg['arg']['channel'] == 'positions':
-                    ws_logger.info(f"\n\nConnected: {datetime.datetime.now().isoformat()} Responce:")
-                    ws_logger.info(msg)
-                    listner = OKXIventListner(None, None)
-                    await listner.ivent_reaction(msg)
+                with contextlib.suppress(Exception):
+                    if msg['arg']['channel'] == 'positions':
+                        listner = OKXIventListner(AsyncSessionLocal=AsyncSessionLocal)
+                        await listner.ivent_reaction(msg)
+                    elif msg['event']:
+                        ws_logger.info(f"\n\nEvent: {datetime.datetime.now().isoformat()} Responce:")
+                        ws_logger.info(msg)
