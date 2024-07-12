@@ -89,3 +89,24 @@ def create_message_state_avsl_rsi_clouds(
         ('signal', rsi),
         ('slPrice', avsl['last'])
     ])
+
+
+def create_timestamp(time:str) -> int:
+    formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d']
+    formated_time = None
+    for fmt in formats:
+        try:
+            date_time_obj = datetime.strptime(time, fmt)
+            if fmt == '%Y-%m-%d':
+                date_time_obj = date_time_obj.replace(hour=0, minute=0, second=0)
+            elif fmt == '%Y-%m-%d %H':
+                date_time_obj = date_time_obj.replace(minute=0,second=0)
+            formated_time = date_time_obj.strftime('%Y-%m-%d %H:%M:%S')
+            break
+        except ValueError:
+            continue
+    if not formated_time:
+        raise ValueError(f"Не удалось распознать формат даты и времени: {time}")
+    date_time_obj = datetime.strptime(formated_time, '%Y-%m-%d %H:%M:%S')
+    timestamp = int(date_time_obj.timestamp())
+    return timestamp

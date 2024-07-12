@@ -58,9 +58,7 @@ class DataAllDatasets(LoadUserSettingData):
 
 
 
-    def save_charts(self, result:dict) -> None:
-        # sourcery skip: extract-method, merge-list-append, move-assign-in-block
-        results_dict = prepare_many_data_to_append_db(result)
+    def save_charts(self, results_dict:dict) -> None:
         class_name = f"ChartsData_{self.instId}_{self.timeframe}"
         active_class = classes_dict[class_name]
         with Session() as session:
@@ -87,20 +85,20 @@ class DataAllDatasets(LoadUserSettingData):
                         session.close()
 
 
-    def add_data_to_db(self, data_dict:dict) -> None:
+    def add_data_to_db(self, results_dict:dict) -> None:
         class_name = f"ChartsData_{self.instId}_{self.timeframe}"
         active_class = classes_dict[class_name]
         with Session() as session:
             data = active_class(
-                TIMESTAMP=data_dict['time'],
+                TIMESTAMP=results_dict['Date'],
                 INSTRUMENT=self.instId,
                 TIMEFRAME=self.timeframe,
-                OPEN=data_dict['open'],
-                CLOSE=data_dict['close'],
-                HIGH=data_dict['high'],
-                LOW=data_dict['low'],
-                VOLUME=data_dict['volume'],
-                VOLUME_USDT=data_dict['volume']
+                OPEN=results_dict['Open'],
+                CLOSE=results_dict['Close'],
+                HIGH=results_dict['High'],
+                LOW=results_dict['Low'],
+                VOLUME=results_dict['Volume'],
+                VOLUME_USDT=results_dict['Volume Usdt']
             )
             if not session.query(exists().where(active_class.TIMESTAMP == data.TIMESTAMP)).scalar():
                 session.add(data)

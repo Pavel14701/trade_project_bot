@@ -6,7 +6,7 @@ import pandas as pd
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
-from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe
+from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, create_timestamp
 
 
 """
@@ -32,7 +32,7 @@ class UserInfo(RedisCache):
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lengths=None|int, load_data_after=None|int, load_data_before=None|int) -> pd.DataFrame:
+    def get_market_data(self, lengths=None|int, load_data_after=None|'%Y-%m-%d %H:%M:%S', load_data_before=None|'%Y-%m-%d %H:%M:%S') -> pd.DataFrame:
         # sourcery skip: merge-duplicate-blocks, remove-redundant-if
         if lengths and (load_data_after or load_data_before):
             limit = lengths
@@ -43,8 +43,8 @@ class UserInfo(RedisCache):
             load_data_before = None
             print(f'\nWARNING!!!\nUse load_data_after for get market data download: load_data_after={load_data_after}\n')
         limit = lengths or ' '
-        before = load_data_before or ' '
-        after = load_data_after or ' '
+        before = create_timestamp(load_data_before) or ' '
+        after = create_timestamp(load_data_after) or ' '
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
                 after=after,
