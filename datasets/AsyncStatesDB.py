@@ -1,16 +1,14 @@
-from sqlalchemy.orm import sessionmaker
 from datasets.StatesDB import SQLStateStorage
-
+from datasets.database import AsyncSessionLocal
 
 class AsyncStateRequest:
-    def __init__(self, AsyncSessionLocal:sessionmaker, IntsId=None|str, timeframe=None|str):
+    def __init__(self, IntsId=None|str, timeframe=None|str):
         self.InstId = IntsId
         self.timeframe = timeframe
-        self.AsyncSessionLocal = AsyncSessionLocal
 
 
     async def async_update_state(self, new_state:dict) -> None:
-        with self.AsyncSessionLocal() as session:
+        with AsyncSessionLocal() as session:
             existing_state = await session.query(SQLStateStorage).filter_by(
                 INST_ID=new_state['instId'], ORDER_ID=new_state['orderId']
             ).first()

@@ -1,5 +1,6 @@
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
+from utils.DataFrameUtils import create_dataframe, prepare_many_data_to_append_db
 import pandas as pd
 from pandas import DataFrame
 from User.UserInfoFunctions import UserInfo
@@ -25,7 +26,9 @@ class StreamData(UserInfo):
     
     def load_data_for_period(self, data:DataFrame) -> pd.DataFrame:
         data = data.drop(data.index[:1])
-        new_data = super().get_market_data(lenghts=1)
+        result = super().get_market_data(lenghts=1)
+        prepare_df = prepare_many_data_to_append_db(result)
+        new_data = create_dataframe(prepare_df)
         df = pd.concat([data, new_data], ignore_index=True)
         print(df)
         return df

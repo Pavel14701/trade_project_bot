@@ -1,4 +1,10 @@
-from datasets.database import DataAllDatasets, classes_dict, Session
+import pandas as pd
+from User.UserInfoFunctions import UserInfo
+from datasets.database import DataAllDatasets
 
-db = DataAllDatasets('BTC-USDT-SWAP', '4H', Session, classes_dict)
-db.
+
+bd = DataAllDatasets('BTC-USDT-SWAP', '4H')
+data = bd.get_all_bd_marketdata()
+df = pd.DataFrame(data)
+df.set_index('Date', inplace=True)
+print(df)

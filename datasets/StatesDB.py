@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.orm import sessionmaker
 from datasets.ClassesCreation import Base
+from datasets.database import Session
 
 
 class SQLStateStorage(Base):
@@ -15,15 +15,14 @@ class SQLStateStorage(Base):
     STATUS = Column(Boolean)
 
 class StateRequest:
-    def __init__(self, Session:sessionmaker, intsId=None|str, timeframe=None|str, strategy=None|str):
+    def __init__(self, intsId=None|str, timeframe=None|str, strategy=None|str):
         self.instId = intsId
         self.timeframe = timeframe
-        self.Session = Session
         self.strategy = strategy
 
     def check_state(self) -> dict:
         # sourcery skip: use-named-expression
-        with self.Session() as session:
+        with Session() as session:
             last_state = session.query(SQLStateStorage).filter_by(INST_ID=self.instId, TIMEFRAME=self.timeframe, STRATEGY=self.strategy).first()
             return (
                 {
@@ -37,7 +36,7 @@ class StateRequest:
 
 
     def update_state(self, new_state:dict) -> None:
-        with self.Session() as session:
+        with Session() as session:
             existing_state = session.query(SQLStateStorage).filter_by(
                 INST_ID=self.instId, TIMEFRAME=self.timeframe
             ).first()
@@ -53,7 +52,7 @@ class StateRequest:
 
 
     def save_position_state(self, new_state:dict) -> None:
-        with self.Session() as session:
+        with Session() as session:
             state = SQLStateStorage(
                 INST_ID=self.instId,
                 TIMEFRAME=self.timeframe,
@@ -72,7 +71,7 @@ class StateRequest:
 
 # State == None
     def save_none_state(self) -> None:
-        with self.Session() as session:
+        with Session() as session:
             new_state = SQLStateStorage(
                 INST_ID=self.instId,
                 TIMEFRAME=self.timeframe,

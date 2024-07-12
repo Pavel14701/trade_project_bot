@@ -2,7 +2,7 @@ import time, hmac, hashlib, base64
 import aiohttp
 import okx.Account as Account
 import okx.MarketData as MarketData
-from datasets.database import DataAllDatasets, Session, classes_dict
+import pandas as pd
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
@@ -32,25 +32,19 @@ class UserInfo(RedisCache):
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lenghts=None|int) -> dict:
-        # sourcery skip: remove-redundant-if
-        if lenghts:
-            limit = lenghts
-        if self.load_data_after or self.load_data_before is None:
-            after = ' '
-            before = ' '
-        elif self.load_data_before:
-            after = ' '
-            before = self.load_data_before
-            limit = ' '
-        elif self.load_data_after:
-            after = self.load_data_after
-            before = ' '
-            limit = ' '
-        else:
-            after = ' '
-            before = ' '
-            limit = 300
+    def get_market_data(self, lengths=None|int, load_data_after=None|int, load_data_before=None|int) -> pd.DataFrame:
+        # sourcery skip: merge-duplicate-blocks, remove-redundant-if
+        if lengths and (load_data_after or load_data_before):
+            limit = lengths
+            load_data_before = None
+            load_data_after = None
+            print(f'\nWARNING!!!\nUse lengths for get market data download: limit={lengths}\n')                                                                                         
+        elif lengths is None and load_data_after and load_data_before:
+            load_data_before = None
+            print(f'\nWARNING!!!\nUse load_data_after for get market data download: load_data_after={load_data_after}\n')
+        limit = lengths or ' '
+        before = load_data_before or ' '
+        after = load_data_after or ' '
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
                 after=after,
@@ -60,8 +54,6 @@ class UserInfo(RedisCache):
             )
         if result['code'] != '0':
             raise ValueError(f'Get market data, code: {result['code']}')
-        bd = DataAllDatasets(self.instId, self.timeframe, Session, classes_dict)
-        bd.save_charts(result)
         prepare_df = prepare_many_data_to_append_db(result)
         return create_dataframe(prepare_df)
 

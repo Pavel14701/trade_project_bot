@@ -3,13 +3,14 @@ sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from User.LoadSettings import LoadUserSettingData
+from datasets.database import DataAllDatasets, Session, classes_dict
 from datasets.LoadDataStream import StreamData
 from datasets.StatesDB import StateRequest
 from indicators.AVSL import AVSLIndicator
 from indicators.ADX import ADXTrend
 from indicators.RsiClouds import CloudsRsi
 from datasets.RedisCache import RedisCache
-from utils.DataFrameUtils import create_message_state_avsl_rsi_clouds
+from utils.DataFrameUtils import create_dataframe, create_message_state_avsl_rsi_clouds, prepare_many_data_to_append_db
 
 
 logger = logging.getLogger(__name__)
@@ -22,20 +23,20 @@ logger.addHandler(file_handler)
 
 
 class CheckActiveState(LoadUserSettingData):
-    def __init__(self, Session:sessionmaker, classes_dict:dict, instId:str, timeframe:str, lenghtsSt:int):
+    def __init__(self, instId:str, timeframe:str, lenghtsSt:int, strategy):
         super().__init__()
-        self.strategy = 'avsl_rsi_clouds'
         self.lenghtsSt = lenghtsSt
         self.instId = instId
         self.timeframe = timeframe
-        self.Session = Session
-        self.classes_dict = classes_dict
+        self.strategy = strategy
         self.channel = f'channel_{self.instId}_{self.timeframe}'
-        self.init = StreamData(self.instId, self.timeframe, self.lenghtsSt, None, None)
-        data = self.init.load_data()
-        self.redis_func = RedisCache(self.instId, self.timeframe, self.channel, key='positions', data=data)
-        self.redis_func.add_data_to_cache(data)
-
+    
+    def add_data_to_redis(self):
+        result = StreamData(self.instId, self.timeframe, self.lenghtsSt, None, None).load_data()
+        DataAllDatasets(self.instId, self.timeframe).save_charts(result)
+        prepare_df = prepare_many_data_to_append_db(result)
+        data = create_dataframe(prepare_df)
+        RedisCache(self.instId, self.timeframe, self.channel, key='positions', data=data).add_data_to_cache(data)
 
 
     def check_active_state(self):
@@ -58,8 +59,9 @@ class CheckActiveState(LoadUserSettingData):
 
 
 class AVSL_RSI_ClOUDS(CheckActiveState):
-    def __init__ (self, Session:sessionmaker, classes_dict:dict, instId:str, timeframe:str, lenghtsSt:int):
-        super().__init__(Session, classes_dict, instId, timeframe, lenghtsSt)
+    def __init__ (self, instId:str, timeframe:str, lenghtsSt:int):
+        super().__init__(instId, timeframe, lenghtsSt, self.strategy)
+        self.strategy = 'avsl_rsi_clouds'
         self.adx_trigger = 20
         
 
@@ -86,6 +88,8 @@ class AVSL_RSI_ClOUDS(CheckActiveState):
         try:
             data = self.redis_func.load_data_from_cache()
             data = self.init.load_data_for_period(data)
+            bd = DataAllDatasets(self.instId, self.timeframe)
+            bd.save_charts(data)
             indicator_avsl = AVSLIndicator(data)
             avsl = indicator_avsl.calculate_avsl()
             message = create_message_state_avsl_rsi_clouds(self.instId, self.timeframe, avsl)
