@@ -1,12 +1,13 @@
 import time, hmac, hashlib, base64
 import aiohttp
+from typing import Optional, Union, Dict
 import okx.Account as Account
 import okx.MarketData as MarketData
 import pandas as pd
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
-from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe
+from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, validate_get_data_params
 
 
 """
@@ -18,8 +19,8 @@ from utils.DataFrameUtils import prepare_many_data_to_append_db, create_datafram
 
 class UserInfo(RedisCache):
     def __init__(
-        self, instId=None|str, timeframe=None|str, lenghts=None|int, 
-        load_data_after=None, load_data_before=None
+        self, instId=None|str, timeframe:str=None, lenghts=None|int, 
+        load_data_after:str=None, load_data_before:str=None
         ):
         super().__init__(key='contracts_prices')
         self.instId = instId
@@ -32,30 +33,19 @@ class UserInfo(RedisCache):
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lengths=None|int, load_data_after=None|int, load_data_before=None|int) -> pd.DataFrame:
-        # sourcery skip: merge-duplicate-blocks, remove-redundant-if
-        if lengths and (load_data_after or load_data_before):
-            limit = lengths
-            load_data_before = None
-            load_data_after = None
-            print(f'\nWARNING!!!\nUse lengths for get market data download: limit={lengths}\n')                                                                                         
-        elif lengths is None and load_data_after and load_data_before:
-            load_data_before = None
-            print(f'\nWARNING!!!\nUse load_data_after for get market data download: load_data_after={load_data_after}\n')
-        limit = lengths or ' '
-        before = load_data_before or ' '
-        after = load_data_after or ' '
+    def get_market_data(self, lengths:Union[int, str] = None, load_data_after:Optional[str]=None, load_data_before:Optional[str]=None) -> Optional[pd.DataFrame]:
+        params = validate_get_data_params(lengths, load_data_before, load_data_after)
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
-                after=after,
-                before=before,
+                after=params['after'],
+                before=params['before'],
                 bar=self.timeframe,
-                limit=limit
+                limit=params['limit']
             )
         if result['code'] != '0':
             raise ValueError(f'Get market data, code: {result['code']}')
-        prepare_df = prepare_many_data_to_append_db(result)
-        return create_dataframe(prepare_df)
+        print(result)
+        return result
 
 
     def check_balance(self) -> float:
@@ -78,7 +68,7 @@ class UserInfo(RedisCache):
 
 
     # Установка левериджа для \изолированых позиций для шорт и лонг
-    def set_leverage_short_long(self, posSide) -> None:
+    def set_leverage_short_long(self, posSide:str) -> None:
         result = self.accountAPI.set_leverage(
             instId = self.instId,
             lever = self.leverage,
@@ -105,7 +95,7 @@ class UserInfo(RedisCache):
         
 
     # Встроить в какой-нибудь синк майн
-    def check_contract_price(self, save=None|bool) -> None:
+    def check_contract_price(self, save:Optional[bool]=None) -> None:
         result = self.accountAPI.get_instruments(instType="SWAP")
         if result['code'] != '0':
             raise ValueError(f'Check contract price, code: {result['code']}')
@@ -136,7 +126,7 @@ class UserInfo(RedisCache):
         return float(result['data'][0]['last'])
     
     
-    async def get_last_price(self, instId: str) -> float:
+    async def get_last_price(self, instId:str) -> float:
         timestamp = f'{int(time.time() * 1000)}'
         request_path = f'/api/v5/market/ticker?instId={instId}'
         body = ''
