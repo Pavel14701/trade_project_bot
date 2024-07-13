@@ -80,7 +80,16 @@ class DataAllDatasets(LoadUserSettingData):
                     try:
                         session.commit()
                     except Exception as e:
-                        print(e)
+import logging
+
+logging.basicConfig(level=logging.ERROR)
+
+try:
+    session.commit()
+except Exception as e:
+    logging.error(e)
+    session.rollback()
+finally:
                         session.rollback()
                     finally:
                         session.close()
