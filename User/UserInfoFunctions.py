@@ -1,12 +1,13 @@
 import time, hmac, hashlib, base64
 import aiohttp
+from typing import Optional, Union, Dict
 import okx.Account as Account
 import okx.MarketData as MarketData
 import pandas as pd
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
-from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, create_timestamp, validate_get_data_params
+from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, validate_get_data_params
 
 
 """
@@ -18,8 +19,8 @@ from utils.DataFrameUtils import prepare_many_data_to_append_db, create_datafram
 
 class UserInfo(RedisCache):
     def __init__(
-        self, instId=None|str, timeframe=None|str, lenghts=None|int, 
-        load_data_after=None, load_data_before=None
+        self, instId=None|str, timeframe:str=None, lenghts=None|int, 
+        load_data_after:str=None, load_data_before:str=None
         ):
         super().__init__(key='contracts_prices')
         self.instId = instId
@@ -32,7 +33,7 @@ class UserInfo(RedisCache):
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lengths=None|int, load_data_after=None|str, load_data_before=None|str) -> pd.DataFrame:
+    def get_market_data(self, lengths:Union[int, str] = None, load_data_after:Optional[str]=None, load_data_before:Optional[str]=None) -> Optional[pd.DataFrame]:
         params = validate_get_data_params(lengths, load_data_before, load_data_after)
         result = self.marketDataAPI.get_candlesticks(
                 instId=self.instId,
@@ -43,8 +44,8 @@ class UserInfo(RedisCache):
             )
         if result['code'] != '0':
             raise ValueError(f'Get market data, code: {result['code']}')
-        prepare_df = prepare_many_data_to_append_db(result)
-        return create_dataframe(prepare_df)
+        print(result)
+        return result
 
 
     def check_balance(self) -> float:
@@ -67,7 +68,7 @@ class UserInfo(RedisCache):
 
 
     # Установка левериджа для \изолированых позиций для шорт и лонг
-    def set_leverage_short_long(self, posSide) -> None:
+    def set_leverage_short_long(self, posSide:str) -> None:
         result = self.accountAPI.set_leverage(
             instId = self.instId,
             lever = self.leverage,
@@ -94,7 +95,7 @@ class UserInfo(RedisCache):
         
 
     # Встроить в какой-нибудь синк майн
-    def check_contract_price(self, save=None|bool) -> None:
+    def check_contract_price(self, save:Optional[bool]=None) -> None:
         result = self.accountAPI.get_instruments(instType="SWAP")
         if result['code'] != '0':
             raise ValueError(f'Check contract price, code: {result['code']}')
@@ -125,7 +126,7 @@ class UserInfo(RedisCache):
         return float(result['data'][0]['last'])
     
     
-    async def get_last_price(self, instId: str) -> float:
+    async def get_last_price(self, instId:str) -> float:
         timestamp = f'{int(time.time() * 1000)}'
         request_path = f'/api/v5/market/ticker?instId={instId}'
         body = ''

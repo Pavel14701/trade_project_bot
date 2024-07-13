@@ -1,8 +1,10 @@
+import contextlib
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+from typing import Optional, Dict
 
-def prepare_data_to_dataframe(result) -> list:
+def prepare_data_to_dataframe(result:dict) -> list:
     lenghts = len(result["data"])
     data_list = []
     for i in range(lenghts):
@@ -19,7 +21,7 @@ def prepare_data_to_dataframe(result) -> list:
     return data_list
 
 
-def prepare_many_data_to_append_db(result) -> dict:
+def prepare_many_data_to_append_db(result: dict) -> dict:
     time = []
     _open = []
     high = []
@@ -36,7 +38,7 @@ def prepare_many_data_to_append_db(result) -> dict:
         volume.append(result['data'][i][6])
         volume_usdt.append(result['data'][i][5])
     return {
-        "Datr": time,
+        "Date": time,
         "Open": _open,
         "High": high,
         "Low": low,
@@ -79,7 +81,7 @@ def create_dataframe(data_list: dict) -> pd.DataFrame:
 
 def create_message_state_avsl_rsi_clouds(
     instId:str, timeframe:str, avsl:float,
-    adx=None|float, rsi=None|str) -> dict:
+    adx:Optional[float] = None, rsi:Optional[str]=None) -> dict:
     return dict([
         ('time', datetime.now().isoformat()),
         ('instId', instId),
@@ -91,7 +93,7 @@ def create_message_state_avsl_rsi_clouds(
     ])
 
 
-def create_timestamp(time:str) -> int:
+def create_timestamp(time=Optional[str]) -> int:
     formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d %H', '%Y-%m-%d']
     formated_time = None
     for fmt in formats:
@@ -113,21 +115,37 @@ def create_timestamp(time:str) -> int:
 
 
 # Можешь добавить рассчёт возможного кол-ва  баров по таймфрему чтобы ошибки не было при вызове after c limit=300
-def validate_get_data_params(lengths:int, load_data_before:str, load_data_after:str, timeframe=None|str) -> dict:
-    if lengths and load_data_after and load_data_before:
-        load_data_before = None
-        load_data_after = None
-        print(f'\nWARNING!!!\nUse limit for get market data download: limit:{lengths}\n')                                                                                         
-    elif lengths is None and load_data_after and load_data_before:
-        lengths = 300
-        load_data_after = None
-        print(f'\nWARNING!!!\nUse load_data_after for get market data download: /
-                load_data_after={load_data_after} with limit:{lengths}\n')
-    elif (lengths and load_data_after and load_data_before) is None:
+def validate_get_data_params(lengths:Optional[int] = None, load_data_before:Optional[str]=None, load_data_after:Optional[str]=None, timeframe:Optional[str]=None) -> dict:
+    with contextlib.suppress(Exception):
+        load_data_after = create_timestamp(load_data_after)
+    with contextlib.suppress(Exception):
+        load_data_before = create_timestamp(load_data_before)
+    if lengths is not None and load_data_after is not None and load_data_before is not None:
+        raise ValueError('Check params for get market data download')
+    elif lengths is None and load_data_after is not None and load_data_before is not None:
+        raise ValueError('Check params for get market data download')
+    elif lengths is None and load_data_after is None and load_data_before is None:
         raise ValueError('All parametrs are None')
-    params = {
-        'limit': lengths or ' ',
-        'before': create_timestamp(load_data_before) or ' ',
-        'after': create_timestamp(load_data_after) or ' '
-    }
-    return params
+    limit = lengths or ' '
+    before = load_data_before or ' '
+    after = load_data_after or ' '
+    return {'limit': limit, 'before': before, 'after': after}
+
+
+def generate_time_points(num_groups: int, timeframe:Optional[str] = None) -> list:
+    #Работает только с H4, можешь модифицировать под нужные тф(5m, 15m, 1H, 1D)
+    current_time = datetime.now()
+    rounded_time = current_time.replace(minute=0, second=0, microsecond=0)
+    while rounded_time.hour % 4 != 0:
+        rounded_time -= timedelta(hours=1)
+    time_points = []
+    for _ in range(num_groups):
+        time_list = [rounded_time - timedelta(hours=4 * i) for i in range(300)]
+        time_points.extend(
+            (
+                time_list[0].strftime('%Y-%m-%d %H:%M:%S'),
+                time_list[-2].strftime('%Y-%m-%d %H:%M:%S'),
+            )
+        )
+        rounded_time = time_list[-2]
+    return list(time_points)

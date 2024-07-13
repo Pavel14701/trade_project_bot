@@ -62,8 +62,8 @@ class DataAllDatasets(LoadUserSettingData):
         class_name = f"ChartsData_{self.instId}_{self.timeframe}"
         active_class = classes_dict[class_name]
         with Session() as session:
-            for i in range(len(results_dict['time'])):
-                target_data = session.query(exists().where(active_class.TIMESTAMP == results_dict['time'][i])).scalar()
+            for i in range(len(results_dict['Date'])):
+                target_data = session.query(exists().where(active_class.TIMESTAMP == results_dict['Date'][i])).scalar()
                 if not target_data:
                     data = active_class(
                         TIMESTAMP=results_dict['Date'][i],
@@ -79,13 +79,15 @@ class DataAllDatasets(LoadUserSettingData):
                     session.add(data)
                     try:
                         session.commit()
-                    except Exception:
+                    except Exception as e:
+                        print(e)
                         session.rollback()
                     finally:
                         session.close()
 
-
+    # Добавление одной строки 
     def add_data_to_db(self, results_dict:dict) -> None:
+        print(results_dict)
         class_name = f"ChartsData_{self.instId}_{self.timeframe}"
         active_class = classes_dict[class_name]
         with Session() as session:
@@ -136,6 +138,3 @@ class DataAllDatasets(LoadUserSettingData):
                 session.rollback()
             finally:
                 session.close()
-
-
-
