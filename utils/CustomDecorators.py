@@ -1,6 +1,8 @@
-from functools import singledispatchmethod
 import warnings
 import functools
+import time
+from httpx import ReadTimeout
+from httpcore import ConnectTimeout
 
 
 def deprecated(func):
@@ -15,49 +17,28 @@ def deprecated(func):
     return new_func
 
 
-class MyMeta(type):
+class DeprecateMetaClass(type):
     def __new__(cls, name, bases, dct):
         for attr_name, attr_value in dct.items():
             if callable(attr_value):
                 dct[attr_name] = deprecated(attr_value)
         return super().__new__(cls, name, bases, dct)
-
-
-
-"""
-class Shape(metaclass=MyMeta):
-    def __init__(self, name):
-        self.name = name
-
-class Circle(Shape):
-    pass
-
-class Square(Shape):
-    pass
-
-
-class Triangle(Shape):
-    pass
-
-class MyClass:
-    @singledispatchmethod
-    def process(self, shape):
-        raise NotImplementedError("Unsupported shape type")
-
-    @process.register
-    def _(self, shape: Circle):
-        print(f"Processing circle: {shape.name}")
-
     
-    @process.register
-    def _(self, shape: Square):
-        print(f"Processing square: {shape.name}")
 
-obj = MyClass()
-circle = Circle("Circle1")
-square = Square("Square1")
-triangle = Triangle("Triangle")
-obj.process(circle)
-obj.process(square)
-obj.process(triangle)
-"""
+def retry(max_retries):
+    def decorator(original_func):
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            last_exception = None
+            while attempts < max_retries:
+                try:
+                    result = original_func(*args, **kwargs)
+                    return result
+                except (ReadTimeout, ConnectTimeout) as e:
+                    print(f"Попытка {attempts + 1} завершилась неудачей: {e}")
+                    time.sleep(5)
+                    attempts += 1
+                    last_exception = e
+            raise ReadTimeout from last_exception
+        return wrapper
+    return decorator

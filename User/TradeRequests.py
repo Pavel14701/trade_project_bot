@@ -4,6 +4,7 @@ import okx.Account as Account
 import okx.Trade as Trade
 from User.LoadSettings import LoadUserSettingData
 from User.UserInfoFunctions import UserInfo
+from utils.CustomDecorators import retry
 
 
 
@@ -23,6 +24,7 @@ class OKXTradeRequests(LoadUserSettingData):
         self.tradeAPI = Trade.TradeAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
 
 
+    @retry(max_retries=5)
     def construct_market_order(self, side) -> dict:
         if self.posSide == 'long':
                     side = 'buy'
@@ -45,6 +47,7 @@ class OKXTradeRequests(LoadUserSettingData):
 
 
 
+    @retry(max_retries=5)
     def construct_stoploss_order(self) -> str:
         if self.posSide == 'long':
                     side = 'sell'
@@ -66,6 +69,7 @@ class OKXTradeRequests(LoadUserSettingData):
         return result['data'][0]['ordId']
     
     
+    @retry(max_retries=5)
     def change_stoploss_order(self, price:float, orderId:str) -> None:
         result = self.tradeAPI.amend_algo_order(
             instId=self.instId,
@@ -76,7 +80,7 @@ class OKXTradeRequests(LoadUserSettingData):
             raise ValueError(f'Change stoploss order, code: {result['code']}')
         
         
-        
+    @retry(max_retries=5)
     def construct_takeprofit_order(self, side) -> str:
         if self.posSide == 'long':
                     side = 'sell'
@@ -98,6 +102,7 @@ class OKXTradeRequests(LoadUserSettingData):
         return result['data'][0]['ordId']
     
     
+    @retry(max_retries=5)
     def change_takeprofit_order(self, tpPrice:float, orderId:str):
         result = self.tradeAPI.amend_algo_order(
             instId=self.instId,
@@ -108,6 +113,7 @@ class OKXTradeRequests(LoadUserSettingData):
             raise ValueError(f'Change stoploss order, code: {result['code']}')
 
 
+    @retry(max_retries=5)
     def costruct_limit_order(self, price) -> dict:
         if self.posSide == 'long':
                     side = 'buy'
@@ -129,12 +135,14 @@ class OKXTradeRequests(LoadUserSettingData):
         return {'result': result, 'order_id': order_id, 'outTime': outTime}
 
 
+    @retry(max_retries=5)
     def calculate_posSize(self) -> float:
         # sourcery skip: inline-immediately-returned-variable
         user = UserInfo()
         balance = user.check_balance()
         return (balance * self.leverage * self.risk) / self.slPrice
-    
+
+
     def check_position(self, ordId) -> dict:
         result = self.tradeAPI.get_order(instId=self.instId, ordId=ordId)
         if result["code"] != "0":
@@ -142,24 +150,28 @@ class OKXTradeRequests(LoadUserSettingData):
         return float(result["data"][0]["avgPx"])
 
 
+    @retry(max_retries=5)
     def get_all_order_list(self) -> dict:
         result = self.tradeAPI.get_order_list()
         if result["code"] != "0":
             raise ValueError(f'Get all order list, code: {result['code']}')
 
 
+    @retry(max_retries=5)
     def get_all_opened_positions(self) -> dict:
         result = self.accountAPI.get_positions()
         if result["code"] != "0":
             raise ValueError(f'Get all opened positions, code: {result['code']}')
 
 
+    @retry(max_retries=5)
     def get_history_3days(self) -> dict:
         result = self.tradeAPI.get_fills(instType = 'SWAP') #скорее всего всегда SWAP
         if result["code"] != "0":
             raise ValueError(f'Get history from 3 days, code: {result['code']}')
 
 
+    @retry(max_retries=5)
     def get_history_3months(self) -> dict:
         result = self.tradeAPI.get_fills_history(instType = 'SWAP') #скорее всего всегда SWAP
         if result["code"] != "0":

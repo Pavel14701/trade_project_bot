@@ -2,7 +2,7 @@ import contextlib
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from typing import Optional, Union
 
 def prepare_data_to_dataframe(result:dict) -> list:
     lenghts = len(result["data"])
@@ -49,18 +49,18 @@ def prepare_many_data_to_append_db(result: dict) -> dict:
 
 
 def create_dataframe(data_list: dict) -> pd.DataFrame:
-    required_columns = ['time', 'open', 'high', 'low', 'close', 'volume', 'volume_usdt']
+    required_columns = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume', 'Volume Usdt']
     if missing_columns := set(required_columns) - set(data_list.keys()):
         raise ValueError(f"Missing required columns in data_list: {', '.join(missing_columns)}")
     data_rows = [
         {
-            'Datetime': pd.to_datetime(datetime_value),
+            'Date': pd.to_datetime(datetime_value),
             'Open': open_value,
             'High': high_value,
             'Low': low_value,
             'Close': close_value,
             'Volume': volume_value,
-            'Usdt Volume': volume_usdt_value
+            'Volume Usdt': volume_usdt_value
         }
         for datetime_value, open_value, high_value, low_value, close_value, volume_value, volume_usdt_value in zip(
             data_list['Date'], data_list['Open'], data_list['High'], data_list['Low'], data_list['Close'],
@@ -68,15 +68,14 @@ def create_dataframe(data_list: dict) -> pd.DataFrame:
         )
     ]
     data_frame = pd.DataFrame(data_rows)
-    data_frame['Date'] = data_frame['Date']
     data_frame['Open'] = data_frame['Open'].astype(np.float64)
     data_frame['High'] = data_frame['High'].astype(np.float64)
     data_frame['Low'] = data_frame['Low'].astype(np.float64)
     data_frame['Close'] = data_frame['Close'].astype(np.float64)
+    data_frame['Volume'] = data_frame['Volume'].astype(np.float64)
     data_frame['Volume Usdt'] = data_frame['Volume Usdt'].astype(np.float64)
     data_frame.set_index('Date', inplace=True)
-    return data_frame
-
+    return data_frame.sort_values(by='Date', ascending=True)
 
 
 def create_message_state_avsl_rsi_clouds(
@@ -93,7 +92,9 @@ def create_message_state_avsl_rsi_clouds(
     ])
 
 
-def create_timestamp(time=Optional[str]) -> int:
+def create_timestamp(time:Union[str, None]=None) -> int:
+    if time is None:
+        return
     formats = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d %H', '%Y-%m-%d']
     formated_time = None
     for fmt in formats:

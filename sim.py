@@ -4,8 +4,8 @@ from datasets.database import DataAllDatasets
 from utils.DataFrameUtils import generate_time_points, prepare_many_data_to_append_db
 
 
-bd = DataAllDatasets('BTC-USDT-SWAP', '4H')
-get = UserInfo('BTC-USDT-SWAP', '4H')
+bd = DataAllDatasets('ETH-USDT-SWAP', '4H')
+get = UserInfo('ETH-USDT-SWAP', '4H')
 dates = generate_time_points(20)
 for date in dates:
     print(date)

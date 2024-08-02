@@ -8,6 +8,7 @@ from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
 from docx import Document
 from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe, validate_get_data_params
+from utils.CustomDecorators import retry
 
 
 """
@@ -32,7 +33,7 @@ class UserInfo(RedisCache):
         self.marketDataAPI = MarketData.MarketAPI(flag=self.flag)
         self.format = MultilineJSONFormatter()
 
-
+    @retry(max_retries=5)
     def get_market_data(self, lengths:Union[int, str] = None, load_data_after:Optional[str]=None, load_data_before:Optional[str]=None) -> Optional[pd.DataFrame]:
         params = validate_get_data_params(lengths, load_data_before, load_data_after)
         result = self.marketDataAPI.get_candlesticks(
@@ -44,10 +45,9 @@ class UserInfo(RedisCache):
             )
         if result['code'] != '0':
             raise ValueError(f'Get market data, code: {result['code']}')
-        print(result)
         return result
 
-
+    @retry(max_retries=5)
     def check_balance(self) -> float:
         result = self.accountAPI.get_account_balance()
         if result['code'] != '0':
@@ -56,6 +56,7 @@ class UserInfo(RedisCache):
 
 
     # Установка левериджа кросс позиций для отдельного инструмента
+    @retry(max_retries=5)
     def set_leverage_inst(self) -> None:
         result = self.accountAPI.set_leverage(
             instId=self.instId,
@@ -68,6 +69,7 @@ class UserInfo(RedisCache):
 
 
     # Установка левериджа для \изолированых позиций для шорт и лонг
+    @retry(max_retries=5)
     def set_leverage_short_long(self, posSide:str) -> None:
         result = self.accountAPI.set_leverage(
             instId = self.instId,
@@ -80,13 +82,16 @@ class UserInfo(RedisCache):
 
 
     # Установка режима торговли
+    @retry(max_retries=5)
     def set_trading_mode(self) -> None:
         result = self.accountAPI.set_position_mode(
             posMode="long_short_mode"
         )
         if result['code'] != '0':
             raise ValueError(f'Set trading mode, code: {result['code']}')
-        
+
+
+    @retry(max_retries=5)
     def check_instrument_info(self, instId:str) -> None:
         result = self.marketDataAPI.get_ticker(instId=instId)
         if result['code'] != '0':
@@ -95,6 +100,7 @@ class UserInfo(RedisCache):
         
 
     # Встроить в какой-нибудь синк майн
+    @retry(max_retries=5)
     def check_contract_price(self, save:Optional[bool]=None) -> None:
         result = self.accountAPI.get_instruments(instType="SWAP")
         if result['code'] != '0':
@@ -107,6 +113,7 @@ class UserInfo(RedisCache):
             super().send_redis_command(result, self.key)
 
 
+    @retry(max_retries=5)
     def check_contract_price_cache(self, instId:str) -> float:
         result = super().load_message_from_cache()
         return float(next(
@@ -119,6 +126,7 @@ class UserInfo(RedisCache):
             ))
 
 
+    @retry(max_retries=5)
     def check_instrument_price(self, instId:str) -> float:
         result = self.marketDataAPI.get_ticker(instId)
         if result['code'] != '0':

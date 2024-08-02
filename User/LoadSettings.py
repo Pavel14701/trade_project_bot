@@ -36,15 +36,26 @@ class LoadUserSettingData:
             'lenghts': int(os.getenv("ALMALENGHTS"))
         }
         self.clouds_rsi_configs = {
-            'rsi_period_short': int(os.getenv("RSISHORTLENGHTS")),
-            'rsi_period_long': int(os.getenv("RSILONGLENGHTS")),
-            'ema_period': int(os.getenv("RSIEMALENGHTS"))
+            'rsi_period': int(os.getenv('RSILENGHTS')),
+            'rsi_scalar': int(os.getenv('RSISCALAR')),
+            'rsi_drift': int(os.getenv('RSIDRIFT')),
+            'rsi_offset': int(os.getenv('RSIOFFSET')),
+            'macd_fast': int(os.getenv('MACDFAST')),
+            'macd_slow': int(os.getenv('MACDSOW')),
+            'macd_signal': int(os.getenv('MACDSIGNAL')),
+            'macd_offset': int(os.getenv('MACDOFFSET')),
+            'calc_data': str(os.getenv('CALCDATA')),
+            'talib': bool(os.getenv('RSICLOUDSTALIBCONFIG'))
         }
         self.stoch_rsi_configs = {
             'stoch_rsi_timeperiod': int(os.getenv('STOCHRSITIMEPERIOD')),
             'stoch_rsi_fastk_period': int(os.getenv('STOCHRSIFASTKPERIOD')),
             'stoch_rsi_fastd_period': int(os.getenv('STOCHRSIFASTDPERIOD')),
             'stoch_rsi_fastd_matype': int(os.getenv('STOCHRSIFASTDMATYPE'))
+        }
+        self.vpci_configs = {
+            'vpci_long': int(os.getenv('VPCILONGPERIOD')),
+            'vpci_short': int(os.getenv('VPCISHORTPERIOD'))
         }
         self.adx_timeperiod = int(os.getenv("ADXTIMEPERIOD"))
         self.adx_trigger = int(os.getenv('ADXTRIGGER'))

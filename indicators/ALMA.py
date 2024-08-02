@@ -4,7 +4,7 @@ from pandas import DataFrame
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from User.LoadSettings import LoadUserSettingData
-from utils.AddDeprecateMethod import deprecated
+from utils.CustomDecorators import deprecated
 
 
 class AlmaIndicator(LoadUserSettingData):

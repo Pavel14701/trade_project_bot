@@ -7,6 +7,7 @@ import pandas as pd
 import talib
 
 
+
 class ADXTrend(LoadUserSettingData):
     def __init__(self, data:pd.DataFrame):
         super().__init__()
@@ -15,10 +16,23 @@ class ADXTrend(LoadUserSettingData):
         
     def calculate_adx(self) -> pd.DataFrame:
         # Вычисляем индикатор ADX
-        adx = talib.ADX(
+        self.data['ADX'] = talib.ADX(
             self.data['High'].values, 
             self.data['Low'].values, 
             self.data['Close'].values, 
             self.timeperiod
             )
-        return adx[-1]
+        print(self.data)
+        return self.data['ADX'].iloc[-1], self.data
+
+
+    @staticmethod
+    def create_vizualization_adx(data):
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
+        ax1.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
+        ax2.plot(data.index, data['ADX'], label='ADX', color='orange')
+        ax1.legend()
+        ax1.set_title('Визуализация ADX')
+        ax1.set_xlabel('Дата')
+        ax1.set_ylabel('Цена')
+        plt.show()
