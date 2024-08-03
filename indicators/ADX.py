@@ -8,12 +8,13 @@ import talib
 
 
 
-class ADXTrend(LoadUserSettingData):
+class ADXTrend:
     def __init__(self, data:pd.DataFrame):
-        super().__init__()
+        settings = LoadUserSettingData.load_adx_configs()
+        self.timeperiod = settings['adx_timeperiod']
         self.data = data
-        self.timeperiod = self.adx_timeperiod
-        
+
+
     def calculate_adx(self) -> pd.DataFrame:
         # Вычисляем индикатор ADX
         self.data['ADX'] = talib.ADX(

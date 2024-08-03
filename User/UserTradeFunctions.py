@@ -41,7 +41,6 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, DataAllDatasets):
 
     # Создание маркет ордера long с Tp и Sl
     def place_market_order(self) -> str:
-        # sourcery skip: extract-method, merge-dict-assign, switch
         try:
             result = {
                 'instID':  self.instId,

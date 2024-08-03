@@ -9,14 +9,14 @@ from User.UserInfoFunctions import UserInfo
 from utils.DataFrameUtils import create_dataframe, prepare_many_data_to_append_db
 
 
-class StochRSICalculator(LoadUserSettingData):
+class StochRSICalculator:
     def __init__(self, data: pd.DataFrame):
-        super().__init__()
+        settings = LoadUserSettingData.load_stoch_rsi_configs()
+        self.timeperiod = settings['stoch_rsi_timeperiod']
+        self.fastk_period = settings['stoch_rsi_fastk_period']
+        self.fastd_period = settings['stoch_rsi_fastd_period']
+        self.fastd_matype = settings['stoch_rsi_fastd_matype']
         self.data = data
-        self.timeperiod = self.stoch_rsi_configs['stoch_rsi_timeperiod']
-        self.fastk_period = self.stoch_rsi_configs['stoch_rsi_fastk_period']
-        self.fastd_period = self.stoch_rsi_configs['stoch_rsi_fastd_period']
-        self.fastd_matype = self.stoch_rsi_configs['stoch_rsi_fastd_matype']
     
     
     def calculate_stochrsi(self):

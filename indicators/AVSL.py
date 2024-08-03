@@ -5,14 +5,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-class AVSLIndicator(LoadUserSettingData):
+class AVSLIndicator:
     def __init__ (self, data: pd.DataFrame):
-        super().__init__()
-        self.lenghtsFast = self.avsl_configs['lenghtsFast']
-        self.lenghtsSlow = self.avsl_configs['lenghtsSlow']
-        self.lenT = self.avsl_configs['lenT']
-        self.standDiv = self.avsl_configs['standDiv']
-        self.offset = self.avsl_configs['offset']
+        settings = LoadUserSettingData.load_avsl_configs()
+        self.lenghtsFast = settings['lenghtsFast']
+        self.lenghtsSlow = settings['lenghtsSlow']
+        self.lenT = settings['lenT']
+        self.standDiv = settings['standDiv']
+        self.offset = settings['offset']
         self.data = data
 
 

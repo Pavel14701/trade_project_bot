@@ -9,12 +9,11 @@ from datasets.RedisCache import RedisCache
 
 class BollindgerBands(LoadUserSettingData, RedisCache):
     def __init__ (self, data: DataFrame):
-        super().__init__()
+        settings = LoadUserSettingData.load_bollinger_bands_settings()
+        self.lenghts = settings['lenghts']
+        self.stdev = settings['stdev']
         self.data = data
-        self.lenghts = self.bollinger_bands_settings['lenghts']
-        self.stdev = self.bollinger_bands_settings['stdev']
 
-    
 
     def calculate_bands(self) -> DataFrame:
         high_low_average = (self.data['High'] + self.data['Low']) / 2

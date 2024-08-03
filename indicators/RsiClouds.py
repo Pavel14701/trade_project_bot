@@ -36,13 +36,15 @@ class CloudsRsi(LoadUserSettingData):
             self.data['pr_data'] = self.data['Close']
         elif self.calc_data == 'High':
             self.data['pr_data'] = self.data['High']
+        else:
+            raise ValueError(f"Invalid calc_data value: {self.calc_data}")
         self.data['pr_data'] = self.data['pr_data'].astype(np.float64)
 
 
     def calculate_rsi_macd(self) -> pd.DataFrame:
-        CloudsRsi.prepare_data()
+        self.prepare_data()
         self.data['rsi'] = ta.rsi(self.data['pr_data'], length=self.rsi_period, scalar=self.rsi_scalar, talib=self.talib_config, drift=self.rsi_drift, offset=self.rsi_drift)
-        macd = ta.macd(self.data['rsi_long'], fast=self.macd_fast, slow=self.macd_slow, signal=self.macd_signal, talib=self.talib_config, offset=self.macd_offset)
+        macd = ta.macd(self.data['rsi'], fast=self.macd_fast, slow=self.macd_slow, signal=self.macd_signal, talib=self.talib_config, offset=self.macd_offset)
         self.data['macd_line'] = macd[f'MACD_{self.macd_fast}_{self.macd_slow}_{self.macd_signal}']
         self.data['macd_signal'] = macd[f'MACDs_{self.macd_fast}_{self.macd_slow}_{self.macd_signal}']
         self.data['histogram'] = macd[f'MACDh_{self.macd_fast}_{self.macd_slow}_{self.macd_signal}']
@@ -58,7 +60,12 @@ class CloudsRsi(LoadUserSettingData):
             (self.data['histogram'].shift(1) < 0) & (self.data['histogram'] > 0), 1, 
             np.where((self.data['histogram'].shift(1) > 0) & (self.data['histogram'] < 0), -1, 0)
         )
-        return self.data
+        return self.get_last_macd_signal()
+
+    def get_last_macd_signal(self):
+        # Получение последнего сигнала пересечения MACD
+        return None if self.data['macd_cross_signal'].replace(0, np.nan).dropna().empty else self.data['macd_cross_signal'].replace(0, np.nan).dropna().iloc[-1]
+
 
     def create_visualization_rsi_macd(self):
         # Создание подграфиков
@@ -97,6 +104,7 @@ result = UserInfo('BTC-USDT-SWAP', '4H', 300).get_market_data(300)
 data = prepare_many_data_to_append_db(result)
 data = create_dataframe(data)
 instance = CloudsRsi(data)
-instance.calculate_rsi_macd()
+signal = instance.calculate_rsi_macd()
+print(signal)
 data = instance.create_visualization_rsi_macd()
 print(data)

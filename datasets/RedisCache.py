@@ -16,17 +16,24 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-class RedisCache(Redis, LoadUserSettingData): 
+class RedisCache(Redis): 
     def __init__(self, instId:Optional[str]=None, timeframe:Optional[str]=None, 
                  channel:Optional[str]=None, key:Optional[str]=None,
                  data:Optional[pd.DataFrame]=None):
-        LoadUserSettingData.__init__(self)
+        db_settings = LoadUserSettingData.load_database_settings()
+        self.host = db_settings['host']
+        self.port = db_settings['port']
+        self.db = db_settings['db']
+        Redis.__init__(self, self.host, self.port, self.db)
+        user_settings = LoadUserSettingData.load_user_settings()
+        self.timeframes = user_settings['timeframes']
+        self.instIds = user_settings['instIds']
         self.data = data
         self.instId = instId
         self.timeframe = timeframe
         self.channel = channel
         self.key = key
-        Redis.__init__(self, self.host, self.port, self.db)
+
         
         
     def add_data_to_cache(self, data:pd.DataFrame) -> None:

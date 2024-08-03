@@ -1,14 +1,13 @@
-import warnings
-import functools
-import time
-from httpx import ReadTimeout
-from httpcore import ConnectTimeout
+import time, warnings, asyncio
+from functools import wraps
+from typing import Optional
+
 
 
 def deprecated(func):
     """Этот декоратор помечает функцию как устаревшую.
     При вызове функции будет выдано предупреждение."""
-    @functools.wraps(func)
+    @wraps(func)
     def new_func(*args, **kwargs):
         warnings.simplefilter('always', DeprecationWarning)  # Включаем предупреждение
         warnings.warn(f"Вызов устаревшей функции {func.__name__}.", category=DeprecationWarning, stacklevel=2)
@@ -23,22 +22,36 @@ class DeprecateMetaClass(type):
             if callable(attr_value):
                 dct[attr_name] = deprecated(attr_value)
         return super().__new__(cls, name, bases, dct)
-    
 
-def retry(max_retries):
-    def decorator(original_func):
+
+def retry_on_exception(max_retries:Optional[int], delay:Optional[int]):
+    def decorator(func):
+        @wraps(func)
         def wrapper(*args, **kwargs):
-            attempts = 0
-            last_exception = None
-            while attempts < max_retries:
+            for attempt in range(max_retries):
                 try:
-                    result = original_func(*args, **kwargs)
-                    return result
-                except (ReadTimeout, ConnectTimeout) as e:
-                    print(f"Попытка {attempts + 1} завершилась неудачей: {e}")
-                    time.sleep(5)
-                    attempts += 1
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    print(f'Attempt {attempt + 1} failed with exception: {e}/n Retrying in {delay} seconds...')
                     last_exception = e
-            raise ReadTimeout from last_exception
+                    time.sleep(delay)
+            raise last_exception(f'Failed after {max_retries} retries')
+        return wrapper
+    return decorator
+
+
+def retry_on_exception_async(max_retries:Optional[int], delay:Optional[int]):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            for attempt in range(max_retries):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    print(f'Attempt {attempt + 1} failed with exception: {e}\nRetrying in {delay} seconds...')
+                    await asyncio.sleep(delay)
+                    last_exception = e
+            raise last_exception
         return wrapper
     return decorator

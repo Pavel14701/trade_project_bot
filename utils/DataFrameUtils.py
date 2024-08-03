@@ -1,4 +1,4 @@
-import contextlib
+import contextlib, asyncio
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -150,3 +150,9 @@ def generate_time_points(num_groups: int, timeframe:Optional[str] = None) -> lis
         )
         rounded_time = time_list[-2]
     return list(time_points)
+
+
+async def async_generator(data):
+    for item in data:
+        await asyncio.sleep(0)
+        yield item
