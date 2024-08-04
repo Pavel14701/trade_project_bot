@@ -109,7 +109,7 @@ def create_timestamp(time:Union[str, None]=None) -> int:
         except ValueError:
             continue
     if not formated_time:
-        raise ValueError(f"Не удалось распознать формат даты и времени: {time}")
+        raise ValueError(f"Unable to recognize date and time format: {time}")
     date_time_obj = datetime.strptime(formated_time, '%Y-%m-%d %H:%M:%S')
     timestamp = int(date_time_obj.timestamp())
     return timestamp
