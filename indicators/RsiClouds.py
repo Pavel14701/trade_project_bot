@@ -41,7 +41,15 @@ class CloudsRsi(LoadUserSettingData):
         self.data['pr_data'] = self.data['pr_data'].astype(np.float64)
 
 
-    def calculate_rsi_macd(self) -> pd.DataFrame:
+def calculate_rsi_macd(self) -> pd.DataFrame:
+    try:
+        self.prepare_data()
+        self.data['rsi'] = ta.rsi(self.data['pr_data'], length=self.rsi_period, scalar=self.rsi_scalar, talib=self.talib_config, drift=self.rsi_drift, offset=self.rsi_drift)
+        return self.data
+    except KeyError as e:
+        raise ValueError(f"Missing required column: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Error calculating RSI MACD: {e}")
         self.prepare_data()
         self.data['rsi'] = ta.rsi(self.data['pr_data'], length=self.rsi_period, scalar=self.rsi_scalar, talib=self.talib_config, drift=self.rsi_drift, offset=self.rsi_drift)
         macd = ta.macd(self.data['rsi'], fast=self.macd_fast, slow=self.macd_slow, signal=self.macd_signal, talib=self.talib_config, offset=self.macd_offset)
