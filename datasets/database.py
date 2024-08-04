@@ -5,8 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from User.LoadSettings import LoadUserSettingData
-from datasets.ClassesCreation import ClassCreation, TradeUserData, Base
-from utils.DataFrameUtils import prepare_many_data_to_append_db
+from datasets.ClassesCreation import ClassCreation, TradeUserData, SQLStateStorage, Base
 
 
 engine1 = create_engine("sqlite:///./datasets/TradeUserDatasets.db")

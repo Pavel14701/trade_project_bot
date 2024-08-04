@@ -4,19 +4,19 @@ from pandas import DataFrame
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from User.LoadSettings import LoadUserSettingData
-from utils.AddDeprecateMethod import deprecated
+from utils.CustomDecorators import deprecated
 
 
-class AlmaIndicator(LoadUserSettingData):
+class AlmaIndicator:
     def __init__(self, data:DataFrame):
-        super().__init__()
+        settings = LoadUserSettingData.load_alma_configs()
+        self.lenghtsVSlow = settings['lenghtsVSlow']
+        self.lenghtsSlow = settings['lenghtsSlow']
+        self.lenghtsMiddle = settings['lenghtsMiddle']
+        self.lenghtsFast = settings['lenghtsFast']
+        self.lenghtsVFast = settings['lenghtsVFast']
+        self.lenghts = settings['lenghts']
         self.data = data
-        self.lenghtsVSlow = self.alma_configs['lenghtsVSlow']
-        self.lenghtsSlow = self.alma_configs['lenghtsSlow']
-        self.lenghtsMiddle = self.alma_configs['lenghtsMiddle']
-        self.lenghtsFast = self.alma_configs['lenghtsFast']
-        self.lenghtsVFast = self.alma_configs['lenghtsVFast']
-        self.lenghts = self.alma_configs['lenghts']
 
 
     def calculate_alma(self):

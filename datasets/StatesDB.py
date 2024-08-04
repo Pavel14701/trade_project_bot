@@ -1,18 +1,6 @@
-from sqlalchemy import Column, Integer, String, Boolean
-from datasets.ClassesCreation import Base
+from datasets.ClassesCreation import SQLStateStorage, Base
 from datasets.database import Session
 
-
-class SQLStateStorage(Base):
-    __tablename__ = 'States'
-    __table_args__ = {'extend_existing': True}
-    ID = Column(Integer, primary_key=True, autoincrement=True)
-    INST_ID = Column(String)
-    TIMEFRAME = Column(String)
-    POSITION = Column(String, nullable=True)
-    ORDER_ID = Column(String, nullable=True)
-    STRATEGY = Column(String)
-    STATUS = Column(Boolean)
 
 class StateRequest:
     def __init__(self, intsId=None|str, timeframe=None|str, strategy=None|str):
