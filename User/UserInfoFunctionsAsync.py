@@ -3,7 +3,7 @@ from typing import Optional
 from docx import Document
 from User.LoadSettings import LoadUserSettingData
 from datasets.AioRedisCache import AioRedisCache
-from utils.DataFrameUtils import async_generator
+from utils.DataFrameUtils import async_generator, async_validate_get_data_params
 from utils.CustomDecorators import retry_on_exception_async
 import asyncio
 
@@ -38,7 +38,7 @@ class UserInfoAsync(AioRedisCache):
         self.load_data_before = load_data_before
 
 
-    async def make_request(self, request_path:Optional[str], headers:Optional['dict']):
+    async def make_request(self, request_path:Optional[str], headers:Optional['dict']) -> dict:
         if self.debug:
             print(f'{self.base_url}{request_path}')
             print(headers)
@@ -51,7 +51,7 @@ class UserInfoAsync(AioRedisCache):
                 return result
 
 
-    async def save_swap_docx(self, result:Optional[dict], filename:Optional[str]):
+    async def save_swap_docx(self, result:Optional[dict], filename:Optional[str]) -> None:
         doc = Document()
         doc.add_paragraph(str(result))
         temp_filename = 'temp.docx'
@@ -64,48 +64,62 @@ class UserInfoAsync(AioRedisCache):
 
     @retry_on_exception_async(max_retries, delay)
     async def get_candlesticks_async(self) -> dict:
-        request_path = f'/api/v5/market/candles?instId={self.instId}&bar={self.timeframe}&limit={self.lenghts}'
+        sign = True
+        params = await async_validate_get_data_params(self.lenghts, self.load_data_before, self.load_data_after, self.timeframe)
+        request_path = f'/api/v5/market/candles?instId={self.instId}&bar={self.timeframe}&limit={params}'
         if self.load_data_after:
-            request_path += f'&after={self.load_data_after}'
+            request_path += f'&after={params['after']}'
         if self.load_data_before:
-            request_path += f'&before={self.load_data_before}'
+            request_path += f'&before={params['before']}'
         method = 'GET'
         body = ''
-        headers = await LoadUserSettingData.create_headers(True, request_path, body, method, self.flag)
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
         result = await self.make_request(request_path, headers)
         return result['data']
 
 
     @retry_on_exception_async(max_retries, delay)
-    async def get_account_balance(self) -> float:
+    async def get_account_balance_async(self) -> float:
+        sign = True
         request_path = '/api/v5/account/balance'
         method = 'GET'
         body = ''
-        headers = await LoadUserSettingData.create_headers(True, request_path, body, method, self.flag)
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
         result = await self.make_request(request_path, headers)
         return float(result["data"][0]["details"][0]["availBal"])
 
 
     @retry_on_exception_async(max_retries, delay)
-    async def set_leverage_inst(self, posSide:Optional[str], ccy:Optional[str]=None):
-        if ccy is None:
-            ccy = '' 
-        params = {'lever': self.leverage, 'mgnMode': self.mgnMode, 'instId': self.instId, 'ccy': ccy , 'posSide': posSide}
+    async def set_leverage_inst_async(self) -> int:
+        sign = True
+        params = {'lever': self.leverage, 'mgnMode': self.mgnMode, 'instId': self.instId, 'ccy': '' , 'posSide': ''}
         body = json.dumps(params)
         request_path =  '/api/v5/account/set-leverage'
         method = 'POST'
-        headers = await LoadUserSettingData.create_headers(True, request_path, body, method, self.flag)
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
         result = await self.make_request(request_path, headers)
         return self.leverage
 
 
     @retry_on_exception_async(max_retries, delay)
+    async def set_leverage_short_long_async(self, posSide:Optional[str]):
+        sign = True
+        params = {'lever': self.leverage, 'mgnMode': self.mgnMode, 'instId': self.instId, 'ccy': '' , 'posSide': posSide}
+        body = json.dumps(params)
+        request_path =  '/api/v5/account/set-leverage'
+        method = 'POST'
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
+        result = await self.make_request(request_path, headers)
+
+
+    @retry_on_exception_async(max_retries, delay)
     async def check_contract_price_async(self, filename:Optional[str]='SWAPINFO.docx', save:Optional[bool]=None) -> None:
+        sign = True
         params = {'instType': 'SWAP', 'ugly': '', 'instFamily': '', 'instId': ''}
         body = json.dumps(params)
         request_path = '/api/v5/account/instruments'
         method = 'GET'
-        headers = await LoadUserSettingData.create_headers(True, request_path, body, method, self.flag)
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
         result = await self.make_request(request_path, headers)
         if save:
             await self.save_swap_docx(result, filename)
@@ -122,12 +136,24 @@ class UserInfoAsync(AioRedisCache):
 
     @retry_on_exception_async(max_retries, delay)
     async def get_last_price_async(self, instId:str) -> float:
+        sign = True
         request_path = f'/api/v5/market/ticker?instId={instId}'
         method = 'GET'
         body = ''
-        headers = await LoadUserSettingData.create_headers(True, request_path, body, method, self.flag)
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
         result = await self.make_request(request_path, headers)
         return float(result['data'][0]['last'])
+
+
+    @retry_on_exception_async(max_retries, delay)
+    async def set_trading_mode_async(self) -> None:
+        sign = True
+        params = {'posMode': 'long_short_mode'}
+        method = 'POST'
+        body = json.dumps(params)
+        request_path = '/api/v5/account/set-position-mode'
+        headers = await LoadUserSettingData.create_headers(sign, request_path, body, method, self.flag)
+        result = await self.make_request(request_path, headers)
 
 
 '''

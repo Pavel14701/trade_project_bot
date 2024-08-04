@@ -111,13 +111,6 @@ class UserInfo(RedisCache):
 
 
     @retry_on_exception(max_retries=10, delay=3)
-    def check_instrument_info(self, instId:str) -> None:
-        self.create_marketAPI()
-        result = self.marketDataAPI.get_ticker(instId=instId)
-        self.check_result(result)
-
-
-    @retry_on_exception(max_retries=10, delay=3)
     def check_contract_price(self, save:Optional[bool]=None) -> None:
         self.create_accountAPI()
         result = self.accountAPI.get_instruments(instType="SWAP")

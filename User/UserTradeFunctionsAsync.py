@@ -1,12 +1,13 @@
 import logging
-from typing import Optional
+from typing import Optional, Union
 from sqlalchemy.orm import sessionmaker
-import pandas as pd, datetime
+import pandas as pd
+import datetime
 from datasets.database import DataAllDatasets
-from User.TradeRequests import OKXTradeRequests
-from User.UserInfoFunctions import UserInfo
+from User.TradeRequestsAsync import OKXTradeRequestsAsync
+from User.UserInfoFunctionsAsync import UserInfoAsync
 from utils.RiskManagment import RiskManadgment
-from utils.DataFrameUtils import create_dataframe, prepare_data_to_dataframe
+from utils.DataFrameUtils import create_dataframe_async, prepare_data_to_dataframe_async
 
 # !!!Важно, если не вязать IP адрес к ключу, у которого есть разрешения на вывод и торговлю(отдельно), то он автоматически удалиться через 14 дней.
 #flag = "1"  live trading: 0, demo trading: 1
@@ -22,14 +23,14 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, DataAllDatasets):    
+class PlaceOrdersAsync(OKXTradeRequestsAsync, RiskManadgment, UserInfoAsync, DataAllDatasets):    
     def __init__(
             self, Session:sessionmaker,
-            instId:Optional[str]=None, posSide:Optional[str]=None, tpPrice:Optional[float]=None,
-            slPrice=None|float
+            instId:Optional[str]=None, posSide:Optional[str]=None, tpPrice:Union[float, int]=None,
+            slPrice:Union[float, int]=None
             ):
-        super(OKXTradeRequests).__init__(instId=instId, posSide=posSide, slPrice=slPrice, tpPrice=tpPrice)
-        super(UserInfo).__init__(instId=instId)
+        super(OKXTradeRequestsAsync).__init__(instId=instId, posSide=posSide, slPrice=slPrice, tpPrice=tpPrice)
+        super(UserInfoAsync).__init__(instId=instId)
         super(RiskManadgment).__init__(instId=instId, slPrice=slPrice)
         super(DataAllDatasets).__init__(Session)
         self.instid = instId
@@ -40,32 +41,32 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, DataAllDatasets):
 
 
     # Создание маркет ордера long с Tp и Sl
-    def place_market_order(self) -> str:
+    async def place_market_order_async(self) -> str:
         try:
             result = {
                 'instID':  self.instId,
                 'timeframe': self.timeframe,
-                'leverage': super().set_leverage_inst(),
+                'leverage': await self.set_leverage_inst_async(),
                 'posSide': self.posSide,
                 'tpPrice': self.tpPrice,
                 'slPrice': self.slPrice,
                 'posFlag': True
             }
-            self.balance, result['balance'] = super().check_balance()
-            contract_price, result['contract_price'] = super().check_contract_price_cache(self.instId)
-            self.size, result['size'] = super().calculate_pos_size(contract_price)
-            result |= super().construct_market_order()
+            self.balance, result['balance'] = await self.get_account_balance_async()
+            contract_price, result['contract_price'] = await self.check_contract_price_cache_async(self.instId)
+            self.size, result['size'] = await self.calculate_pos_size_async(contract_price)
+            result |= await self.construct_market_order_async()
             if result['order_id'] is not None:
-                result['enter_price'] = super().check_position(result['order_id'])
+                result['enter_price'] = await self.check_position_async(result['order_id'])
                 if self.tpPrice is None:
                     result['order_id_tp'] = None
                 else:
-                    result['order_id_tp'] = super().construct_takeprofit_order()
+                    result['order_id_tp'] = await self.construct_takeprofit_order_async()
                 if self.slPrice is None:
                     result['order_id_sl'] = None
                 else:
-                    result['order_id_sl'] = super().construct_stoploss_order()
-                super().save_new_order_data(result)
+                    result['order_id_sl'] = await self.construct_stoploss_order_async()
+                await super().save_new_order_data_async(result)
             else:
                 print("Unsuccessful order request, error_code = ",result["data"][0], ", Error_message = ", result["data"][0]["sMsg"])
             return result['order_id']
@@ -74,33 +75,33 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, DataAllDatasets):
         
         
     # Размещение лимитного ордера
-    def place_limit_order(self, price:float) -> str:
+    async def place_limit_order(self, price:float) -> str:
         try:
             result = {
                 'instID':  self.instId,
                 'timeframe': self.timeframe,
-                'leverage': super().set_leverage_inst(),
+                'leverage': await self.set_leverage_inst_async(),
                 'posSide': self.posSide,
                 'tpPrice': self.tpPrice,
                 'slPrice': self.slPrice,
                 'enter_price': price,
                 'posFlag': False,
             }
-            self.balance, result['balance'] = super().check_balance()
-            contract_price, result['contract_price'] = super().check_contract_price_cache(self.instId)
-            self.size, result['size'] = super().calculate_pos_size(contract_price)
+            self.balance, result['balance'] = await self.get_account_balance_async()
+            contract_price, result['contract_price'] = await self.check_contract_price_cache_async(self.instId)
+            self.size, result['size'] = await self.calculate_pos_size_async(contract_price)
             # limit order
-            result, order_id, outTime = super().construct_limit_order(price)
+            result, order_id, outTime = await self.construct_limit_order_async(price)
             if self.tpPrice is None:
                 result['order_id_tp'] = None
             else:
-                result['order_id_tp'] = super().construct_takeprofit_order()
+                result['order_id_tp'] = await self.construct_takeprofit_order_async()
             if self.slPrice is None:
                 result['order_id_sl'] = None
             else:
-                result['order_id_tp'] = super().construct_takeprofit_order()
+                result['order_id_tp'] = await self.construct_takeprofit_order_async()
             if order_id is not None:
-                super().save_new_order_data(result)
+                await self.save_new_order_data_async(result)
             else:
                 print("Unsuccessful order request, error_code = ",result["data"][0]["sCode"], ", Error_message = ", result["data"][0]["sMsg"])
             return order_id
@@ -108,12 +109,12 @@ class PlaceOrders(OKXTradeRequests, RiskManadgment, UserInfo, DataAllDatasets):
             logger.error(f"\n{datetime.datetime.now().isoformat()} Error place limit order:\n{e}")
 
 
-    def get_current_chart_data(self) -> pd.DataFrame:
+    async def get_current_chart_data(self) -> pd.DataFrame:
         try:
-            result = super().get_market_data()
+            result = await self.get_candlesticks_async()
             if 'data' in result and len(result["data"]) > 0:
-                data_list = prepare_data_to_dataframe(result)
-                return create_dataframe(data_list)
+                data_list = await prepare_data_to_dataframe_async(result)
+                return await create_dataframe_async(data_list)
             else:
                 print("Данные отсутствуют или неполные")
         except Exception as e:
