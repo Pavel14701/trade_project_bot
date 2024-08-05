@@ -17,13 +17,16 @@ ws_logger.addHandler(ws_file_handler)
 ws_logger.addHandler(ws_handler)
 
 
-class OKXWebsocketsChannel(LoadUserSettingData):
+class OKXWebsocketsChannel:
     def __init__(self):
-        super().__init__()
+        api_settings = LoadUserSettingData.load_api_setings()
+        self.api_key = api_settings['api_key']
+        self.secret_key = api_settings['secret_key']
+        self.passphrase = api_settings['passphrase']
         
         
     async def main(self):
-        self.timestamp, self.signature = await super().create_signature()
+        self.timestamp, self.signature = await LoadUserSettingData.create_signature_ws(self.secret_key)
         await create_classes(Base)
         msg = {
             "op": "login",

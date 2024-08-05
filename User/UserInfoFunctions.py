@@ -1,13 +1,11 @@
-import time, hmac, hashlib, base64
-import aiohttp
-import okx.Account as Account
-import okx.MarketData as MarketData
-import pandas as pd
+from typing import Optional, Union
+import okx.Account as Account, okx.MarketData as MarketData, pandas as pd
+from docx import Document
 from datasets.RedisCache import RedisCache
 from utils.LoggingFormater import MultilineJSONFormatter
-from docx import Document
-from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe
-
+from User.LoadSettings import LoadUserSettingData
+from utils.DataFrameUtils import validate_get_data_params
+from utils.CustomDecorators import retry_on_exception
 
 """
 # Данные Api
@@ -18,8 +16,8 @@ from utils.DataFrameUtils import prepare_many_data_to_append_db, create_datafram
 
 class UserInfo(RedisCache):
     def __init__(
-        self, instId=None|str, timeframe=None|str, lenghts=None|int, 
-        load_data_after=None, load_data_before=None
+        self, instId=None|str, timeframe:str=None, lenghts=None|int, 
+        load_data_after:str=None, load_data_before:str=None
         ):
         super().__init__(key='contracts_prices')
         self.instId = instId
@@ -27,88 +25,96 @@ class UserInfo(RedisCache):
         self.lenghts = lenghts
         self.load_data_after = load_data_after
         self.load_data_before = load_data_before
-        self.accountAPI = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
-        self.marketDataAPI = MarketData.MarketAPI(flag=self.flag)
+        api_settings = LoadUserSettingData.load_api_setings()
+        self.api_key = api_settings['api_key']
+        self.secret_key = api_settings['secret_key']
+        self.passphrase = api_settings['passphrase']
+        self.flag = api_settings['flag']
+        user_settings = LoadUserSettingData.load_user_settings()
+        self.leverage = user_settings['leverage']
+        self.mgnMode = user_settings['mgnMode']
+        self.risk = user_settings['risk']
+        self.instIds = user_settings['instIds']
+        self.timeframes = user_settings['timeframes']
         self.format = MultilineJSONFormatter()
 
 
-    def get_market_data(self, lengths=None|int, load_data_after=None|int, load_data_before=None|int) -> pd.DataFrame:
-        # sourcery skip: merge-duplicate-blocks, remove-redundant-if
-        if lengths and (load_data_after or load_data_before):
-            limit = lengths
-            load_data_before = None
-            load_data_after = None
-            print(f'\nWARNING!!!\nUse lengths for get market data download: limit={lengths}\n')                                                                                         
-        elif lengths is None and load_data_after and load_data_before:
-            load_data_before = None
-            print(f'\nWARNING!!!\nUse load_data_after for get market data download: load_data_after={load_data_after}\n')
-        limit = lengths or ' '
-        before = load_data_before or ' '
-        after = load_data_after or ' '
-        result = self.marketDataAPI.get_candlesticks(
-                instId=self.instId,
-                after=after,
-                before=before,
-                bar=self.timeframe,
-                limit=limit
-            )
+    def create_accountAPI(self):
+        self.accountAPI = Account.AccountAPI(self.api_key, self.secret_key, self.passphrase, False, self.flag)
+
+
+    def create_marketAPI(self):
+        self.marketDataAPI = MarketData.MarketAPI(flag=self.flag)
+
+
+    def check_result(self, result):
         if result['code'] != '0':
             raise ValueError(f'Get market data, code: {result['code']}')
-        prepare_df = prepare_many_data_to_append_db(result)
-        return create_dataframe(prepare_df)
 
 
+    @retry_on_exception(max_retries=10, delay=3)
+    def get_market_data(self, lengths:Union[int, str] = None, load_data_after:Optional[str]=None, load_data_before:Optional[str]=None) -> Optional[pd.DataFrame]:
+        params = validate_get_data_params(lengths, load_data_before, load_data_after)
+        self.create_marketAPI()
+        result = self.marketDataAPI.get_candlesticks(
+                instId=self.instId,
+                after=params['after'],
+                before=params['before'],
+                bar=self.timeframe,
+                limit=params['limit']
+            )
+        self.check_result(result)
+        return result
+
+    @retry_on_exception(max_retries=10, delay=3)
     def check_balance(self) -> float:
+        self.create_accountAPI()
         result = self.accountAPI.get_account_balance()
-        if result['code'] != '0':
-            raise ValueError(f'Check balance, code: {result['code']}')
+        self.check_result(result)
         return float(result["data"][0]["details"][0]["availBal"])
 
 
     # Установка левериджа кросс позиций для отдельного инструмента
+    @retry_on_exception(max_retries=10, delay=3)
     def set_leverage_inst(self) -> None:
+        self.create_accountAPI()
         result = self.accountAPI.set_leverage(
             instId=self.instId,
             lever=self.leverage,
             mgnMode=self.mgnMode #cross или isolated
         )
-        if result["code"] != "0":
-            raise ValueError(f'Set leverage for instrument, code: {result['code']}')
+        self.check_result(result)
         return self.leverage
 
 
     # Установка левериджа для \изолированых позиций для шорт и лонг
-    def set_leverage_short_long(self, posSide) -> None:
+    @retry_on_exception(max_retries=10, delay=3)
+    def set_leverage_short_long(self, posSide:str) -> None:
+        self.create_accountAPI()
         result = self.accountAPI.set_leverage(
             instId = self.instId,
             lever = self.leverage,
             posSide = posSide,
             mgnMode = self.mgnMode
         )
-        if result['code'] != '0':
-            raise ValueError(f'Set leverage for short or long positions, code: {result['code']}')
+        self.check_result(result)
 
 
     # Установка режима торговли
+    @retry_on_exception(max_retries=10, delay=3)
     def set_trading_mode(self) -> None:
+        self.create_accountAPI()
         result = self.accountAPI.set_position_mode(
             posMode="long_short_mode"
         )
-        if result['code'] != '0':
-            raise ValueError(f'Set trading mode, code: {result['code']}')
-        
-    def check_instrument_info(self, instId:str) -> None:
-        result = self.marketDataAPI.get_ticker(instId=instId)
-        if result['code'] != '0':
-            raise ValueError(f'check instrument info, code: {result['code']}')
-        
-        
+        self.check_result(result)
 
-    # Встроить в какой-нибудь синк майн
-    def check_contract_price(self, save=None|bool) -> None:
+
+    @retry_on_exception(max_retries=10, delay=3)
+    def check_contract_price(self, save:Optional[bool]=None) -> None:
+        self.create_accountAPI()
         result = self.accountAPI.get_instruments(instType="SWAP")
-        if result['code'] != '0':
-            raise ValueError(f'Check contract price, code: {result['code']}')
+        self.check_result(result)
         if save:
             doc = Document()
             doc.add_paragraph(str(result))
@@ -119,37 +125,14 @@ class UserInfo(RedisCache):
 
     def check_contract_price_cache(self, instId:str) -> float:
         result = super().load_message_from_cache()
-        return float(next(
-                (
-                    instrument['ctVal']
-                    for instrument in result['data']
-                    if instrument['instId'] == instId
-                ),
-                None,
-            ))
+        return float(next((instrument['ctVal'] for instrument in result['data'] if instrument['instId'] == instId),None,))
 
 
+    @retry_on_exception(max_retries=10, delay=3)
     def check_instrument_price(self, instId:str) -> float:
+        self.create_marketAPI()
         result = self.marketDataAPI.get_ticker(instId)
-        if result['code'] != '0':
-            raise ValueError(f'Check instrument price, code: {result['code']}')
+        self.check_result(result)
         return float(result['data'][0]['last'])
-    
-    
-    async def get_last_price(self, instId: str) -> float:
-        timestamp = f'{int(time.time() * 1000)}'
-        request_path = f'/api/v5/market/ticker?instId={instId}'
-        body = ''
-        message = f'{timestamp}GET{request_path}{body}'
-        signature = base64.b64encode(hmac.new(self.secret_key.encode(), message.encode(), hashlib.sha256).digest()).decode()
-        headers = {
-            'OK-ACCESS-KEY': self.api_key,
-            'OK-ACCESS-SIGN': signature,
-            'OK-ACCESS-TIMESTAMP': timestamp,
-            'OK-ACCESS-PASSPHRASE': self.passphrase,
-            'Content-Type': "application/json"
-        }
-        url = f'https://www.okx.com/api/v5/market/ticker?instId={instId}'
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as response:
-                return await float(response.json()['data'][0]['last'])
+
+

@@ -1,44 +1,53 @@
-import sys
+import sys, asyncio, matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
-import matplotlib.pyplot as plt
-import talib
 from pandas import DataFrame
+from pandas_ta import bbands
 from User.LoadSettings import LoadUserSettingData
-from datasets.RedisCache import RedisCache
+from utils.CustomLogger import create_logger
+from utils.CustomDecorators import log_exceptions
+logger = create_logger('BollingerBands')
 
 
-class BollindgerBands(LoadUserSettingData, RedisCache):
+class BollindgerBands:
     def __init__ (self, data: DataFrame):
-        super().__init__()
+        settings = LoadUserSettingData.load_bollinger_bands_settings()
+        self.lenghts = settings['bb_lenghts']
+        self.stdev = settings['bb_stdev']
+        self.ddof = settings['bb_ddof']
+        self.mamode = settings['bb_mamode']
+        self.talib = settings['bb_talib']
+        self.offset = settings['bb_offset']
         self.data = data
-        self.lenghts = self.bollinger_bands_settings['lenghts']
-        self.stdev = self.bollinger_bands_settings['stdev']
 
-    
-
+    @log_exceptions(logger)
     def calculate_bands(self) -> DataFrame:
         high_low_average = (self.data['High'] + self.data['Low']) / 2
-        upper_band, middle_band, lower_band = talib.BBANDS(
-            high_low_average,
-            timeperiod=self.lenghts,
-            nbdevup=self.stdev,
-            nbdevdn=self.stdev,
-            matype=0
+        bbands_ind = bbands(
+            high_low_average, self.lenghts, self.stdev,self.ddof,
+            self.mamode, self.talib, self.offset
         )
-        self.data['Upper Band'] = upper_band
-        self.data['Middle Band'] = middle_band
-        self.data['Lower Band'] = lower_band
+        self.data['Upper_Band'] = bbands_ind['BBU_20_2.0']
+        self.data['Middle_Band'] = bbands_ind['BBM_20_2.0']
+        self.data['Lower_Band'] = bbands_ind['BBL_20_2.0']
         return self.data
 
 
-    @staticmethod
-    def create_vizualization_bb(data) -> plt:
-        fig, ax = plt.subplots(figsize=(14, 7))  # Исправление здесь
-        ax.plot(data.index, data['Close'], label='Цена закрытия', color='blue')
-        ax.plot(data.index, data['Upper Band'], label='Верхняя полоса', color='red', linestyle='--')
-        ax.plot(data.index, data['Middle Band'], label='Средняя полоса', color='black', linestyle='-.')
-        ax.plot(data.index, data['Lower Band'], label='Нижняя полоса', color='green', linestyle='--')
-        ax.fill_between(data.index, data['Upper Band'], data['Lower Band'], color='grey', alpha=0.1)
+    async def calculate_bands_async(self) -> DataFrame:
+        executor = ThreadPoolExecutor()
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(executor, self.calculate_bands)
+        return data
+            
+
+    def create_vizualization_bb(self) -> plt:
+        self.calculate_bands()
+        fig, ax = plt.subplots(figsize=(14, 7))
+        ax.plot(self.data.index, self.data['Close'], label='Цена закрытия', color='blue')
+        ax.plot(self.data.index, self.data['Upper_Band'], label='Верхняя полоса', color='red', linestyle='--')
+        ax.plot(self.data.index, self.data['Middle_Band'], label='Средняя полоса', color='black', linestyle='-.')
+        ax.plot(self.data.index, self.data['Lower_Band'], label='Нижняя полоса', color='green', linestyle='--')
+        ax.fill_between(self.data.index, self.data['Upper_Band'], self.data['Lower_Band'], color='grey', alpha=0.1)
         ax.legend()
         ax.set_title('Визуализация полос Боллинджера')
         ax.set_xlabel('Дата')

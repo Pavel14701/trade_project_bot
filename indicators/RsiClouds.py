@@ -1,66 +1,120 @@
-import contextlib
-import talib
-import matplotlib.pyplot as plt
-import mplcursors
-from matplotlib.widgets import Cursor
+import asyncio, pandas as pd, numpy as np, matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
+from pandas_ta import rsi, macd
 from User.LoadSettings import LoadUserSettingData
-import pandas as pd
-import numpy as np
+from utils.CustomLogger import create_logger
+from utils.CustomDecorators import log_exceptions
+logger = create_logger('RsiClouds')
 
 
-class CloudsRsi(LoadUserSettingData):
+class CloudsRsi:
     def __init__(self, data:pd.DataFrame):
-        super().__init__()
+        settings = LoadUserSettingData.load_rsi_clouds_configs()
+        self.rsi_period = settings['rsi_period']
+        self.rsi_scalar = settings['rsi_scalar']
+        self.rsi_drift =settings['rsi_drift']
+        self.rsi_offset = settings['rsi_offset']
+        self.rsi_mamode = settings['rsi_mamode']
+        self.rsi_talib_config = settings['rsi_talib_config']
+        self.macd_fast = settings['macd_fast']
+        self.macd_slow = settings['macd_slow']
+        self.macd_signal = settings['macd_signal']
+        self.macd_offset = settings['macd_offset']
+        self.macd_talib_config = settings['talib']
+        self.calc_data = settings['calc_data']
         self.data = data
-        self.rsi_period_short = self.clouds_rsi_configs['rsi_period_short']
-        self.rsi_period_long = self.clouds_rsi_configs['rsi_period_long']
-        self.ema_period = self.clouds_rsi_configs['ema_period']
-        
-
-    def calculate_rsi_clouds(self) -> dict:
-        data = pd.DataFrame()
-        data['HL/2'] = (self.data['High'] + self.data['Low']) / 2
-        data['HL/2'] = data['HL/2'].astype(np.float64)
-        rsi_short = talib.RSI(data['HL/2'].values, timeperiod=self.rsi_period_short)
-        rsi_long = talib.RSI(data['HL/2'].values, timeperiod=self.rsi_period_long)
-        rsi_short_ema = talib.EMA(rsi_short, timeperiod=self.ema_period)
-        rsi_long_ema = talib.EMA(rsi_long, timeperiod=self.ema_period)
-        data['RSI_Short_EMA'] = rsi_short_ema
-        data['RSI_Long_EMA'] = rsi_long_ema
-        cross_up = (data['RSI_Short_EMA'] > data['RSI_Long_EMA']) & (data['RSI_Short_EMA'].shift(1) <= data['RSI_Long_EMA'].shift(1))
-        cross_down = (data['RSI_Short_EMA'] < data['RSI_Long_EMA']) & (data['RSI_Short_EMA'].shift(1) >= data['RSI_Long_EMA'].shift(1))
-        last_bar_signal = None
-        with contextlib.suppress(Exception):
-            if cross_up is not None and cross_up[-1]:
-                last_bar_signal = 'long'
-            if cross_down is not None and cross_down[-1]:
-                last_bar_signal = 'short'
-        return {'last_bar_signal': last_bar_signal}
 
 
-    @staticmethod
-    def create_vizualization_rsi_clouds(data) -> plt:
-        overbought = 70
-        oversold = 30
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), sharex=True)
-        ax1.plot(data.index, data['Close'], label='AAPL Close Price', color='black')
-        ax1.scatter(data.index[data['Cross_Up']], data['Close'][data['Cross_Up']], color='green', label='Cross Up', marker='^', alpha=1)
-        ax1.scatter(data.index[data['Cross_Down']], data['Close'][data['Cross_Down']], color='red', label='Cross Down', marker='v', alpha=1)
-        ax1.set_title('AAPL Stock Price')
-        ax1.set_ylabel('Price', color='black')
-        ax1.tick_params(axis='y', labelcolor='black')
-        ax1.legend(loc='upper left')
-        ax2.plot(data.index, data['RSI_Short_EMA'], label='RSI Short EMA (7)', color='blue')
-        ax2.plot(data.index, data['RSI_Long_EMA'], label='RSI Long EMA (14)', color='orange')
-        ax2.scatter(data.index[data['Cross_Up']], data['RSI_Short_EMA'][data['Cross_Up']], color='green', label='Cross Up', marker='^', alpha=1)
-        ax2.scatter(data.index[data['Cross_Down']], data['RSI_Short_EMA'][data['Cross_Down']], color='red', label='Cross Down', marker='v', alpha=1)
-        ax2.axhline(y=overbought, color='darkred', linestyle='--', label='Overbought (70)')
-        ax2.axhline(y=oversold, color='darkgreen', linestyle='--', label='Oversold (30)')
-        ax2.set_title('RSI Cloud Indicator with Signals')
-        ax2.set_xlabel('Date')
-        ax2.set_ylabel('RSI Value', color='blue')
-        ax2.tick_params(axis='y', labelcolor='blue')
-        ax2.legend(loc='upper right')
-        mplcursors.cursor(hover=True)
+    def prepare_data(self):
+        try:
+            if self.calc_data == 'Open/Close':
+                self.data['pr_data'] = (self.data['Open'] + self.data['Close']) / 2
+            elif self.calc_data == 'High/Low':
+                self.data['pr_data'] = (self.data['High'] + self.data['Low']) / 2
+            elif self.calc_data == 'Open':
+                self.data['pr_data'] = self.data['Open']
+            elif self.calc_data == 'Close':
+                self.data['pr_data'] = self.data['Close']
+            elif self.calc_data == 'High':
+                self.data['pr_data'] = self.data['High']
+            else:
+                raise ValueError(f"Invalid calc_data value: {self.calc_data}")
+            self.data['pr_data'] = self.data['pr_data'].astype(np.float64)
+        except KeyError as e:
+            raise e(f"Missing required column: {e}")
+
+    @log_exceptions(logger)
+    def calculate_rsi_macd(self) -> pd.DataFrame:
+        self.prepare_data()
+        self.data['rsi'] = rsi(
+            self.data['pr_data'], length=self.rsi_period, scalar=self.rsi_scalar,
+            mamode=self.rsi_mamode, talib=self.rsi_talib_config, drift=self.rsi_drift,
+            offset=self.rsi_drift
+        )
+        macd_ind = macd(
+            self.data['rsi'], fast=self.macd_fast, slow=self.macd_slow, signal=self.macd_signal,
+            talib=self.macd_talib_config, offset=self.macd_offset
+        )
+        self.data['macd_line'] = macd_ind[f'MACD_{self.macd_fast}_{self.macd_slow}_{self.macd_signal}']
+        self.data['macd_signal'] = macd_ind[f'MACDs_{self.macd_fast}_{self.macd_slow}_{self.macd_signal}']
+        self.data['histogram'] = macd_ind[f'MACDh_{self.macd_fast}_{self.macd_slow}_{self.macd_signal}']
+        self.data['macd_cross_signal'] = 0
+        self.data['histogram_cross_zero'] = 0
+        # Логика пересечения MACD
+        self.data['macd_cross_signal'] = np.where(
+            (self.data['macd_line'].shift(1) < self.data['macd_signal'].shift(1)) \
+                & (self.data['macd_line'] > self.data['macd_signal']), 1, 
+            np.where((self.data['macd_line'].shift(1) > self.data['macd_signal'].shift(1)) \
+                & (self.data['macd_line'] < self.data['macd_signal']), -1, 0)
+        )
+        # Логика пересечения нуля на гистограмме
+        self.data['histogram_cross_zero'] = np.where(
+            (self.data['histogram'].shift(1) < 0) & (self.data['histogram'] > 0), 1, 
+            np.where((self.data['histogram'].shift(1) > 0) & (self.data['histogram'] < 0), -1, 0)
+        )
+        last_signal = self.get_last_macd_signal()
+        return self.data, last_signal
+
+    def get_last_macd_signal(self):
+        # Получение последнего сигнала пересечения MACD
+        return None if self.data['macd_cross_signal'].replace(0, np.nan).dropna().empty \
+            else self.data['macd_cross_signal'].replace(0, np.nan).dropna().iloc[-1]
+
+
+    async def calculate_rsi_macd_async(self) -> pd.DataFrame:
+        executor = ThreadPoolExecutor()
+        loop = asyncio.get_event_loop()
+        data, last_signal = await loop.run_in_executor(executor, self.calculate_rsi_macd)
+        return data, last_signal
+
+
+    def create_visualization_rsi_macd(self):
+        self.data, last_signal = self.calculate_rsi_macd()
+        fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(10, 12))
+        # График цены
+        axes[0].plot(self.data.index, self.data['Close'], label='Цена')
+        axes[0].set_title('Цена')
+        # График RSI
+        axes[1].plot(self.data.index, self.data['rsi'], label='RSI')
+        axes[1].set_title('RSI')
+        # График MACD
+        axes[2].plot(self.data.index, self.data['macd_line'], label='MACD Line', color='blue')
+        axes[2].plot(self.data.index, self.data['macd_signal'], label='Signal Line', color='orange')
+        axes[2].set_title('MACD')
+        # Гистограмма MACD
+        axes[3].bar(self.data.index, self.data['histogram'], label='MACD Histogram', color='purple')
+        axes[3].set_title('MACD Histogram')
+        # Добавление сигналов
+        buy_signals = self.data[self.data['macd_cross_signal'] == 1]
+        sell_signals = self.data[self.data['macd_cross_signal'] == -1]
+        zero_crossings = self.data[self.data['histogram_cross_zero'] != 0]
+        axes[2].scatter(buy_signals.index, buy_signals['macd_line'], color='green', marker='^', label='Buy Signal')
+        axes[2].scatter(sell_signals.index, sell_signals['macd_line'], color='red', marker='v', label='Sell Signal')
+        axes[3].scatter(zero_crossings.index, zero_crossings['histogram'], color='black', marker='o', label='Zero Crossing')
+        # Оформление графиков
+        for ax in axes:
+            ax.grid(True)
+            ax.legend()
+            ax.set_xlabel('Date')
         plt.tight_layout()
         plt.show()

@@ -8,6 +8,7 @@ def get_old_value(attribute_state):
     history = attribute_state.history
     return history.deleted[0] if history.deleted else None
 
+
 def trigger_attribute_change_events(object_):
     for mapper_property in object_mapper(object_).iterate_properties:
         if isinstance(mapper_property, ColumnProperty):
