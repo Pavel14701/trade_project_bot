@@ -38,6 +38,12 @@ class LoadUserSettingData:
 
 
     @staticmethod
+    def load_debug_configs():
+        load_dotenv()
+        return bool(os.getenv('DEBUG'))
+
+
+    @staticmethod
     def load_cache_settings() -> dict:
         load_dotenv()
         return {
@@ -63,7 +69,11 @@ class LoadUserSettingData:
         load_dotenv()
         return {
             'lenghts': int(os.getenv("BBLENGHTS")),
-            'stdev': float(os.getenv("BBSTDEV"))
+            'stdev': float(os.getenv("BBSTDEV")),
+            'bb_ddof': int(os.getenv('BBDDOF')),
+            'bb_mamode': str(os.getenv('BBMAMODE')),
+            'bb_talib': bool(os.getenv('BBTALIB')),
+            'bb_offset': int(os.getenv('BBOFFSET'))
         }
 
 
@@ -120,8 +130,19 @@ class LoadUserSettingData:
     @staticmethod
     def load_adx_configs() -> dict:
         load_dotenv()
+        value = int(os.getenv('ADXADXRLENGHTS'))
+        if value == 0:
+            value = None
         return {
-            'adx_timeperiod': int(os.getenv("ADXTIMEPERIOD")),
+            'adx_timeperiod': int(os.getenv('ADXTIMEPERIOD')),
+            'adx_lenghts_sig': int(os.getenv('ADXLENGHTSSIG')),
+            'adx_adxr_lenghts': value,
+            'adx_scalar': int(os.getenv('ADXSCALAR')),
+            'adx_talib': bool(os.getenv('ADXTALIB')),
+            'adx_tvmode': bool(os.getenv('ADXTVMODE')),
+            'adx_mamode': str(os.getenv('ADXMAMODE')),
+            'adx_drift': int(os.getenv('ADXDRIFT')),
+            'adx_offset': int(os.getenv('ADXOFFSET')),
             'adx_trigger': int(os.getenv('ADXTRIGGER'))
         }
 

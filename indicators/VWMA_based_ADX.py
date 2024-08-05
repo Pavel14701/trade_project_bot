@@ -1,7 +1,9 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
+import asyncio, numpy as np, pandas as pd, matplotlib.pyplot as plt
 from User.LoadSettings import LoadUserSettingData
+from utils.CustomLogger import create_logger
+from utils.CustomDecorators import log_exceptions
+logger = create_logger('VWMA_based_ADX')
 
 
 class VWMAADXIndicator:
@@ -15,11 +17,14 @@ class VWMAADXIndicator:
         self.data = data
 
 
+    @log_exceptions(logger)
     def calculate_vwma_adx(self):
         self.data["UpMove"] = self.data["High"].diff()
         self.data["DownMove"] = self.data["Low"].diff()
-        self.data["+DM"] = np.where((self.data["UpMove"] > self.data["DownMove"]) & (self.data["UpMove"] > 0), self.data["UpMove"], 0)
-        self.data["-DM"] = np.where((self.data["DownMove"] > self.data["UpMove"]) & (self.data["DownMove"] > 0), self.data["DownMove"], 0)
+        self.data["+DM"] = np.where((self.data["UpMove"] > self.data["DownMove"]) \
+            & (self.data["UpMove"] > 0), self.data["UpMove"], 0)
+        self.data["-DM"] = np.where((self.data["DownMove"] > self.data["UpMove"]) \
+            & (self.data["DownMove"] > 0), self.data["DownMove"], 0)
         self.data["+DM_Smooth"] = self.data["+DM"].ewm(span=self.adx_di_period, adjust=False).mean()
         self.data["-DM_Smooth"] = self.data["-DM"].ewm(span=self.adx_di_period, adjust=False).mean()
         self.data["ATR"] = self.data["Close"].diff().abs().ewm(span=self.adx_di_period, adjust=False).mean()
@@ -29,8 +34,12 @@ class VWMAADXIndicator:
         self.data["ADX"] = self.data["DX"].ewm(span=self.adx_period, adjust=False).mean()
         self.data["ADX_Smooth"] = self.data["ADX"].ewm(span=self.adx_smooth, adjust=False).mean()
         self.data["ADX_Strong_Trend"] = self.data["ADX_Smooth"] > self.adx_threshold
-        self.data["ADX_Peak"] = self.data["ADX_Smooth"].where((self.data["ADX_Smooth"].shift(1) < self.data["ADX_Smooth"]) & (self.data["ADX_Smooth"].shift(-1) < self.data["ADX_Smooth"])).ffill(limit=1)
-        self.data["ADX_Trough"] = self.data["ADX_Smooth"].where((self.data["ADX_Smooth"].shift(1) > self.data["ADX_Smooth"]) & (self.data["ADX_Smooth"].shift(-1) > self.data["ADX_Smooth"])).ffill(limit=1)
+        self.data["ADX_Peak"] = self.data["ADX_Smooth"].where((self.data["ADX_Smooth"].shift(1)\
+            < self.data["ADX_Smooth"]) & (self.data["ADX_Smooth"].shift(-1)\
+                < self.data["ADX_Smooth"])).ffill(limit=1)
+        self.data["ADX_Trough"] = self.data["ADX_Smooth"].where((self.data["ADX_Smooth"].shift(1)\
+            > self.data["ADX_Smooth"]) & (self.data["ADX_Smooth"].shift(-1)\
+                > self.data["ADX_Smooth"])).ffill(limit=1)
         self.data["ADX_Trend"] = np.nan
         self.data.loc[self.data["ADX_Peak"].notna(), "ADX_Trend"] = self.data["ADX_Peak"]
         self.data.loc[self.data["ADX_Trough"].notna(), "ADX_Trend"] = self.data["ADX_Trough"]
@@ -44,6 +53,13 @@ class VWMAADXIndicator:
         self.data["WMAV"] = np.nan
         self.data.loc[self.data.index[self.vwma_lenghts:], "WMAV"] = WMAV
         return self.data
+
+
+    async def calculate_vwma_adx_async(self) -> pd.DataFrame:
+        executor = ThreadPoolExecutor()
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(executor, self.calculate_vwma_adx)
+        return data
 
 
     def create_vizualization_vwma_adx(self):

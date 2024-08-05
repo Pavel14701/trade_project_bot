@@ -5,16 +5,15 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
-class ClassCreation(LoadUserSettingData):
+class ClassCreation:
     def __init__(self):
-        super().__init__()
-
+        self.user_settings = LoadUserSettingData.load_user_settings()
 
 
     def create_classes(self, Base):
         classes = {}
-        for inst_id in self.instIds:
-            for timeframe in self.timeframes:
+        for inst_id in self.user_settings['instIds']:
+            for timeframe in self.user_settings['timeframes']:
                 class_name = f"ChartsData_{inst_id}_{timeframe}"
                 table_name = f"{inst_id}_{timeframe}"
                 class_ = type(class_name, (Base,), {

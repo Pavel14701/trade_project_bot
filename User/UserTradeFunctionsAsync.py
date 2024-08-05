@@ -3,7 +3,7 @@ from typing import Optional, Union
 from sqlalchemy.orm import sessionmaker
 import pandas as pd
 import datetime
-from datasets.database import DataAllDatasets
+from datasets.DataBaseAsync import DataAllDatasetsAsync
 from User.TradeRequestsAsync import OKXTradeRequestsAsync
 from User.UserInfoFunctionsAsync import UserInfoAsync
 from utils.RiskManagment import RiskManadgment
@@ -23,7 +23,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 
-class PlaceOrdersAsync(OKXTradeRequestsAsync, RiskManadgment, UserInfoAsync, DataAllDatasets):    
+class PlaceOrdersAsync(OKXTradeRequestsAsync, RiskManadgment, UserInfoAsync, DataAllDatasetsAsync):    
     def __init__(
             self, Session:sessionmaker,
             instId:Optional[str]=None, posSide:Optional[str]=None, tpPrice:Union[float, int]=None,
@@ -32,7 +32,7 @@ class PlaceOrdersAsync(OKXTradeRequestsAsync, RiskManadgment, UserInfoAsync, Dat
         super(OKXTradeRequestsAsync).__init__(instId=instId, posSide=posSide, slPrice=slPrice, tpPrice=tpPrice)
         super(UserInfoAsync).__init__(instId=instId)
         super(RiskManadgment).__init__(instId=instId, slPrice=slPrice)
-        super(DataAllDatasets).__init__(Session)
+        super(DataAllDatasetsAsync).__init__()
         self.instid = instId
         self.Session = Session
         self.posSide = posSide
@@ -66,7 +66,7 @@ class PlaceOrdersAsync(OKXTradeRequestsAsync, RiskManadgment, UserInfoAsync, Dat
                     result['order_id_sl'] = None
                 else:
                     result['order_id_sl'] = await self.construct_stoploss_order_async()
-                await super().save_new_order_data_async(result)
+                await self.save_new_order_data_async(result)
             else:
                 print("Unsuccessful order request, error_code = ",result["data"][0], ", Error_message = ", result["data"][0]["sMsg"])
             return result['order_id']

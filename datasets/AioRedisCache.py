@@ -1,18 +1,11 @@
-import pickle, logging
+import pickle
 from typing import Optional
 from redis import asyncio as aioredis
 from pandas import DataFrame
 from datetime import datetime
 from User.LoadSettings import LoadUserSettingData
-
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('listner.log')
-file_handler.setLevel(logging.ERROR)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
+from utils.CustomLogger import create_logger
+logger = create_logger('AioRedisCache')
 
 
 class AioRedisCache:
@@ -50,9 +43,12 @@ class AioRedisCache:
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         if exc_type:
-            print(f"Error: {exc_type} - {exc_value}")
-            print("Traceback:")
-            await traceback.print_tb(traceback)
+            error_message = (
+                f"Error: {exc_type} - {exc_value}\n"
+                "Traceback:\n"
+                ''.join(traceback.format_tb(traceback))
+            )
+            logger.error(error_message)
         await self.redis.aclose()
 
 

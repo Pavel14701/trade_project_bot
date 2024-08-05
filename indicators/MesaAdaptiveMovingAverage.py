@@ -1,7 +1,11 @@
-import pandas as pd
-import pandas_ta as ta
+import asyncio, pandas as pd, matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
+from  pandas_ta import mama
 from User.LoadSettings import LoadUserSettingData
-import matplotlib.pyplot as plt
+from utils.CustomLogger import create_logger
+from utils.CustomDecorators import log_exceptions
+logger = create_logger('MesaAdaptiveMovingAverage')
+
 
 class MesaAdaptiveMA:
     def __init__(self, data: pd.DataFrame):
@@ -14,18 +18,26 @@ class MesaAdaptiveMA:
         self.data = data
 
 
-    def calculate_mama(self):
-        mama, fama = ta.mama(self.data['Close'], fastlimit=self.fastlimit, slowlimit=self.slowlimit, prenan=self.prenan, talib=self.talib, offset=self.offset)
-        self.data['MAMA'] = mama
-        self.data['FAMA'] = fama
+    @log_exceptions(logger)
+    def calculate_mama(self) -> dict:
+        mama_ind, fama_ind = mama(self.data['Close'], fastlimit=self.fastlimit, slowlimit=self.slowlimit, prenan=self.prenan, talib=self.talib, offset=self.offset)
+        self.data['MAMA'] = mama_ind
+        self.data['FAMA'] = fama_ind
         #Cигналы для покупки и продажи
-        self.buy_signals = (mama > fama) & (mama.shift(1) < fama.shift(1))
-        self.sell_signals = (mama < fama) & (mama.shift(1) > fama.shift(1))
+        self.buy_signals = (mama_ind > fama_ind) & (mama_ind.shift(1) < fama_ind.shift(1))
+        self.sell_signals = (mama_ind < fama_ind) & (mama_ind.shift(1) > fama_ind.shift(1))
         return {'data': self.data, 'buy_signals': self.buy_signals, 'sell_signals': self.sell_signals}
-    
-    
-    @staticmethod
+
+
+    async def calculate_mama_async(self) -> dict:
+        executor = ThreadPoolExecutor()
+        loop = asyncio.get_event_loop()
+        data = await loop.run_in_executor(executor, self.calculate_mama)
+        return data
+
+
     def plot_mama(self):
+        data = self.calculate_mama()
         # Визуализируем данные
         plt.figure(figsize=(10, 5))
         plt.plot(self.data['Close'], label='Close Price')
