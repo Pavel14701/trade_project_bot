@@ -68,6 +68,6 @@ class AsyncStateRequest:
         await session.commit()
 
 
-    async def save_none_state(self) -> None:
+    async def save_none_state_async(self) -> None:
         with AsyncSessionLocal() as session:
             await self.process_data_save_none_state_async(session)
