@@ -6,11 +6,12 @@ from Configs.LoadSettings import LoadUserSettingData
 #cache
 from Cache.RedisCache import RedisCache
 #utils
-from DataSets.Utils.DataFrameUtils import validate_get_data_params
-from Logs.CustomDecorators import retry_on_exception
-from Logs.CustomLogger import create_logger
-from Logs.CustomLogger import MultilineJSONFormatter
 from docx import Document
+from DataSets.Utils.DataFrameUtils import validate_get_data_params
+from BaseLogs.CustomDecorators import retry_on_exception
+from BaseLogs.CustomLogger import create_logger
+from BaseLogs.CustomLogger import MultilineJSONFormatter
+
 
 
 logger = create_logger('OKXInfo')
@@ -151,5 +152,3 @@ class OKXInfoFunctions(RedisCache):
         result = self.marketDataAPI.get_ticker(instId)
         self.__check_result(result)
         return float(result['data'][0]['last'])
-
-

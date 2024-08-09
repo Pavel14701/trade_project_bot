@@ -5,8 +5,8 @@ from sqlalchemy.orm import sessionmaker
 from DataSets.ClassesCreation import SQLStateStorage
 from DataSets.DataBase import Session
 #utils
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 
 
 logger = create_logger('StatesDb')

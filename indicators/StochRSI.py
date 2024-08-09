@@ -4,8 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 #configs
 from Configs.LoadSettings import LoadUserSettingData
 #utils
-from Logs.CustomLogger import create_logger
-from Logs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
 logger = create_logger('StochRSI')
 
 '''

@@ -6,9 +6,9 @@ from datetime import datetime, timedelta
 from Api.OKXInfoAsync import OKXInfoFunctionsAsync
 from Configs.LoadSettings import LoadUserSettingData
 #utils
-from Logs.CustomDecorators import retry_on_exception_async
-from Logs.CustomDecorators import log_exceptions_async
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import retry_on_exception_async
+from BaseLogs.CustomDecorators import log_exceptions_async
+from BaseLogs.CustomLogger import create_logger
 
 
 logger = create_logger('TradeRequestsAsync')

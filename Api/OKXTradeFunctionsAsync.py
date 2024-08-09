@@ -10,8 +10,8 @@ from RiskManadgment.RiskManadgmentFunctions import RiskManadgment
 from DataSets.DataBaseAsync import DataAllDatasetsAsync
 #utils
 from DataSets.Utils.DataFrameUtilsAsync import create_dataframe_async, prepare_data_to_dataframe_async
-from Logs.CustomLogger import create_logger
-from Logs.CustomDecorators import log_exceptions_async
+from BaseLogs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions_async
 logger = create_logger('TradeFunctionsAsync')
 
 

@@ -3,8 +3,8 @@ from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean, Floa
 from sqlalchemy.orm import declarative_base
 #configs
 from Configs.LoadSettings import LoadUserSettingData
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 
 logger = create_logger('ClassesCreation')
 Base = declarative_base()

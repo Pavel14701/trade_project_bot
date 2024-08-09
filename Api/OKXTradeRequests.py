@@ -8,9 +8,9 @@ from Configs.LoadSettings import LoadUserSettingData
 #Api
 from Api.OKXInfo import OKXInfoFunctions
 #utils
-from Logs.CustomDecorators import retry_on_exception
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import retry_on_exception
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 
 
 logger = create_logger('TradeRequests')

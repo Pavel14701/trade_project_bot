@@ -9,8 +9,8 @@ from sqlalchemy.future import select
 #database
 from DataSets.ClassesCreation import Base, ClassCreation, TradeUserData
 #utils
-from Logs.CustomDecorators import log_exceptions_async, retry_on_exception_async
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions_async, retry_on_exception_async
+from BaseLogs.CustomLogger import create_logger
 
 
 logger = create_logger(logger_name='DataBaseAsync')

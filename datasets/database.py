@@ -8,8 +8,8 @@ from sqlalchemy.orm import sessionmaker
 #database
 from DataSets.ClassesCreation import Base, ClassCreation, TradeUserData
 #utils
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 
 
 logger = create_logger(logger_name='DataBase')

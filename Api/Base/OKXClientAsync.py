@@ -1,5 +1,6 @@
 from httpx import AsyncClient
 from abc import ABC, abstractmethod
+import contextlib
 import hmac, base64, hashlib
 from typing import Optional
 from datetime import datetime, timezone
@@ -18,8 +19,10 @@ class OKXClientAsync(ABC, AsyncClient):
 
 
     @abstractmethod
-    async def make_request_async(self, sign:str, request_path:str, body:str, method:str) -> dict:
-        if sign:
+    async def make_request_async(self, request_path:str, body:str, method:str) -> dict:
+        if method == 'GET':
+            request_path += self.__parse_params_to_str(params)
+        if self.api_key != '-1':
             headers = await self.__create_headers(request_path, body, method)
         else:
             headers = await self.__create_headers_no_sign()
@@ -34,7 +37,7 @@ class OKXClientAsync(ABC, AsyncClient):
 
 
     async def __create_headers(self, request_path:Optional[str], body:Optional[str], method:Optional[str]) -> dict:
-        timestamp = await self.__create_timestamp
+        timestamp = await self.__create_timestamp_headers_async()
         msg = f'{str(timestamp)}{str.upper(method)}{request_path}{body}'
         signature = await self.__create_signature(self.secret_key, msg)
         return {
@@ -53,6 +56,18 @@ class OKXClientAsync(ABC, AsyncClient):
             bytes(msg, encoding='utf-8'), digestmod='sha256'))
 
 
-    async def __create_timestamp(self):
+    async def __create_timestamp_headers_async(self):
         return datetime.now(timezone.utc).replace(tzinfo=None).isoformat('T', 'milliseconds') + 'Z'
+
+
+    async def __parse_params_to_str(self):
+        url = '?'
+        for key, value in self.items():
+            if(value != ''):
+                url = url + str(key) + '=' + str(value) + '&'
+        return url[:-1]
+
+
+
+
 

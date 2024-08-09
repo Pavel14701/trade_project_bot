@@ -48,6 +48,7 @@ class ApiUtilsAsync(ABC):
             raise ValueError('Check params for get market data download')
         return {'limit': limit or ' ', 'before': before or ' ', 'after': after or ' '}
 
+
     @abstractmethod
     async def save_swap_docx(self, result:Optional[dict], filename:Optional[str]) -> None:
         doc = Document()

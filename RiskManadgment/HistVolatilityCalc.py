@@ -21,7 +21,7 @@ class CalculateHistoricVolatility(DataAllDatasets):
 
 
     def __calc_time_interval(self):
-        self.years = (self.data.index[-1] - self.data.index[0]).days / 365.25
+        return (self.data.index[-1] - self.data.index[0]).days / 365.25
 
 
     # Рассчёт коэффициента волатильности(два варианта хз какой использовать) вариант 1
@@ -42,4 +42,4 @@ class CalculateHistoricVolatility(DataAllDatasets):
             log_return = math.log(current_price) - math.log(previous_price)
             log_returns.append(log_return)
         std_dev = math.sqrt(sum((x - sum(log_returns) / len(log_returns))**2 for x in log_returns) / (len(log_returns) - 1))
-        return std_dev * math.sqrt(self.years)
+        return std_dev * math.sqrt(self.__calc_time_interval())

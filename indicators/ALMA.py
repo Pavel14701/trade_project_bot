@@ -7,8 +7,8 @@ sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 #configs
 from Configs.LoadSettings import LoadUserSettingData
 #utils
-from Logs.CustomLogger import create_logger
-from Logs.CustomDecorators import log_exceptions, deprecated
+from BaseLogs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions, deprecated
 
 
 class AlmaIndicator:

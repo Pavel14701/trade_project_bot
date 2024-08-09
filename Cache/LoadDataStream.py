@@ -8,8 +8,8 @@ from Api.OKXInfo import OKXInfoFunctions
 from DataSets.DataBase import DataAllDatasets
 #utils
 from DataSets.Utils.DataFrameUtils import create_dataframe, prepare_many_data_to_append_db
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 
 
 import pandas as pd

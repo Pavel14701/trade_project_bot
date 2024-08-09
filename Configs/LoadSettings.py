@@ -1,7 +1,6 @@
 from inspect import signature
 import os, time, hmac, base64, hashlib
 from typing import Optional
-from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 class LoadUserSettingData:
@@ -182,37 +181,7 @@ class LoadUserSettingData:
         }
 
 
-    async def create_headers(
-        self, sign:Optional[bool], request_path:Optional[str],
-        body:Optional[str], method:Optional[str]
-        ) -> dict:
-        if sign:
-            settings = self.load_api_setings()
-            timestamp = self.__create_timestamp
-            msg = f'{str(timestamp)}{str.upper(method)}{request_path}{body}'
-            signature = self.__create_signature(settings['secret_key'], msg)
-            return {
-                'Content-Type': 'aplication/json',
-                'OK-ACCESS-KEY': settings['api_key'],
-                'OK-ACCESS-SIGN': signature,
-                'OK-ACCESS-TIMESTAMP': timestamp,
-                'OK-ACCESS-PASSPHRASE': settings['passphrase'],
-                'x-simulated-trading': settings['flag']
-            }
-        else:
-            return {
-                'Content-Type': 'application/json',
-                'x-simulated-trading': settings['flag']
-            }
 
-
-    def __create_signature(self, secret_key:str, msg:str):
-        return base64.b64encode(hmac.new(bytes(secret_key, encoding='utf8'),\
-            bytes(msg, encoding='utf-8'), digestmod='sha256'))
-
-
-    def __create_timestamp(self):
-        return datetime.now(timezone.utc).replace(tzinfo=None).isoformat("T", "milliseconds") + 'Z'
 
 
     async def create_signature_ws(self, secret_key:Optional[str]) -> dict:

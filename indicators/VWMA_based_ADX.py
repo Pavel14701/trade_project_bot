@@ -4,8 +4,8 @@ import asyncio, numpy as np, pandas as pd, matplotlib.pyplot as plt
 #configs
 from Configs.LoadSettings import LoadUserSettingData
 #utils
-from Logs.CustomLogger import create_logger
-from Logs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
 
 logger = create_logger('VWMA_based_ADX')
 

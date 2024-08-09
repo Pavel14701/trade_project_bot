@@ -9,8 +9,8 @@ from DataSets.DataBase import DataAllDatasets
 from RiskManadgment.RiskManadgmentFunctions import RiskManadgment
 #utils
 from DataSets.Utils.DataFrameUtils import create_dataframe, prepare_data_to_dataframe
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 logger = create_logger('TradeFunctions')
 
 

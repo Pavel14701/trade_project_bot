@@ -6,8 +6,8 @@ from redis import Redis
 #configs
 from Configs.LoadSettings import LoadUserSettingData
 #utils
-from Logs.CustomDecorators import log_exceptions
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions
+from BaseLogs.CustomLogger import create_logger
 
 
 logger = create_logger('RedisCache')

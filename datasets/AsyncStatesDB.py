@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from DataSets.ClassesCreation import SQLStateStorage
 from DataSets.DataBaseAsync import AsyncSessionLocal
 #utils
-from Logs.CustomDecorators import log_exceptions_async
-from Logs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions_async
+from BaseLogs.CustomLogger import create_logger
 
 logger = create_logger('AsyncStatesDB')
 

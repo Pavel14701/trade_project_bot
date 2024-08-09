@@ -7,8 +7,8 @@ from datetime import datetime
 #configs
 from Configs.LoadSettings import LoadUserSettingData
 #utils
-from Logs.CustomLogger import create_logger
-from Logs.CustomDecorators import log_exceptions_async
+from BaseLogs.CustomLogger import create_logger
+from BaseLogs.CustomDecorators import log_exceptions_async
 
 
 logger = create_logger('AioRedisCache')
