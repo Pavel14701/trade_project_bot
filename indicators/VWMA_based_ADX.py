@@ -1,14 +1,18 @@
+#libs
 from concurrent.futures import ThreadPoolExecutor
 import asyncio, numpy as np, pandas as pd, matplotlib.pyplot as plt
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
 logger = create_logger('VWMA_based_ADX')
 
 
 class VWMAADXIndicator:
     def __init__(self, data: pd.DataFrame):
-        settings = LoadUserSettingData.load_vwma_adx_configs()
+        settings = LoadUserSettingData().load_vwma_adx_configs()
         self.vwma_lenghts = settings['vwma_adx_vwma_lenghts']
         self.adx_period = settings['vwma_adx_adx_period']
         self.adx_threshold = settings['vwma_adx_adx_threshold']
@@ -58,8 +62,7 @@ class VWMAADXIndicator:
     async def calculate_vwma_adx_async(self) -> pd.DataFrame:
         executor = ThreadPoolExecutor()
         loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(executor, self.calculate_vwma_adx)
-        return data
+        return await loop.run_in_executor(executor, self.calculate_vwma_adx)
 
 
     def create_vizualization_vwma_adx(self):

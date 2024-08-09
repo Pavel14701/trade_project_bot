@@ -35,10 +35,10 @@ class CheckActiveState(StreamData, RedisCache):
     
     def add_data_to_redis(self):
         result = self.load_data()
-        prepare_df = prepare_many_data_to_append_db(result)
-        DataAllDatasets(self.instId, self.timeframe).save_charts(prepare_df)
-        data = create_dataframe(prepare_df)
-        self.add_data_to_cache(data)
+        #prepare_df = prepare_many_data_to_append_db(result)
+        #DataAllDatasets(self.instId, self.timeframe).save_charts(prepare_df)
+        #data = create_dataframe(prepare_df)
+        #self.add_data_to_cache(data)
 
 
     def check_active_state(self):

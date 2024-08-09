@@ -1,11 +1,15 @@
+from inspect import signature
 import os, time, hmac, base64, hashlib
 from typing import Optional
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 class LoadUserSettingData:
-    @staticmethod
-    def load_api_setings() -> dict:
+    def __init__(self):
+        pass
+
+
+    def load_api_setings(self) -> dict:
         load_dotenv()
         return {
             'flag': str(os.getenv("FLAG")),
@@ -14,8 +18,28 @@ class LoadUserSettingData:
             'secret_key': str(os.getenv("SECRET_KEY")),
         }
 
-    @staticmethod
-    def load_user_settings() -> dict:
+
+    def load_cache_settings(self) -> dict:
+        load_dotenv()
+        return {
+            'host': str(os.getenv('REDISHOST')),
+            'port': int(os.getenv('REDISPORT')),
+            'db': int(os.getenv('REDISDB'))
+        }
+        
+
+    def load_debug_logging_configs(self):
+        load_dotenv()
+        value = os.getenv('REQUESTDELAY')
+        return {
+            'max_retries': int(os.getenv('MAXRETRYREQUESTS')),
+            'delay': float(value) if '.' in value else int(value),
+            'write_logs': bool(os.getenv('WRITELOGS')),
+            'debug': bool(os.getenv('DEBUG'))
+        }
+
+
+    def load_user_settings(self) -> dict:
         load_dotenv()
         return {
             'timeframes': tuple(str(os.getenv("TIMEFRAMES")).split(',')),
@@ -23,37 +47,10 @@ class LoadUserSettingData:
             'leverage': int(os.getenv('LEVERAGE')),
             'risk': float(os.getenv('RISK')),
             'mgnMode': str(os.getenv('MGNMODE'))
-        }    
-
-
-    @staticmethod
-    def load_retry_requests_configs():
-        load_dotenv()
-        value = os.getenv('REQUESTDELAY')
-        value = float(value) if '.' in value else int(value)
-        return {
-            'max_retries': int(os.getenv('MAXRETRYREQUESTS')),
-            'delay': value
         }
 
 
-    @staticmethod
-    def load_debug_configs():
-        load_dotenv()
-        return bool(os.getenv('DEBUG'))
-
-
-    @staticmethod
-    def load_cache_settings() -> dict:
-        load_dotenv()
-        return {
-            'host': str(os.getenv("HOST")),
-            'port': int(os.getenv("PORT")),
-            'db': str(os.getenv("DB")),
-        }
-    
-    @staticmethod
-    def load_avsl_configs() -> dict:
+    def load_avsl_configs(self) -> dict:
         load_dotenv()
         return {
             'lenghtsFast': int(os.getenv("AVSLLENGHTSFAST")),
@@ -64,8 +61,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_bollinger_bands_settings() -> dict:
+    def load_bollinger_bands_settings(self) -> dict:
         load_dotenv()
         return {
             'lenghts': int(os.getenv("BBLENGHTS")),
@@ -77,8 +73,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_alma_configs() -> dict:
+    def load_alma_configs(self) -> dict:
         load_dotenv()
         return {
             'lenghtsVSlow': int(os.getenv("ALMALENGHTSVSLOW")),
@@ -90,8 +85,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_rsi_clouds_configs() -> dict:
+    def load_rsi_clouds_configs(self) -> dict:
         load_dotenv()
         return {
             'rsi_period': int(os.getenv('RSILENGHTS')),
@@ -107,8 +101,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_stoch_rsi_configs() -> dict:
+    def load_stoch_rsi_configs(self) -> dict:
         load_dotenv()
         return {
             'stoch_rsi_timeperiod': int(os.getenv('STOCHRSITIMEPERIOD')),
@@ -118,8 +111,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_vpci_configs() -> dict:
+    def load_vpci_configs(self) -> dict:
         load_dotenv()
         return {
             'vpci_long': int(os.getenv('VPCILONGPERIOD')),
@@ -127,16 +119,13 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_adx_configs() -> dict:
+    def load_adx_configs(self) -> dict:
         load_dotenv()
         value = int(os.getenv('ADXADXRLENGHTS'))
-        if value == 0:
-            value = None
         return {
             'adx_timeperiod': int(os.getenv('ADXTIMEPERIOD')),
             'adx_lenghts_sig': int(os.getenv('ADXLENGHTSSIG')),
-            'adx_adxr_lenghts': value,
+            'adx_adxr_lenghts': None if value==0 else value,
             'adx_scalar': int(os.getenv('ADXSCALAR')),
             'adx_talib': bool(os.getenv('ADXTALIB')),
             'adx_tvmode': bool(os.getenv('ADXTVMODE')),
@@ -147,8 +136,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_kama_configs() -> dict:
+    def load_kama_configs(self) -> dict:
         load_dotenv()
         return {
             'kama_lengths': int(os.getenv('KAMALENGHTS')),
@@ -159,8 +147,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_mesa_adaptive_ma_configs() -> dict:
+    def load_mesa_adaptive_ma_configs(self) -> dict:
         load_dotenv()
         return {
             'mesa_fastlimit': float(os.getenv('MESAFASTLIMIT')),
@@ -171,8 +158,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_zigzag_configs() -> dict:
+    def load_zigzag_configs(self) -> dict:
         load_dotenv()
         value = os.getenv('ZIGZAGDEVIATION')
         value = float(value) if '.' in value else int(value)
@@ -185,8 +171,7 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
-    def load_vwma_adx_configs():
+    def load_vwma_adx_configs(self):
         load_dotenv()
         return {
             'vwma_adx_vwma_lenghts': int(os.getenv('VWMAADXVWMALENGHTS')),
@@ -197,33 +182,40 @@ class LoadUserSettingData:
         }
 
 
-    @staticmethod
     async def create_headers(
-        sign:Optional[bool], request_path:Optional[str],
-        body:Optional[str], method:Optional[str], flag:Optional[str]
+        self, sign:Optional[bool], request_path:Optional[str],
+        body:Optional[str], method:Optional[str]
         ) -> dict:
         if sign:
-            settings = LoadUserSettingData.load_api_setings()
-            timestamp = datetime.now(timezone.utc).replace(tzinfo=None).isoformat("T", "milliseconds") + 'Z'
-            message = f'{timestamp}{method}{request_path}{body}'
-            signature = base64.b64encode(hmac.new(settings['secret_key'].encode(), message.encode(), hashlib.sha256).digest()).decode()
+            settings = self.load_api_setings()
+            timestamp = self.__create_timestamp
+            msg = f'{str(timestamp)}{str.upper(method)}{request_path}{body}'
+            signature = self.__create_signature(settings['secret_key'], msg)
             return {
+                'Content-Type': 'aplication/json',
                 'OK-ACCESS-KEY': settings['api_key'],
                 'OK-ACCESS-SIGN': signature,
                 'OK-ACCESS-TIMESTAMP': timestamp,
                 'OK-ACCESS-PASSPHRASE': settings['passphrase'],
-                'x-simulated-trading': flag,
-                'Content-Type': 'application/json'
+                'x-simulated-trading': settings['flag']
             }
         else:
-            return{
+            return {
                 'Content-Type': 'application/json',
-                'x-simulated-trading': flag
+                'x-simulated-trading': settings['flag']
             }
 
 
-    @staticmethod
-    async def create_signature_ws(secret_key:Optional[str]) -> dict:
+    def __create_signature(self, secret_key:str, msg:str):
+        return base64.b64encode(hmac.new(bytes(secret_key, encoding='utf8'),\
+            bytes(msg, encoding='utf-8'), digestmod='sha256'))
+
+
+    def __create_timestamp(self):
+        return datetime.now(timezone.utc).replace(tzinfo=None).isoformat("T", "milliseconds") + 'Z'
+
+
+    async def create_signature_ws(self, secret_key:Optional[str]) -> dict:
         timestamp = int(time.time())
         sign = f'{timestamp}GET/users/self/verify'
         total_params = bytes(sign, encoding='utf-8')

@@ -1,12 +1,16 @@
+#libs
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from typing import Optional
 from sqlalchemy.sql import exists
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datasets.ClassesCreation import ClassCreation, TradeUserData, SQLStateStorage, Base
-from utils.CustomDecorators import log_exceptions
-from utils.CustomLogger import create_logger
+#database
+from DataSets.ClassesCreation import Base, ClassCreation, TradeUserData
+#utils
+from Logs.CustomDecorators import log_exceptions
+from Logs.CustomLogger import create_logger
+
 
 logger = create_logger(logger_name='DataBase')
 engine = create_engine("sqlite:///./datasets/TradeUserDatasets.db")
@@ -22,7 +26,7 @@ class DataAllDatasets:
 
 
     @log_exceptions(logger)
-    def prosess_data_get_all_bd_marketdata(self, session:sessionmaker, table) -> None:
+    def __prosess_data_get_all_bd_marketdata(self, session:sessionmaker, table) -> None:
             query = session.query(
                 table.c.TIMESTAMP, table.c.OPEN, table.c.CLOSE,
                 table.c.HIGH, table.c.LOW, table.c.VOLUME,
@@ -39,11 +43,11 @@ class DataAllDatasets:
     def get_all_bd_marketdata(self) -> dict:
         table = classes_dict[f'ChartsData_{self.instId}_{self.timeframe}'].__table__
         with Session() as session:
-            self.prosess_data_get_all_bd_marketdata(session, table)
+            self.__prosess_data_get_all_bd_marketdata(session, table)
 
 
     @log_exceptions(logger)
-    def process_data_save_charts(self, session:sessionmaker, results_dict:dict, active_class):
+    def __process_data_save_charts(self, session:sessionmaker, results_dict:dict, active_class):
         for i in range(len(results_dict,['Date'])):
             target_data = session.query(exists().where(active_class.TIMESTAMP == results_dict['Date'][i])).scalar()
             if not target_data:
@@ -61,11 +65,11 @@ class DataAllDatasets:
     def save_charts(self, results_dict:dict) -> None:
         active_class = classes_dict[f"ChartsData_{self.instId}_{self.timeframe}"]
         with Session() as session:
-            self.process_data_save_charts(session, results_dict, active_class)
+            self.__process_data_save_charts(session, results_dict, active_class)
 
 
     @log_exceptions(logger)
-    def process_data_add_data_to_db(self, session:sessionmaker, results_dict:dict, active_class):
+    def __process_data_add_data_to_db(self, session:sessionmaker, results_dict:dict, active_class):
         data = active_class(
             TIMESTAMP=results_dict['Date'], INSTRUMENT=self.instId,
             TIMEFRAME=self.timeframe, OPEN=results_dict['Open'],
@@ -82,11 +86,11 @@ class DataAllDatasets:
     def add_data_to_db(self, results_dict:dict) -> None:
         active_class = classes_dict[f"ChartsData_{self.instId}_{self.timeframe}"]
         with Session() as session:
-            self.process_data_add_data_to_db(session, results_dict, active_class)
+            self.__process_data_add_data_to_db(session, results_dict, active_class)
 
 
     @log_exceptions(logger)
-    def process_data_save_new_order_data(session:sessionmaker, result:dict):
+    def __process_data_save_new_order_data(session:sessionmaker, result:dict):
         order_id = TradeUserData(
             order_id=result['order_id'], status=result['posFlag'],
             order_volume=result['size'], tp_order_volume=result['size'],
@@ -103,4 +107,4 @@ class DataAllDatasets:
 
     def save_new_order_data(self, result:dict) -> None:
         with Session() as session:
-            self.process_data_save_new_order_data(session, result)
+            self.__process_data_save_new_order_data(session, result)

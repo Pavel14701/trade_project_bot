@@ -3,9 +3,11 @@ from functools import wraps
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
-from User.LoadSettings import LoadUserSettingData
+from Configs.LoadSettings import LoadUserSettingData
 
-debug = LoadUserSettingData.load_debug_configs()
+
+debug_logging_settings=LoadUserSettingData().load_debug_logging_configs()
+
 
 def deprecated(func):
     """Этот декоратор помечает функцию как устаревшую.
@@ -27,7 +29,9 @@ class DeprecateMetaClass(type):
         return super().__new__(cls, name, bases, dct)
 
 
-def retry_on_exception(max_retries:Optional[int], delay:Optional[int]):
+def retry_on_exception(
+    logger:logging.Logger, max_retries:int=debug_logging_settings['max_retries'],
+    delay:int=debug_logging_settings['delay']):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -35,35 +39,43 @@ def retry_on_exception(max_retries:Optional[int], delay:Optional[int]):
                 try:
                     return func(*args, **kwargs)
                 except Exception as e:
-                    print(f'Attempt {attempt + 1} failed with exception: {e}/n Retrying in {delay} seconds...')
-                    last_exception = e
+                    logger.error(f'Attempt {attempt + 1} failed with exception: {e}\n Retrying in {delay} seconds...')
+                    print(f'Attempt {attempt + 1} failed with exception: {e}\n Retrying in {delay} seconds...')
                     time.sleep(delay)
-            raise last_exception(f'Failed after {max_retries} retries')
+            logger.error(f'Failed after {max_retries} retries with exception: {e}')
+            raise e(f'Failed after {max_retries} retries')
         return wrapper
     return decorator
 
 
-def retry_on_exception_async(max_retries:Optional[int], delay:Optional[int]):
+def retry_on_exception_async(
+    logger:logging.Logger, max_retries:int=debug_logging_settings['max_retries'],
+    delay:int=debug_logging_settings['delay']):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            last_exception = None
             for attempt in range(max_retries):
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
-                    print(f'Attempt {attempt + 1} failed with exception: {e}\nRetrying in {delay} seconds...')
+                    logger.error(f'Attempt {attempt + 1} failed with exception: {e}\n Retrying in {delay} seconds...')
+                    print(f'Attempt {attempt + 1} failed with exception: {e}\n Retrying in {delay} seconds...')
                     await asyncio.sleep(delay)
-                    last_exception = e
-            raise last_exception
+            logger.error(f'Failed after {max_retries} retries with exception: {e}')
+            raise e(f'Failed after {max_retries} retries')
         return wrapper
     return decorator
 
 
-def log_exceptions_async(logger: logging.Logger):
+def log_exceptions_async(
+    logger:logging.Logger, create_logging:Optional[bool]=debug_logging_settings['write_logs'],
+    debug:bool=debug_logging_settings['debug']
+    ):
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            if not create_logging:
+                return
             try:
                 return await func(*args, **kwargs)
             except Exception as e:
@@ -81,7 +93,7 @@ def log_exceptions_async(logger: logging.Logger):
                 if args and hasattr(args[0], '__class__'):
                     class_name = args[0].__class__.__name__
                     logger.error(f"Error in {class_name}.{function_name}: {e}")
-                    if class_name == 'DataAllDatasetsAsync' or 'AsyncStateRequest' and session:
+                    if class_name == 'DataBaseAsync' or 'AsyncStateRequest' and session:
                         await session.rollback()
                 else:
                     logger.error(f"Error in {function_name}: {e}")
@@ -91,10 +103,15 @@ def log_exceptions_async(logger: logging.Logger):
     return decorator
 
 
-def log_exceptions(logger:logging.Logger):
+def log_exceptions(
+    logger:logging.Logger, create_logging:Optional[bool]=debug_logging_settings['write_logs'],
+    debug:bool=debug_logging_settings['debug']
+    ):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
+            if not create_logging:
+                return
             try:
                 return func(*args, **kwargs)
             except Exception as e:
@@ -112,7 +129,7 @@ def log_exceptions(logger:logging.Logger):
                 if args and hasattr(args[0], '__class__'):
                     class_name = args[0].__class__.__name__
                     logger.error(f"Error in {class_name}.{function_name}: {e}")
-                    if class_name == 'DataAllDatasets' or 'StateRequest' and session:
+                    if class_name == 'DataBase' or 'StateRequest' and session:
                         session.rollback()
                 else:
                     logger.error(f"Error in {function_name}: {e}")

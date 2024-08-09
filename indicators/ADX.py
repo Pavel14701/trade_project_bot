@@ -1,17 +1,22 @@
+#libs
 import sys, asyncio
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from concurrent.futures import ThreadPoolExecutor
-from User.LoadSettings import LoadUserSettingData
-import numpy as np, matplotlib.pyplot as plt, pandas as pd
+import matplotlib.pyplot as plt, pandas as pd
 from pandas_ta import adx
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
+
 logger = create_logger('ADX')
 
 
 class ADXTrend:
     def __init__(self, data:pd.DataFrame):
-        settings = LoadUserSettingData.load_adx_configs()
+        settings = LoadUserSettingData().load_adx_configs()
         self.timeperiod = settings['adx_timeperiod']
         self.lenghts_sig = settings['adx_lenghts_sig']
         self.adxr_lenghts = settings['adx_adxr_lenghts']

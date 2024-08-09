@@ -1,15 +1,19 @@
+#libs
 import numpy as np
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 import sys
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomDecorators import deprecated
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions, deprecated
 
 
 class AlmaIndicator:
     def __init__(self, data:DataFrame):
-        settings = LoadUserSettingData.load_alma_configs()
+        settings = LoadUserSettingData().load_alma_configs()
         self.lenghtsVSlow = settings['lenghtsVSlow']
         self.lenghtsSlow = settings['lenghtsSlow']
         self.lenghtsMiddle = settings['lenghtsMiddle']

@@ -1,11 +1,15 @@
-import pickle, sys, logging, pandas as pd
+#libs
+import pickle, sys, pandas as pd
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from typing import Optional
-from datetime import datetime
 from redis import Redis
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomDecorators import log_exceptions
+from Logs.CustomLogger import create_logger
+
+
 logger = create_logger('RedisCache')
 
 
@@ -14,12 +18,12 @@ class RedisCache(Redis):
         self, instId:Optional[str]=None, timeframe:Optional[str]=None, channel:Optional[str]=None,
         key:Optional[str]=None, data:Optional[pd.DataFrame]=None
         ):
-        db_settings = LoadUserSettingData.load_database_settings()
+        db_settings = LoadUserSettingData().load_cache_settings()
         self.host = db_settings['host']
         self.port = db_settings['port']
         self.db = db_settings['db']
-        Redis.__init__(self, self.host, self.port, self.db)
-        user_settings = LoadUserSettingData.load_user_settings()
+        Redis.__init__(self, host=self.host, port=self.port, db=self.db)
+        user_settings = LoadUserSettingData().load_user_settings()
         self.timeframes = user_settings['timeframes']
         self.instIds = user_settings['instIds']
         self.data = data
@@ -31,8 +35,7 @@ class RedisCache(Redis):
 
     @log_exceptions(logger)
     def add_data_to_cache(self, data:pd.DataFrame) -> None:
-        pickled_df = pickle.dumps(data)
-        self.set(f'df_{self.instId}_{self.timeframe}', pickled_df)
+        self.set(f'df_{self.instId}_{self.timeframe}', pickle.dumps(data))
 
 
     @log_exceptions(logger)
@@ -43,38 +46,33 @@ class RedisCache(Redis):
 
     @log_exceptions(logger)
     def subscribe_to_redis_channel(self) -> None:
-        sub = self.pubsub()
-        sub.subscribe(str(self.channel))
+        self.pubsub().subscribe(str(self.channel))
 
 
     @log_exceptions(logger)
     def subscribe_to_redis_channels(self):
-        sub = self.pubsub()
         for instId in self.instIds:
             for timeframe in self.timeframes:
                 channel = f'channel_{instId}_{timeframe}'
-                sub.subscribe(channel)
-                logger.info(f'\n{datetime.now().isoformat()}: Create redis listner from channel: {channel}')
+                self.pubsub().subscribe(channel)
+                logger.info(f'Create redis listner from channel: {channel}')
 
 
     @log_exceptions(logger)
     def check_redis_message(self) -> dict:
-        sub = self.pubsub()
-        message = sub.get_message()
+        message = self.pubsub().get_message()
         if message and message['type'] == 'message':
             return pickle.loads(message['data'])
 
 
     @log_exceptions(logger)
     def send_redis_command(self, message:str, key:str) -> None:
-        message_pickle = pickle.dumps(message)
-        self.set(key, message_pickle)
+        self.set(key, pickle.dumps(message))
 
 
     @log_exceptions(logger)
     def publish_message(self, message:str) -> None:
-        message_pickle = pickle.dumps(message)
-        self.publish(self.channel, message_pickle)
+        self.publish(self.channel, pickle.dumps(message))
 
 
     @log_exceptions(logger)

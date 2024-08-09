@@ -1,14 +1,19 @@
+#libs
 import asyncio, pandas as pd, numpy as np, matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
 from pandas_ta import vwma, sma
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
+
 logger = create_logger('AVSL')
 
 class AVSLIndicator:
     def __init__ (self, data: pd.DataFrame):
-        settings = LoadUserSettingData.load_avsl_configs()
+        settings = LoadUserSettingData().load_avsl_configs()
         self.lenghtsFast = settings['lenghtsFast']
         self.lenghtsSlow = settings['lenghtsSlow']
         self.lenT = settings['lenT']
@@ -42,9 +47,12 @@ class AVSLIndicator:
             if np.isnan(self.data['VPCI'].iloc[i]):
                 lenV = 0
             else:
-                lenV = int(round(abs(self.data['VPCI'].iloc[i] - 3))) if self.data['VPC'].iloc[i] < 0 else round(self.data['VPCI'].iloc[i] + 3)
-            VPCc = -1 if (self.data['VPC'].iloc[i] > -1) & (self.data['VPC'].iloc[i] < 0) else 1 if (self.data['VPC'].iloc[i] < 1) & (self.data['VPC'].iloc[i] >= 0) else self.data['VPC'].iloc[i]
-            Price = np.sum(self.data['Low'].iloc[i - lenV + 1:i + 1] / VPCc / self.data['VPR'].iloc[i - lenV + 1:i + 1]) if lenV > 0 else self.data['Low'].iloc[i]
+                lenV = int(round(abs(self.data['VPCI'].iloc[i] - 3))) if self.data['VPC'].iloc[i]\
+                    < 0 else round(self.data['VPCI'].iloc[i] + 3)
+            VPCc = -1 if (self.data['VPC'].iloc[i] > -1) & (self.data['VPC'].iloc[i] < 0) else 1 if\
+                (self.data['VPC'].iloc[i] < 1) & (self.data['VPC'].iloc[i] >= 0) else self.data['VPC'].iloc[i]
+            Price = np.sum(self.data['Low'].iloc[i - lenV + 1:i + 1] / VPCc / self.data['VPR'].iloc[i\
+                - lenV + 1:i + 1]) if lenV > 0 else self.data['Low'].iloc[i]
             PriceV[i] = Price / lenV / 100 if lenV > 0 else Price
         (PriceV)
         return PriceV

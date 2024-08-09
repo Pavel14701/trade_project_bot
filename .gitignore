@@ -4,3 +4,9 @@ TradeUserData.db
 .vscode
 .ipynb_checkpoints
 main-ipynb_checkpoint
+__pycache__
+SWAPINFO.docx
+TA_Lib-0.4.29-cp312-cp312-win_amd64.whl
+.crt
+.key
+Logs

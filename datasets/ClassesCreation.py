@@ -1,15 +1,20 @@
+#libs
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean, Float
-from User.LoadSettings import LoadUserSettingData
 from sqlalchemy.orm import declarative_base
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+from Logs.CustomDecorators import log_exceptions
+from Logs.CustomLogger import create_logger
 
+logger = create_logger('ClassesCreation')
 Base = declarative_base()
 
 
 class ClassCreation:
     def __init__(self):
-        self.user_settings = LoadUserSettingData.load_user_settings()
+        self.user_settings = LoadUserSettingData().load_user_settings()
 
-
+    @log_exceptions(logger)
     def create_classes(self, Base):
         classes = {}
         for inst_id in self.user_settings['instIds']:

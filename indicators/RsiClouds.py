@@ -1,15 +1,20 @@
+#libs
 import asyncio, pandas as pd, numpy as np, matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
 from pandas_ta import rsi, macd
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
+
 logger = create_logger('RsiClouds')
 
 
 class CloudsRsi:
     def __init__(self, data:pd.DataFrame):
-        settings = LoadUserSettingData.load_rsi_clouds_configs()
+        settings = LoadUserSettingData().load_rsi_clouds_configs()
         self.rsi_period = settings['rsi_period']
         self.rsi_scalar = settings['rsi_scalar']
         self.rsi_drift =settings['rsi_drift']

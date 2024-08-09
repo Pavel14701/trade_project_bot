@@ -1,18 +1,21 @@
+#libs
 import asyncio, talib, pandas as pd, matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
 logger = create_logger('StochRSI')
 
-
-from User.UserInfoFunctions import UserInfo
-from utils.DataFrameUtils import create_dataframe, prepare_many_data_to_append_db
-
+'''
+from Api.OKXInfo import OKXInfoFunctions
+from DataSets.Utils.DataFrameUtils import create_dataframe, prepare_many_data_to_append_db
+'''
 
 class StochRSICalculator:
     def __init__(self, data: pd.DataFrame):
-        settings = LoadUserSettingData.load_stoch_rsi_configs()
+        settings = LoadUserSettingData().load_stoch_rsi_configs()
         self.timeperiod = settings['stoch_rsi_timeperiod']
         self.fastk_period = settings['stoch_rsi_fastk_period']
         self.fastd_period = settings['stoch_rsi_fastd_period']
@@ -43,8 +46,7 @@ class StochRSICalculator:
     async def calculate_stochrsi_async(self) -> dict:
         executor = ThreadPoolExecutor()
         loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(executor, self.calculate_stochrsi)
-        return data
+        return await loop.run_in_executor(executor, self.calculate_stochrsi)
 
 
     def plot_stochrsi(self):
@@ -79,9 +81,10 @@ class StochRSICalculator:
         plt.show()
         
 
-
-result = UserInfo('BTC-USDT-SWAP', '1D', 300).get_market_data(300)
+'''
+result = OKXInfoFunctions('BTC-USDT-SWAP', '1D', 300).get_market_data(300)
 data = prepare_many_data_to_append_db(result)
 data = create_dataframe(data)
 data = StochRSICalculator(data).calculate_stochrsi()
 StochRSICalculator.plot_stochrsi(data['data'])
+'''

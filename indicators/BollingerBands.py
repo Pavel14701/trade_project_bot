@@ -1,17 +1,22 @@
+#libs
 import sys, asyncio, matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
 sys.path.append('C://Users//Admin//Desktop//trade_project_bot')
 from pandas import DataFrame
 from pandas_ta import bbands
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
+
 logger = create_logger('BollingerBands')
 
 
 class BollindgerBands:
     def __init__ (self, data: DataFrame):
-        settings = LoadUserSettingData.load_bollinger_bands_settings()
+        settings = LoadUserSettingData().load_bollinger_bands_settings()
         self.lenghts = settings['bb_lenghts']
         self.stdev = settings['bb_stdev']
         self.ddof = settings['bb_ddof']
@@ -36,8 +41,7 @@ class BollindgerBands:
     async def calculate_bands_async(self) -> DataFrame:
         executor = ThreadPoolExecutor()
         loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(executor, self.calculate_bands)
-        return data
+        return await loop.run_in_executor(executor, self.calculate_bands)
             
 
     def create_vizualization_bb(self) -> plt:

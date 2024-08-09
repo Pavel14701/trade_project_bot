@@ -1,10 +1,16 @@
+#libs
 import pickle
 from typing import Optional
 from redis import asyncio as aioredis
 from pandas import DataFrame
 from datetime import datetime
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions_async
+
+
 logger = create_logger('AioRedisCache')
 
 
@@ -12,8 +18,8 @@ class AioRedisCache:
     def __init__(
         self, instId:Optional[str]=None, channel:Optional[str]=None, timeframe:Optional[str]=None,
         key:Optional[str]=None, data:Optional[DataFrame]=None
-        ):
-        cache_settings = LoadUserSettingData.load_cache_settings()
+        ) -> None:
+        cache_settings = LoadUserSettingData().load_cache_settings()
         self.host = cache_settings['host']
         self.port = cache_settings['port']
         self.db = cache_settings['db']
@@ -23,7 +29,7 @@ class AioRedisCache:
         self.channel = channel
         self.key = key
         self.redis = None
-        user_settings = LoadUserSettingData.load_user_settings()
+        user_settings = LoadUserSettingData().load_user_settings()
         self.instIds = user_settings['instIds']
         self.timeframes = user_settings['timeframes']
 
@@ -52,57 +58,57 @@ class AioRedisCache:
         await self.redis.aclose()
 
 
+    @log_exceptions_async(logger)
     async def async_add_data_to_cache(self, data:Optional[DataFrame]) -> None:
-        pickled_df = pickle.dumps(data)
-        await self.redis.set(f'df_{self.instId}_{self.timeframe}', pickled_df)
+        await self.redis.set(f'df_{self.instId}_{self.timeframe}', pickle.dumps(data))
 
 
+    @log_exceptions_async(logger)
     async def async_load_data_from_cache(self) -> DataFrame:
         pickled_data = await self.redis.get(f'df_{self.instId}_{self.timeframe}')
         if pickled_data:
-            data = pickle.loads(pickled_data)
-            return DataFrame(data)
+            return DataFrame(pickle.loads(pickled_data))
 
 
+    @log_exceptions_async(logger)
     async def async_subscribe_to_redis_channel(self) -> None:
-        sub = self.redis.pubsub()
-        await sub.subscribe(str(self.channel))
+        await self.redis.pubsub().subscribe(str(self.channel))
 
 
-    async def async_subscribe_to_redis_channels(self):
-        sub = self.redis.pubsub()
+    @log_exceptions_async(logger)
+    async def async_subscribe_to_redis_channels(self) -> None:
         for instId in self.instIds:
             for timeframe in self.timeframes:
-                await sub.subscribe(f'channel_{instId}_{timeframe}')
+                await self.redis.pubsub().subscribe(f'channel_{instId}_{timeframe}')
                 logger.info(
                     f'\n{datetime.now().isoformat()}: Created redis listener for channel: channel_{instId}_{timeframe}'
                 )
 
 
+    @log_exceptions_async(logger)
     async def async_load_message_from_cache(self) -> dict:
         message = await self.redis.get(self.key)
         return pickle.loads(message) if message else None
 
 
+    @log_exceptions_async(logger)
     async def async_check_redis_message(self) -> dict:
-        sub = self.redis.pubsub()
-        await sub.subscribe(self.channel)
-        async for message in sub.listen():
+        await self.redis.pubsub().subscribe(self.channel)
+        async for message in self.redis.pubsub().listen():
             if message['type'] == 'message':
                 return pickle.loads(message['data'])
 
 
+    @log_exceptions_async(logger)
     async def async_send_redis_command(self, message:Optional[dict], key:str) -> None:
-        message_pickle = pickle.dumps(message)
-        await self.redis.set(key, message_pickle)
+        await self.redis.set(key, pickle.dumps(message))
 
 
+    @log_exceptions_async(logger)
     async def async_publish_message(self, message: str) -> None:
-        message_pickle = pickle.dumps(message)
-        await self.redis.publish(self.channel, message_pickle)
+        await self.redis.publish(self.channel, pickle.dumps(message))
 
 
-    async def async_set_state(self, orderId, instId:str, state:str) -> None:
-        key = f'state_{instId}'
-        state_pickle = pickle.dumps([state, instId, orderId])
-        await self.redis.set(key, state_pickle)
+    @log_exceptions_async(logger)
+    async def async_set_state(self, orderId:str, instId:str, state:str) -> None:
+        await self.redis.set(f'state_{instId}', pickle.dumps([state, instId, orderId]))

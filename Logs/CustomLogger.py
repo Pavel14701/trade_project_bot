@@ -1,9 +1,10 @@
 import os, logging, json
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
-from User.LoadSettings import LoadUserSettingData
+from Configs.LoadSettings import LoadUserSettingData
 
-debug=LoadUserSettingData.load_debug_configs()
+
+
 
 def create_logger(logger_name:str) -> logging.Logger:
     if not os.path.exists('Logs'):
@@ -20,8 +21,7 @@ def create_logger(logger_name:str) -> logging.Logger:
         handler.setFormatter(MultilineJSONFormatter())
     handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logger.addHandler(handler)
-    if debug:
-        return logger
+    return logger
 
 
 class MultilineJSONFormatter(logging.Formatter):

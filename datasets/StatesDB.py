@@ -1,9 +1,14 @@
+#libs
 from typing import Optional
 from sqlalchemy.orm import sessionmaker
-from datasets.ClassesCreation import SQLStateStorage
-from datasets.DataBase import Session
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#database
+from DataSets.ClassesCreation import SQLStateStorage
+from DataSets.DataBase import Session
+#utils
+from Logs.CustomDecorators import log_exceptions
+from Logs.CustomLogger import create_logger
+
+
 logger = create_logger('StatesDb')
 
 
@@ -17,7 +22,7 @@ class StateRequest:
         self.strategy = strategy
 
     @log_exceptions(logger)
-    def process_data_check_state(self, session:sessionmaker):
+    def __process_data_check_state(self, session:sessionmaker):
         last_state = session.query(SQLStateStorage).filter_by(
             INST_ID=self.instId, TIMEFRAME=self.timeframe,
             STRATEGY=self.strategy
@@ -27,11 +32,11 @@ class StateRequest:
 
     def check_state(self) -> dict:
         with Session() as session:
-            return self.process_data_check_state(session)
+            return self.__process_data_check_state(session)
 
 
     @log_exceptions(logger)
-    def process_data_update_state(self, session:sessionmaker, new_state:dict):
+    def __process_data_update_state(self, session:sessionmaker, new_state:dict):
         existing_state = session.query(SQLStateStorage).filter_by(
             INST_ID=self.instId, TIMEFRAME=self.timeframe
         ).first()
@@ -43,11 +48,11 @@ class StateRequest:
 
     def update_state(self, new_state:dict) -> None:
         with Session() as session:
-            self.process_data_update_state(session, new_state)
+            self.__process_data_update_state(session, new_state)
 
 
     @log_exceptions(logger)
-    def process_data_save_position_state(self, session:sessionmaker, new_state:dict) -> None:
+    def __process_data_save_position_state(self, session:sessionmaker, new_state:dict) -> None:
         state = SQLStateStorage(
             INST_ID=self.instId, TIMEFRAME=self.timeframe, POSITION=new_state['state'],
             ORDER_ID=new_state['orderId'], STATUS=new_state['status']
@@ -58,11 +63,11 @@ class StateRequest:
 
     def save_position_state(self, new_state:dict) -> None:
         with Session() as session:
-            self.process_data_save_position_state(session, new_state)
+            self.__process_data_save_position_state(session, new_state)
 
 
     @log_exceptions(logger)
-    def process_data_save_none_state(self, session):
+    def __process_data_save_none_state(self, session):
         new_state = SQLStateStorage(
             INST_ID=self.instId, TIMEFRAME=self.timeframe, POSITION=None,
             ORDER_ID=None, STATUS=False, STRATEGY = self.strategy
@@ -73,7 +78,7 @@ class StateRequest:
 
     def save_none_state(self) -> None:
         with Session() as session:
-            self.process_data_save_none_state(session)
+            self.__process_data_save_none_state(session)
 
 
 

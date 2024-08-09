@@ -1,20 +1,20 @@
+#libs
 import asyncio, pandas as pd, matplotlib.pyplot as plt, mplfinance as mpf
 from concurrent.futures import ThreadPoolExecutor
 from pandas_ta import zigzag
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
+
 logger = create_logger('ZigZagOrderBlockDetection')
-
-
-
-from User.UserInfoFunctions import UserInfo
-from utils.DataFrameUtils import prepare_many_data_to_append_db, create_dataframe
 
 
 class ZigZagIndicator:
     def __init__(self, data: pd.DataFrame):
-        settings = LoadUserSettingData.load_zigzag_configs()
+        settings = LoadUserSettingData().load_zigzag_configs()
         self.legs = settings['zigzag_legs']
         self.deviation = settings['zigzag_deviation']
         self.retrace = settings['zigzag_retrace']
@@ -42,8 +42,8 @@ class ZigZagIndicator:
     async def calculate_zigzag_async(self) -> pd.DataFrame:
         executor = ThreadPoolExecutor()
         loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(executor, self.calculate_zigzag)
-        return data
+        return await loop.run_in_executor(executor, self.calculate_zigzag)
+
 
 
     def create_zigzag_vizualization(self) -> plt:

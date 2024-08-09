@@ -1,15 +1,20 @@
+#libs
 import asyncio, pandas as pd, matplotlib.pyplot as plt
 from concurrent.futures import ThreadPoolExecutor
 from  pandas_ta import mama
-from User.LoadSettings import LoadUserSettingData
-from utils.CustomLogger import create_logger
-from utils.CustomDecorators import log_exceptions
+#configs
+from Configs.LoadSettings import LoadUserSettingData
+#utils
+from Logs.CustomLogger import create_logger
+from Logs.CustomDecorators import log_exceptions
+
+
 logger = create_logger('MesaAdaptiveMovingAverage')
 
 
 class MesaAdaptiveMA:
     def __init__(self, data: pd.DataFrame):
-        settings = LoadUserSettingData.load_mesa_adaptive_ma_configs()
+        settings = LoadUserSettingData().load_mesa_adaptive_ma_configs()
         self.fastlimit = settings['mesa_fastlimit'] #0.5
         self.slowlimit = settings['mesa_slowlimit'] #0.05
         self.prenan = settings['mesa_prenan']
@@ -20,7 +25,11 @@ class MesaAdaptiveMA:
 
     @log_exceptions(logger)
     def calculate_mama(self) -> dict:
-        mama_ind, fama_ind = mama(self.data['Close'], fastlimit=self.fastlimit, slowlimit=self.slowlimit, prenan=self.prenan, talib=self.talib, offset=self.offset)
+        mama_ind, fama_ind = mama(
+            self.data['Close'], fastlimit=self.fastlimit,
+            slowlimit=self.slowlimit, prenan=self.prenan,
+            talib=self.talib, offset=self.offset
+        )
         self.data['MAMA'] = mama_ind
         self.data['FAMA'] = fama_ind
         #Cигналы для покупки и продажи
@@ -32,8 +41,7 @@ class MesaAdaptiveMA:
     async def calculate_mama_async(self) -> dict:
         executor = ThreadPoolExecutor()
         loop = asyncio.get_event_loop()
-        data = await loop.run_in_executor(executor, self.calculate_mama)
-        return data
+        return await loop.run_in_executor(executor, self.calculate_mama)
 
 
     def plot_mama(self):
