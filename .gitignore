@@ -1,0 +1,10 @@
+__pycache__
+*.crt
+*.key
+*.log
+*.xlsx
+*.csv
+*.env
+*.db
+*.docx
+*.whl
