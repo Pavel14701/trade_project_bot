@@ -7,5 +7,6 @@ __pycache__
 *.env
 *.db
 *.docx
-*.whl
 .vscode
+.venv
+.idea

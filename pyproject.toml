@@ -1,0 +1,22 @@
+[project]
+name = "trade-project-bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aio-pika>=9.5.5",
+    "aiohttp>=3.11.18",
+    "alembic>=1.15.2",
+    "argon2-cffi>=23.1.0",
+    "cryptography>=44.0.2",
+    "dishka>=1.5.3",
+    "fastapi>=0.115.12",
+    "faststream>=0.5.39",
+    "pandas>=2.2.3",
+    "pandas-ta>=0.3.14b0",
+    "psycopg>=3.2.6",
+    "redis>=5.2.1",
+    "sqlalchemy>=2.0.40",
+    "websockets>=15.0.1",
+]

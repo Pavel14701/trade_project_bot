@@ -1,14 +1,14 @@
-import json, contextlib, time, hmac, base64, hashlib, websockets
+import json
+import contextlib
+import time
+import hmac
+import base64
+import hashlib
+import websockets
+
 from configs.load_settings import ConfigsProvider
-from baselogs.custom_logger import create_logger
 from listners.ivent_listner import OKXIventListner
 from typing import Optional
-
-
-pos_logger = create_logger('WsPositionsOKX')
-ac_logger = create_logger('WsAccountOKX')
-event_logger = create_logger('WsEventsOKX')
-
 
 
 class OKXWebsocketsChannel:
@@ -49,7 +49,6 @@ class OKXWebsocketsChannel:
             'timestamp': self.timestamp,'sign': self.signature}]}
         await self.websocket.send(json.dumps(msg))
         response = await self.websocket.recv()
-        event_logger.info(f'\nEvent,:{response}')
 
 
     async def __subscribe_account_channel(self) -> None:
@@ -71,9 +70,6 @@ class OKXWebsocketsChannel:
     async def __catch_message(self) -> None:
         async for msg in self.websocket:
             msg = json.loads(msg)
-            print(type(msg))
-            print((f"\nEvent: {msg}"))
             with contextlib.suppress(Exception):
                 if msg.get('arg', {}).get('channel') == 'positions':
-                    pos_logger.info(f"\nEvent, response:\n{msg}")
                     await OKXIventListner().ivent_reaction(msg)
