@@ -1,16 +1,17 @@
-from faststream.rabbit import RabbitRoute
-from dishka.integrations.faststream import inject, FromDishka
+from dishka.integrations.faststream import FromDishka, inject
+from faststream.rabbit import RabbitRouter
 
 from account_events.src.application.dto import WebSocketDTO
 from account_events.src.application.interactors import (
     AccountEventsDeleterInteractor,
-    AccountEventsSubscriberInteractor, 
-    AccountEventsUpdaterInteractor, 
-    WebSocketBootstrapInteractor, 
-    WebSocketRecoveryInteractor
+    AccountEventsSubscriberInteractor,
+    AccountEventsUpdaterInteractor,
+    WebSocketBootstrapInteractor,
+    WebSocketRecoveryInteractor,
 )
 
-controller = RabbitRoute()
+controller = RabbitRouter()
+
 
 class AccountEventsRoutes:
     @controller.subscriber("account_subscriptions_tasks")
@@ -21,7 +22,10 @@ class AccountEventsRoutes:
         config: dict,
         interactor: FromDishka[AccountEventsSubscriberInteractor],
     ) -> bool:
-        """Создаёт WebSocket-соединение для пользователя, загружая параметры из запроса."""
+        """
+        Создаёт WebSocket-соединение для пользователя,
+        загружая параметры из запроса.
+        """
         ws_config = WebSocketDTO(**config)
         return await interactor(ws_config)
 
@@ -33,7 +37,9 @@ class AccountEventsRoutes:
         data: dict,
         interactor: FromDishka[AccountEventsUpdaterInteractor]
     ) -> bool:
-        """Обновляет подписки пользователя без разрыва соединения."""
+        """
+        Обновляет подписки пользователя без разрыва соединения.
+        """
         ws_config = WebSocketDTO(**data)
         return await interactor(ws_config)
 
@@ -53,7 +59,9 @@ class AccountEventsRoutes:
         self,
         interactor: FromDishka[WebSocketRecoveryInteractor]
     ) -> None:
-        """Автоматическое восстановление WebSocket при падении соединения."""
+        """
+        Автоматическое восстановление WebSocket при падении соединения.
+        """
         await interactor()
 
     @inject
@@ -61,5 +69,8 @@ class AccountEventsRoutes:
         self,
         interactor: FromDishka[WebSocketBootstrapInteractor]
     ) -> None:
-        """Запускает все сохранённые WebSocket-соединения при перезапуске сервиса."""
+        """
+        Запускает все сохранённые WebSocket-соединения 
+        при перезапуске сервиса.
+        """
         await interactor()

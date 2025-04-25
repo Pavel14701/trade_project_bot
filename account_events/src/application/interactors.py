@@ -1,11 +1,12 @@
-from abc import ABC
 import asyncio
+from abc import ABC
+from dataclasses import asdict
 
 from account_events.src.application.dto import WebSocketDTO
 from account_events.src.application.interfaces import (
-    IConnectionStorage, 
+    IConfigEncryption,
+    IConnectionStorage,
     IOkxAccountListner,
-    IConfigEncryption
 )
 from account_events.src.domain.entities import WebSocketDM
 
@@ -25,10 +26,16 @@ class BaseInteractor(ABC):
 class AccountEventsSubscriberInteractor(BaseInteractor):
     async def __call__(self, config: WebSocketDTO) -> bool:
         try:
-            config_dm = WebSocketDM(**config)
-            encrypted_config_dm = await self._security_gateway.decrypt(config_dm)
-            await self._storage_gateway.store_connection(config_dm)
-            await self._listner_gateway.connect(encrypted_config_dm)
+            config_dm = WebSocketDM(**asdict(config))
+            encrypted_config_dm = await self._security_gateway.decrypt(
+                model=config_dm
+            )
+            await self._storage_gateway.store_connection(
+                config=config_dm
+            )
+            await self._listner_gateway.connect(
+                config=encrypted_config_dm
+            )
             return True
         except Exception:
             return False
@@ -36,17 +43,21 @@ class AccountEventsSubscriberInteractor(BaseInteractor):
 
 class AccountEventsUpdaterInteractor(BaseInteractor):
     async def __call__(self, config: WebSocketDTO) -> bool:
-        new_config_dm = WebSocketDM(**config)
+        new_config_dm = WebSocketDM(**asdict(config))
         try:
             config_dm: WebSocketDM | None = await self._storage_gateway.get_connection(
                 user_id=new_config_dm.user_id
             )
             if config_dm:
-                encrypted_config_dm = await self._security_gateway.encrypt(model=new_config_dm)
+                encrypted_config_dm = await self._security_gateway.encrypt(
+                    model=new_config_dm
+                )
                 await self._storage_gateway.store_connection(
                     config=new_config_dm
                 )
-                await self._listner_gateway.update_subscriptions(encrypted_config_dm)
+                await self._listner_gateway.update_subscriptions(
+                    config=encrypted_config_dm
+                )
             return True
         except Exception:
             return False
@@ -54,23 +65,30 @@ class AccountEventsUpdaterInteractor(BaseInteractor):
 
 class AccountEventsDeleterInteractor(BaseInteractor):
     async def __call__(self, user_id: int) -> bool:
-        try:
-            config_dm = await self._storage_gateway.get_connection(user_id=user_id)
-            encrypted_config_dm = await self._security_gateway.encrypt(model=config_dm)
-            await self._listner_gateway.close_connection(config=encrypted_config_dm)
-            await self._storage_gateway.remove_connection(user_id)
+        config_dm = await self._storage_gateway.get_connection(user_id=user_id)
+        if config_dm:
+            encrypted_config_dm = await self._security_gateway.encrypt(
+                model=config_dm
+            )
+            await self._listner_gateway.close_connection(
+                config=encrypted_config_dm
+            )
+            await self._storage_gateway.remove_connection(
+                user_id=user_id
+            )
             return True
-        except Exception:
-            return False
+        return False
 
 
 class WebSocketRecoveryInteractor(BaseInteractor):
     async def __call__(self) -> None:
         while True:
-            await asyncio.sleep(10)
+            await asyncio.sleep(delay=10)
             for user_id in await self._storage_gateway.get_active_connections():
-                if config := await self._storage_gateway.get_connection(user_id):
-                    ws_config = WebSocketDM(**config)
+                if config := await self._storage_gateway.get_connection(
+                    user_id=user_id
+                ):
+                    ws_config = WebSocketDM(**asdict(config))
                     encrypted_config = await self._security_gateway.encrypt(
                         model=ws_config
                     )
@@ -79,11 +97,14 @@ class WebSocketRecoveryInteractor(BaseInteractor):
 
 class WebSocketBootstrapInteractor(BaseInteractor):
     async def __call__(self) -> None:
-        await asyncio.sleep(2)
+        await asyncio.sleep(delay=2)
         for user_id in await self._storage_gateway.get_active_connections():
-            if config := self._storage_gateway.get_connection(user_id):
-                ws_config = WebSocketDM(**config)
+            if config := await self._storage_gateway.get_connection(
+                user_id=user_id
+            ):
                 encrypted_config = await self._security_gateway.encrypt(
-                        model=ws_config
+                        model=config
                     )
-                await self._listner_gateway.connect(encrypted_config)
+                await self._listner_gateway.connect(
+                    config=encrypted_config
+                )

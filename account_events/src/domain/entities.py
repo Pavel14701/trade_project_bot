@@ -1,5 +1,6 @@
+from dataclasses import asdict, dataclass
 from typing import Self
-from dataclasses import dataclass, asdict
+
 
 @dataclass(slots=True)
 class BaseDataClass:

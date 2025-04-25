@@ -9,4 +9,5 @@ __pycache__
 *.docx
 .vscode
 .venv
-.idea
+.mypy_cache
+.ruff_cache

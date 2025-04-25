@@ -18,7 +18,26 @@ dependencies = [
     "pandas-ta>=0.3.14b0",
     "psycopg>=3.2.6",
     "redis>=5.2.1",
+    "ruff>=0.11.7",
     "sqlalchemy>=2.0.40",
     "uvicorn>=0.34.2",
     "websockets>=15.0.1",
 ]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+exclude = ["migrations/*", "tests/*"]
+fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E203"]
+preview = true
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+docstring-code-line-length = 88

@@ -15,8 +15,8 @@ class RabbitMQConfig(BaseModel):
 
 
 class RedisConfig(BaseModel):
-    port:str = Field(alias='REDIS_PORT')
-    host:str = Field(alias='REDIS_HOST')
+    port: int = Field(alias='REDIS_PORT')
+    host: str = Field(alias='REDIS_HOST')
     db: int = Field(alias='REDIS_ACCOUNT_EVENTS_DB')
     password: str = Field(alias='REDIS_PASSWORD')
 
