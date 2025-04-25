@@ -13,10 +13,12 @@ dependencies = [
     "dishka>=1.5.3",
     "fastapi>=0.115.12",
     "faststream>=0.5.39",
+    "mypy>=1.15.0",
     "pandas>=2.2.3",
     "pandas-ta>=0.3.14b0",
     "psycopg>=3.2.6",
     "redis>=5.2.1",
     "sqlalchemy>=2.0.40",
+    "uvicorn>=0.34.2",
     "websockets>=15.0.1",
 ]
