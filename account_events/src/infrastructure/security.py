@@ -33,4 +33,4 @@ class ConfigEncryptionGateway(IConfigEncryption):
                 passphrase=self._cipher.decrypt(model.passphrase.encode()).decode()
             )
         except Exception as e:
-            raise ValueError(f"Ошибка дешифрования: {e}")
+            raise ValueError(f"Ошибка дешифрования: {e}") from e

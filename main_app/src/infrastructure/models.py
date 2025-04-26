@@ -1,104 +1,105 @@
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-from cryptography.fernet import Fernet
-import secrets
-from sqlalchemy import String, Boolean, ForeignKey, Integer
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from enum import Enum
 
-from main_app.src.config import AppConfig
+import sqlalchemy as sa
+from sqlalchemy.orm import DeclarativeBase, Mapped
+from sqlalchemy.orm import mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     pass
 
 
+class UserRole(Enum):
+    USER = "user"
+    ADMIN = "admin"
+
+
 class User(Base):
     __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    _hashed_password: Mapped[str] = mapped_column("hashed_password", String, nullable=False)
-    salt: Mapped[str] = mapped_column(String, nullable=False)
-
-    def __init__(
-        self, 
-        app_config: AppConfig,
-        password_hasher: PasswordHasher,
-    ) -> None:
-        self._app_config = app_config
-        self._password_hasher = password_hasher
-
-    @property
-    def password(self) -> str:
-        return self._hashed_password
-
-    @password.setter
-    def password(self, value: str) -> None:
-        """Автоматически хеширует пароль при записи."""
-        self.salt = secrets.token_hex(8)
-        salted_password = f"{self.salt}{value}{self._app_config.pepper}"
-        self._hashed_password = self._password_hasher.hash(salted_password)
-
-    def verify_password(self, password: str) -> bool:
-        """Проверяет введённый пароль, используя Salt и Pepper."""
-        try:
-            salted_password = f"{self.salt}{password}{self._app_config.pepper}"
-            return self._password_hasher.verify(self._hashed_password, salted_password)
-        except VerifyMismatchError:
-            return False
+    id: Mapped[int] = mapped_column(
+        sa.Integer, autoincrement=True, primary_key=True, index=True,
+        comment="Unique user ID"
+    )
+    username: Mapped[str] = mapped_column(
+        sa.String(length=255), unique=True, nullable=False, index=True, 
+        comment="Unique username"
+    )
+    hashed_password: Mapped[str] = mapped_column(
+        "hashed_password", sa.String(length=255), nullable=False,
+        comment="Hashed user password"
+    )
+    salt: Mapped[str] = mapped_column(
+        sa.String(length=16), nullable=False, 
+        comment="Salt used for password hashing"
+    )
+    role: Mapped[UserRole] = mapped_column(
+        sa.Enum(UserRole), nullable=False, default=UserRole.USER, 
+        comment="User role (USER or ADMIN)"
+    )
+    websocket_configs: Mapped[list["OkxListenerConfig"]] = relationship(
+        "OkxListenerConfig", back_populates="user"
+    )
 
 
 class WebSocketConfig(Base):
-    __tablename__ = "websocket_configs"
+    __abstract__ = True
+    id: Mapped[int] = mapped_column(
+        sa.Integer, autoincrement=True, primary_key=True, index=True, 
+        comment="Unique WebSocket config ID"
+    )
+    conn_name: Mapped[str] = mapped_column(
+        sa.String(length=250), unique=True, index=True,
+        comment="""Name of connection used to 
+        distinguish WebSocket configurations."""
+    )
+    user_id: Mapped[int] = mapped_column(
+        sa.ForeignKey("users.id"), index=True, 
+        comment="Reference to the user owning the WebSocket config"
+    )
+    instType: Mapped[str] = mapped_column(
+        "instrument_type", sa.String(length=10), default="ANY", 
+        comment="Instrument type for subscription"
+    )
+    account: Mapped[bool] = mapped_column(
+        "account_updates", sa.Boolean, default=False, 
+        comment="Receive account updates"
+    )
+    positions: Mapped[bool] = mapped_column(
+        "position_updates", sa.Boolean, default=True, 
+        comment="Receive position updates"
+    )
+    liq_warning: Mapped[bool] = mapped_column(
+        "liquidation_warning", sa.Boolean, default=False, 
+        comment="Receive liquidation warnings"
+    )
+    api_key: Mapped[str] = mapped_column(
+        "encrypted_api_key", sa.String(length=255), nullable=False, 
+        comment="Encrypted API key"
+    )
+    secret_key: Mapped[str] = mapped_column(
+        "encrypted_secret_key", sa.String(length=255), nullable=False, 
+        comment="Encrypted secret key"
+    )
+    passphrase: Mapped[str] = mapped_column(
+        "encrypted_passphrase", sa.String(length=255), nullable=False, 
+        comment="Encrypted passphrase"
+    )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    instType: Mapped[str] = mapped_column(String, default="ANY")
-    account: Mapped[bool] = mapped_column(Boolean, default=False)
-    positions: Mapped[bool] = mapped_column(Boolean, default=True)
-    liq_warning: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    user: Mapped["User"] = relationship("User", back_populates="websocket_configs")
-
-
-class UserSecrets(Base):
-    __tablename__ = "user_secrets"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    _api_key: Mapped[str] = mapped_column("encrypted_api_key", String, nullable=False)
-    _secret_key: Mapped[str] = mapped_column("encrypted_secret_key", String, nullable=False)
-    _passphrase: Mapped[str] = mapped_column("encrypted_passphrase", String, nullable=False)
-
-    user: Mapped["User"] = relationship("User", back_populates="secrets")
-
-    def __init__(self, cipher: Fernet) -> None:
-        self._cipher = cipher
-
-    @property
-    def api_key(self) -> str:
-        return self._cipher.decrypt(self._api_key.encode()).decode()
-
-    @api_key.setter
-    def api_key(self, value: str) -> None:
-        """Автоматически шифрует API-ключ при записи в атрибут."""
-        self._api_key = self._cipher.encrypt(value.encode()).decode()
-
-    @property
-    def secret_key(self) -> str:
-        return self._cipher.decrypt(self._secret_key.encode()).decode()
-
-    @secret_key.setter
-    def secret_key(self, value: str) -> None:
-        """Автоматически шифрует секретный ключ при записи."""
-        self._secret_key = self._cipher.encrypt(value.encode()).decode()
-
-    @property
-    def passphrase(self) -> str:
-        return self._cipher.decrypt(self._passphrase.encode()).decode()
-
-    @passphrase.setter
-    def passphrase(self, value: str) -> None:
-        """Автоматически шифрует passphrase при записи."""
-        self._passphrase = self._cipher.encrypt(value.encode()).decode()
+class OkxListenerConfig(WebSocketConfig):
+    __tablename__ = "okx_listener_configs"
+    __table_args__ = (
+        sa.CheckConstraint("""
+            (
+                SELECT COUNT(*) 
+                FROM okx_listener_configs 
+                WHERE user_id = user_id
+            ) <= 2
+            """,
+            name="check_max_connections"
+        ),
+    )
+    user: Mapped["User"] = relationship(
+        "User", 
+        back_populates="websocket_configs"
+    )

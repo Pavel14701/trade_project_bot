@@ -1,8 +1,9 @@
 from os import environ as env
 from pydantic import BaseModel, Field
 
-class AppConfig(BaseModel):
+class SecretConfig(BaseModel):
     pepper: str = Field(alias="APP_PEPPER")
+    config_secret_key: str = Field(alias="CONFIG_ENCRYPTION_KEY")
 
 
 class RabbitMQConfig(BaseModel):
@@ -21,6 +22,6 @@ class PostgresConfig(BaseModel):
 
 
 class Config(BaseModel):
-    app: AppConfig = Field(default_factory=lambda: AppConfig(**env))
+    app: SecretConfig = Field(default_factory=lambda: SecretConfig(**env))
     rabbitmq: RabbitMQConfig = Field(default_factory=lambda: RabbitMQConfig(**env))
     postgres: PostgresConfig = Field(default_factory=lambda: PostgresConfig(**env))

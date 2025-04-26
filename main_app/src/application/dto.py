@@ -1,27 +1,32 @@
-from pydantic import BaseModel, ConfigDict
+from dataclasses import dataclass
 
 
-class BaseDTO(BaseModel):
+@dataclass(slots=True, frozen=True)
+class LoginDto:
+    username:str
+    password:str
+
+
+@dataclass(slots=True, frozen=True)
+class UserDTO:
     id: int
-    model_config = ConfigDict(from_attributes=True)
-
-class UserDTO(BaseDTO):
-    """DTO для представления данных пользователя"""
     username: str
 
 
-class WebSocketConfigDTO(BaseDTO):
-    """DTO для представления WebSocket конфигурации"""
+@dataclass(slots=True, frozen=True)
+class OkxWebSocketConfigDTO:
+    conn_name: str
     user_id: int
     instType: str
     account: bool
     positions: bool
     liq_warning: bool
-
-
-class UserSecretsDTO(BaseDTO):
-    """DTO для представления расшифрованных секретов пользователя"""
-    user_id: int
     api_key: str
     secret_key: str
     passphrase: str
+
+
+@dataclass(slots=True, frozen=True)
+class UserSignupDTO:
+    username: str
+    password: str
