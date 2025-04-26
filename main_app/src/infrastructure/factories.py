@@ -1,9 +1,7 @@
-from argon2 import PasswordHasher
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
-from cryptography.fernet import Fernet
 
-from main_app.src.config import PostgresConfig, AppConfig
+from main_app.src.config import PostgresConfig
 
 
 def new_session_maker(psql_config: PostgresConfig) -> async_sessionmaker[AsyncSession]:
@@ -14,7 +12,6 @@ def new_session_maker(psql_config: PostgresConfig) -> async_sessionmaker[AsyncSe
         port=psql_config.port,
         database=psql_config.database,
     )
-
     engine = create_async_engine(
         database_uri,
         pool_size=15,
@@ -24,10 +21,3 @@ def new_session_maker(psql_config: PostgresConfig) -> async_sessionmaker[AsyncSe
         },
     )
     return async_sessionmaker(engine, class_=AsyncSession, autoflush=False, expire_on_commit=False)
-
-
-def get_cipher(app_config: AppConfig) -> Fernet:
-    return Fernet(app_config.secret_key)
-
-def get_password_hasher() -> PasswordHasher:
-    return PasswordHasher()
