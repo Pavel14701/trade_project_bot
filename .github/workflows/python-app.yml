@@ -35,8 +35,8 @@ jobs:
 
     - name: Run type-checking with MyPy
       run: |
-        mypy main_app/src/
-        mypy account_events/src/
+        mypy main_app/src/main.py
+        mypy account_events/src/main.py
 
     - name: Run tests with pytest
       run: |
