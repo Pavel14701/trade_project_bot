@@ -1,27 +1,30 @@
+from dataclasses import dataclass
+
+
 class DomainException(Exception):
-    """Базовое исключение для ошибок в предметной области."""
+    """Base exception for domain-related errors."""
     pass
 
 
+@dataclass
 class UserNotFoundException(DomainException):
-    """Ошибка, если пользователь не найден."""
-    def __init__(self, message="Пользователь не найден"):
-        super().__init__(message)
+    """Exception raised when a user is not found."""
+    message: str = "User not found"
 
 
+@dataclass
 class InvalidPasswordException(DomainException):
-    """Ошибка, если пароль неверен."""
-    def __init__(self, message="Неверный пароль"):
-        super().__init__(message)
+    """Exception raised when a password is incorrect."""
+    message: str = "Invalid password"
 
 
+@dataclass
 class UserGetManyConnections(DomainException):
-    """Ошибка, если у пользователя больше 2 подключений в категории"""
-    def __init__(self, message="Достигнут лимит подключений"):
-        super().__init__(message)
+    """Exception raised when a user exceeds the connection limit."""
+    message: str = "Connection limit reached"
 
 
+@dataclass
 class UserAlreadyExistsError(DomainException):
-    "Ошибка, если пользователь с таким юзернеймом есть"
-    def __init__(self, message="Пользователь с таким юзернеймом уже есть в системе"):
-        super().__init__(message)
+    """Exception raised when a user with the given username already exists."""
+    message: str = "A user with this username already exists in the system"

@@ -12,6 +12,7 @@ dependencies = [
     "cryptography>=44.0.2",
     "dishka>=1.5.3",
     "fastapi>=0.115.12",
+    "fastapi-sessions>=0.3.2",
     "faststream>=0.5.39",
     "mypy>=1.15.0",
     "pandas>=2.2.3",

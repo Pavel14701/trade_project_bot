@@ -22,6 +22,7 @@ from main_app.src.domain.entities import (
     WebSocketDM
 )
 from main_app.src.application.exceptions import (
+    UserAlreadyExistsError,
     UserGetManyConnections
 )
 
@@ -72,6 +73,7 @@ class SaveOkxListnerConfigInteractor:
         self._exc_handler = exc_handler
 
     async def __call__(self, dto: OkxWebSocketConfigDTO) -> None:
+        # sourcery skip: raise-from-previous-error
         try:
             config_dm = WebSocketDM(**asdict(dto))
             encrypted_config_dm = await self._encryptor.encrypt(
@@ -82,7 +84,9 @@ class SaveOkxListnerConfigInteractor:
             )    
             await self._session.commit()
         except Exception as e:
-            raise self._exc_handler.many_connections() from e
+            raise self._exc_handler.handle_error(
+                e, UserGetManyConnections
+            )
 
 
 class GetOkxListnerConfigsInteractor:
@@ -125,6 +129,7 @@ class SignupInteractor:
         self._exc_handler = exc_handler
 
     async def __call__(self, dto: UserSignupDTO) -> UserDTO:
+        # sourcery skip: raise-from-previous-error
         try:
             password_input_model = SignupPasswordDM(
                 salt=secrets.token_hex(8),
@@ -140,4 +145,6 @@ class SignupInteractor:
             ))
             await self._session.commit()
         except Exception as e:
-            raise self._exc_handler.user_already_exists() from e
+            raise self._exc_handler.handle_error(
+                e, UserAlreadyExistsError
+            )

@@ -58,3 +58,9 @@ class UserSignupDM:
     username: str
     hashed_password: str
     salt: str
+
+# Off __slots__ because session type
+# in FastAPI.Request is MutableMapping
+@dataclass
+class SessionData:
+    user_id: int
