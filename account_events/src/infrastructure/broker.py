@@ -12,5 +12,5 @@ def new_broker(rabbitmq_config: RabbitMQConfig) -> RabbitBroker:
             username=rabbitmq_config.login,
             password=rabbitmq_config.password,
         ),
-        virtualhost="/",
+        virtualhost=rabbitmq_config.vhost,
     )

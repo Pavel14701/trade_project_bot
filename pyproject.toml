@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["main_app", "account_events"]
+packages = ["main_app", "account_events", "strategies"]
 
 [tool.ruff]
 line-length = 88
