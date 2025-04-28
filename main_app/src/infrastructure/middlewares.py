@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from uuid import UUID
 
-from main_app.src.application.interfaces import ISessionMiddleware
 from main_app.src.infrastructure.repositories.sessions import (
     RedisSessionBackend, 
     GuestSessionBackend
