@@ -1,3 +1,4 @@
+import base64
 from typing import AsyncIterable
 from uuid import uuid4
 
@@ -57,7 +58,22 @@ class AppProvider(Provider):
 
     @provide(scope=Scope.APP)
     def get_cipher(self, config: Config) -> Fernet:
-        return Fernet(config.secret.config_secret_key)
+        key = config.secret.config_secret_key
+        try:
+            decoded_key = base64.urlsafe_b64decode(key)
+        except Exception as e:
+            raise ValueError("""
+                Invalid Fernet encryption key: 
+                is not a valid URL-safe 
+                base64 string.
+            """) from e
+        if len(decoded_key) != 32:
+            raise ValueError("""
+                Invalid Fernet encryption key: 
+                The decoded key must be 
+                exactly 32 bytes.
+            """)
+        return Fernet(key)
 
     @provide(scope=Scope.APP)
     def get_secret_config(self, config: Config) -> SecretConfig:
@@ -80,70 +96,36 @@ class AppProvider(Provider):
         async with session_maker() as session:
             yield session
 
-    get_cookie_repo = provide(
-        CookieRepo,
-        scope=Scope.REQUEST,
-        provides=interfaces.ICookieBackend, 
-    )
+    for name, (provider, interface) in {
+        "cookie_repo": (
+            CookieRepo, interfaces.ICookieBackend
+        ),
+        "error_handler_repo": (
+            ExceptionHandlersRepo, interfaces.IErrorHandler
+        ),
+        "session_backend": (
+            RedisSessionBackend, interfaces.ISessionBackend
+        ),
+        "guest_session_backend": (
+            GuestSessionBackend, interfaces.IGuestSessionBackend
+        ),
+        "config_encryptor": (
+            ConfigEncryptionRepo, interfaces.IConfigEncryption
+        ),
+        "security_repo": (
+            SecurityRepo, interfaces.ISecurity
+        ),
+        "user_repo": (
+            UserRepo, interfaces.IUser
+        ),
+    }.items():
+        vars()[name] = provide(provider, scope=Scope.REQUEST, provides=interface)
 
-    get_exc_handler_repo = provide(
-        ExceptionHandlersRepo,
-        scope=Scope.REQUEST,
-        provides=interfaces.IErrorHandler
-    )
-
-    get_session_backend = provide(
-        RedisSessionBackend,
-        scope=Scope.REQUEST,
-        provides=interfaces.ISessionBackend
-    )
-
-    get_guest_session_backend = provide(
-        GuestSessionBackend,
-        scope=Scope.REQUEST,
-        provides=interfaces.IGuestSessionBackend
-    )
-
-    get_config_encryptor = provide(
-        ConfigEncryptionRepo,
-        scope=Scope.REQUEST,
-        provides=interfaces.IConfigEncryption
-    )
-
-    get_password_hasher = provide(
-        SecurityRepo,
-        scope=Scope.REQUEST,
-        provides=interfaces.ISecurity
-    )
-
-    get_user_repo = provide(
-        UserRepo,
-        scope=Scope.REQUEST,
-        provides=interfaces.IUser
-    )
-
-
-    get_okx_listner_config_interactor = provide(
-        source=GetOkxListnerConfigsInteractor, 
-        scope=Scope.REQUEST
-    )
-
-    save_okx_listner_config_interactor = provide(
-        source=SaveOkxListnerConfigInteractor, 
-        scope=Scope.REQUEST
-    )
-
-    signup_interactor = provide(
-        source=SignupInteractor, 
-        scope=Scope.REQUEST
-    )
-
-    login_interactor = provide(
-        source=LoginInteractor, 
-        scope=Scope.REQUEST
-    )
-
-    get_user_interactor = provide(
-        source=GetUserInteractor, 
-        scope=Scope.REQUEST
-    )
+    for name, interactor in {
+        "get_okx_listener_config": GetOkxListnerConfigsInteractor,
+        "save_okx_listener_config": SaveOkxListnerConfigInteractor,
+        "signup": SignupInteractor,
+        "login": LoginInteractor,
+        "get_user": GetUserInteractor,
+    }.items():
+        vars()[name] = provide(source=interactor, scope=Scope.REQUEST)
