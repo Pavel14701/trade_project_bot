@@ -1,10 +1,5 @@
-from typing import (
-    TypeVar, 
-    Protocol,
-    Callable,
-    Awaitable
-)
 from dataclasses import is_dataclass
+from typing import Awaitable, Callable, Protocol, TypeVar
 from uuid import UUID
 
 from fastapi import Request, Response
@@ -19,9 +14,12 @@ class DataclassProtocol(Protocol):
     If a subclass is not a dataclass, a TypeError is raised during class definition.
 
     Purpose:
-    - Helps enforce type safety by guaranteeing that certain models are structured as dataclasses.
-    - Ensures compatibility with serialization methods that rely on dataclasses (e.g., `asdict`).
-    - Useful for defining type constraints in generic TypeVars for session models, domain models, and DTOs.
+    - Helps enforce type safety by guaranteeing that certain models are structured
+      as dataclasses.
+    - Ensures compatibility with serialization methods that rely on 
+      dataclasses (e.g., `asdict`).
+    - Useful for defining type constraints in generic TypeVars for session models, 
+      domain models, and DTOs.
 
     Example:
     >>> from dataclasses import dataclass

@@ -1,29 +1,29 @@
-from dataclasses import asdict
 import secrets
+from dataclasses import asdict
 
 from main_app.src.application.dto import (
-    LoginDto, 
-    OkxWebSocketConfigDTO, 
+    LoginDto,
+    OkxWebSocketConfigDTO,
     UserDTO,
-    UserSignupDTO
+    UserSignupDTO,
+)
+from main_app.src.application.exceptions import (
+    UserAlreadyExistsError,
+    UserGetManyConnections,
 )
 from main_app.src.application.interfaces import (
+    IConfigEncryption,
     IErrorHandler,
+    IOkxListner,
+    ISecurity,
     ISession,
     IUser,
-    ISecurity,
-    IConfigEncryption,
-    IOkxListner
 )
 from main_app.src.domain.entities import (
     PasswordDM,
     SignupPasswordDM,
-    UserSignupDM, 
-    WebSocketDM
-)
-from main_app.src.application.exceptions import (
-    UserAlreadyExistsError,
-    UserGetManyConnections
+    UserSignupDM,
+    WebSocketDM,
 )
 
 

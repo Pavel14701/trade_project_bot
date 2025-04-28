@@ -3,11 +3,11 @@ from typing import Type
 
 import sqlalchemy as sa
 from sqlalchemy.orm import (
-    DeclarativeBase, 
+    DeclarativeBase,
     Mapped,
-    mapped_column, 
-    relationship, 
-    object_mapper
+    mapped_column,
+    object_mapper,
+    relationship,
 )
 
 from main_app.src.infrastructure.types import DomainModel

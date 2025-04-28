@@ -1,14 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from main_app.src.application.exceptions import UserNotFoundException
 from main_app.src.application.interfaces import IUser
 from main_app.src.domain.entities import (
-    UserDm, 
+    UserDm,
     UserPasswordDM,
-    UserSignupDM, 
-    WebSocketDM
+    UserSignupDM,
+    WebSocketDM,
 )
-from main_app.src.application.exceptions import UserNotFoundException
 from main_app.src.infrastructure.models import OkxListenerConfig, User
 
 
@@ -21,7 +21,11 @@ class UserRepo(IUser):
 
     async def get_password(self, username: str) -> UserPasswordDM:
         """Retrieves the hashed password of a user by their username."""
-        result = await self._session.execute(select(User).where(User.username == username))
+        result = await self._session.execute(
+            select(User).where(
+                User.username == username
+            )
+        )
         if user := result.scalars().first():
             return user.to_domain(UserPasswordDM)
         raise UserNotFoundException()
@@ -56,7 +60,9 @@ class UserRepo(IUser):
 
     async def get_okx_listner_configs(self, user_id: int) -> list[WebSocketDM]:
         """Retrieves all WebSocket listener configurations for a given user."""
-        statement = select(OkxListenerConfig).where(OkxListenerConfig.user_id == user_id)
+        statement = select(OkxListenerConfig).where(
+            OkxListenerConfig.user_id == user_id
+        )
         _results = await self._session.execute(statement)
         results = _results.scalars().all()
         return [result.to_domain(WebSocketDM) for result in results]

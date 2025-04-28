@@ -2,6 +2,7 @@ from fastapi import Request, Response
 
 from main_app.src.application.interfaces import ICookieBackend
 
+
 class CookieRepo(ICookieBackend):
     """Class for managing cookies: guest and authenticated sessions."""
     
@@ -9,7 +10,13 @@ class CookieRepo(ICookieBackend):
     _AUTH_COOKIE = "auth_session"
     _DATA_COOKIE = "guest_data"
 
-    def set_cookie(self, response: Response, key: str, value: str, max_age: int = 86400) -> None:
+    def set_cookie(
+        self, 
+        response: Response, 
+        key: str, 
+        value: str, 
+        max_age: int = 86400
+    ) -> None:
         """Sets or updates a cookie."""
         response.set_cookie(
             key=key,

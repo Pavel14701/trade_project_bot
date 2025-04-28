@@ -1,15 +1,14 @@
 import contextlib
-from fastapi import FastAPI, Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
 from uuid import UUID
 
+from fastapi import FastAPI, Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from main_app.src.infrastructure.repositories.sessions import (
-    RedisSessionBackend, 
-    GuestSessionBackend
+    GuestSessionBackend,
+    RedisSessionBackend,
 )
-from main_app.src.infrastructure.types import (
-    RequestResponseEndpoint
-)
+from main_app.src.infrastructure.types import RequestResponseEndpoint
 
 
 class SessionMiddleware(BaseHTTPMiddleware):
@@ -21,11 +20,14 @@ class SessionMiddleware(BaseHTTPMiddleware):
         redis_manager: RedisSessionBackend, 
         guest_manager: GuestSessionBackend
     ) -> None:
-        """Initializes the session middleware with Redis and guest session backends.
+        """
+        Initializes the session middleware with Redis and guest session backends.
         Args:
             app (FastAPI): The FastAPI application instance.
-            redis_manager (RedisSessionBackend): Redis backend for managing authenticated sessions.
-            guest_manager (GuestSessionBackend): Guest session manager for handling unauthenticated users.
+            redis_manager (RedisSessionBackend): Redis backend for managing
+              authenticated sessions.
+            guest_manager (GuestSessionBackend): Guest session manager for
+              handling unauthenticated users.
         """
         super().__init__(app)
         self.redis_backend = redis_manager
@@ -36,7 +38,9 @@ class SessionMiddleware(BaseHTTPMiddleware):
         request: Request, 
         call_next: RequestResponseEndpoint
     ) -> Response:
-        """Handles session retrieval, management, and cleanup for incoming requests.
+        """
+        Handles session retrieval, management, and cleanup for 
+        incoming requests.
         Execution Flow:
         - Extracts session ID from cookies (`auth_session` or `guest_session`).
         - If an authenticated session exists in Redis, it is loaded.
@@ -45,11 +49,16 @@ class SessionMiddleware(BaseHTTPMiddleware):
         - Passes the request forward to the next middleware or handler.
         Args:
             request (Request): The incoming HTTP request.
-            call_next (RequestResponseEndpoint): The next request handler in the middleware chain.
+            call_next (RequestResponseEndpoint): The next request 
+            handler in the middleware chain.
         Returns:
             Response: The processed HTTP response.
         """
-        session_id = request.cookies.get("auth_session") or request.cookies.get("guest_session")
+        session_id = request.cookies.get(
+            "auth_session"
+        ) or request.cookies.get(
+            "guest_session"
+        )
         request.state.session = None
         session_data = None
         if session_id:

@@ -1,9 +1,10 @@
-from dishka.integrations import faststream as faststream_integration
 from dishka import AsyncContainer
+from dishka.integrations import faststream as faststream_integration
 from faststream import FastStream
 from faststream.rabbit import RabbitBroker
 
 from main_app.src.controllers.amqp import controller
+
 
 def create_faststream_app(
     container: AsyncContainer, 
