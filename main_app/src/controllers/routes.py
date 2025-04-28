@@ -74,9 +74,8 @@ class UserRoutes:
             user = await interactor(dto)
         except UserAlreadyExistsError as e:
             raise HTTPException(
-                status_code=409, 
-                detail="User with this username already exists."
-            )
+                status_code=409, detail="User with this username already exists."
+            ) from e
         return {"id": user.id, "username": user.username}
 
 

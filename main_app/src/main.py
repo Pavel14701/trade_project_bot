@@ -1,12 +1,35 @@
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
+from argon2 import PasswordHasher
+from dishka import make_async_container
 from fastapi import FastAPI
-from starlette.middleware.sessions import SessionMiddleware
-from main_app.src.controllers.routes.auth_routes import router as auth_router
-from main_app.src.controllers.routes.users_routes import router as users_router
-from main_app.src.controllers.routes.secrets_routes import router as secrets_router
+from faststream.rabbit import RabbitBroker
 
-app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="supersecretkey")
+from main_app.src.config import Config
+from main_app.src.infrastructure.factories.rabbit import new_broker
+from main_app.src.ioc import AppProvider
+from main_app.src.fastapi_app import create_fastapi_app
+from main_app.src.faststream_app import create_faststream_app
 
-app.include_router(auth_router, prefix="/auth")
-app.include_router(users_router, prefix="/users")
-app.include_router(secrets_router, prefix="/secrets")
+config = Config()
+broker = new_broker(config)
+password_hasher = PasswordHasher()
+container = make_async_container(
+    AppProvider(),
+    context={
+        Config: config, 
+        RabbitBroker: broker,
+        PasswordHasher: password_hasher
+    }
+)
+
+@asynccontextmanager
+async def lifespan() -> AsyncIterator[None]:
+    faststream_app = create_faststream_app(container, broker)
+    await faststream_app.broker.start()
+    yield
+    await faststream_app.broker.close()
+
+async def main() -> FastAPI:
+    return await create_fastapi_app(container, lifespan)
