@@ -104,19 +104,19 @@ class AppProvider(Provider):
         provides=interfaces.IGuestSessionBackend
     )
 
-    get_guest_session_backend = provide(
+    get_config_encryptor = provide(
         ConfigEncryptionRepo,
         scope=Scope.REQUEST,
         provides=interfaces.IConfigEncryption
     )
 
-    get_guest_session_backend = provide(
+    get_password_hasher = provide(
         SecurityRepo,
         scope=Scope.REQUEST,
         provides=interfaces.ISecurity
     )
 
-    get_guest_session_backend = provide(
+    get_user_repo = provide(
         UserRepo,
         scope=Scope.REQUEST,
         provides=interfaces.IUser
