@@ -1,0 +1,44 @@
+name: trade-project-bot CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.12"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff mypy pytest
+        pip install .
+
+    - name: Run linting with Ruff
+      run: |
+        ruff check main_app --fix
+        ruff check account_events --fix
+
+    - name: Run type-checking with MyPy
+      run: |
+        mypy main_app/src/main.py
+        mypy account_events/src/main.py
+
+    - name: Run tests with pytest
+      run: |
+        if ls tests/*.py 1> /dev/null 2>&1; then pytest; else echo "No tests found, skipping"; fi
+
