@@ -1,24 +1,11 @@
 from argon2 import PasswordHasher
-from argon2.exceptions import (
-    VerifyMismatchError, 
-    VerificationError, 
-    InvalidHashError
-)
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 from cryptography.fernet import Fernet
 
-from main_app.src.application.interfaces import (
-    IConfigEncryption,
-    ISecurity
-)
-from main_app.src.application.exceptions import (
-    InvalidPasswordException
-) 
+from main_app.src.application.exceptions import InvalidPasswordException
+from main_app.src.application.interfaces import IConfigEncryption, ISecurity
 from main_app.src.config import SecretConfig
-from main_app.src.domain.entities import (
-    PasswordDM, 
-    SignupPasswordDM, 
-    WebSocketDM
-)
+from main_app.src.domain.entities import PasswordDM, SignupPasswordDM, WebSocketDM
 
 
 class ConfigEncryptionRepo(IConfigEncryption):

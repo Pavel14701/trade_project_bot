@@ -1,4 +1,5 @@
 from os import environ as env
+
 from pydantic import BaseModel, Field
 
 

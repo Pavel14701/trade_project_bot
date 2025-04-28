@@ -1,23 +1,24 @@
-from typing import Protocol, Generic
+from typing import Generic, Protocol
 from uuid import UUID
 
 from fastapi import Request, Response
 
 from main_app.src.domain.entities import (
     PasswordDM,
-    SignupPasswordDM, 
-    UserDm, 
+    SignupPasswordDM,
+    UserDm,
     UserPasswordDM,
     UserSignupDM,
-    WebSocketDM
+    WebSocketDM,
 )
 from main_app.src.infrastructure.types import (
+    ExceptionType,
+    GuestSessionData,
+    GuestSessionID,
     SessionID,
-    ExceptionType, 
-    GuestSessionData, 
-    GuestSessionID, 
-    SessionModel
+    SessionModel,
 )
+
 
 class IUser(Protocol):
     """Interface for user management."""
@@ -32,6 +33,10 @@ class IUser(Protocol):
 
     async def get_current_user(self, user_id: int) -> UserDm:
         """Returns the current user's data by their ID."""
+        ...
+
+    async def get_user_by_username(self, username: str) -> UserDm:
+        """Returns the current user's data by their Username."""
         ...
 
 

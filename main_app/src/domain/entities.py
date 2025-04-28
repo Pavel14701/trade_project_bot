@@ -1,4 +1,4 @@
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Self
 
 
@@ -58,6 +58,7 @@ class UserSignupDM:
     username: str
     hashed_password: str
     salt: str
+
 
 # Off __slots__ because session type
 # in FastAPI.Request is MutableMapping

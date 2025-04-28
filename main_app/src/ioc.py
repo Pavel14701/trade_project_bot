@@ -4,39 +4,33 @@ from uuid import uuid4
 
 from argon2 import PasswordHasher
 from cryptography.fernet import Fernet
-from dishka import Provider, Scope, AnyOf, from_context, provide
+from dishka import AnyOf, Provider, Scope, from_context, provide
 from faststream.rabbit import RabbitBroker
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from redis.asyncio import Redis
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from main_app.src.application import interfaces
 from main_app.src.application.interactors import (
     GetOkxListnerConfigsInteractor,
     GetUserInteractor,
     LoginInteractor,
+    SaveOkxListnerConfigInteractor,
     SignupInteractor,
-    SaveOkxListnerConfigInteractor
 )
 from main_app.src.config import Config, SecretConfig
-from main_app.src.infrastructure.factories.redis import new_redis_client
 from main_app.src.infrastructure.factories.postgres import new_session_maker
-from main_app.src.infrastructure.repositories.cookies import (
-    CookieRepo
-)
-from main_app.src.infrastructure.repositories.exc import (
-    ExceptionHandlersRepo
+from main_app.src.infrastructure.factories.redis import new_redis_client
+from main_app.src.infrastructure.repositories.cookies import CookieRepo
+from main_app.src.infrastructure.repositories.exc import ExceptionHandlersRepo
+from main_app.src.infrastructure.repositories.security import (
+    ConfigEncryptionRepo,
+    SecurityRepo,
 )
 from main_app.src.infrastructure.repositories.sessions import (
     GuestSessionBackend,
-    RedisSessionBackend
+    RedisSessionBackend,
 )
-from main_app.src.infrastructure.repositories.security import (
-    ConfigEncryptionRepo,
-    SecurityRepo
-)
-from main_app.src.infrastructure.repositories.user import (
-    UserRepo
-)
+from main_app.src.infrastructure.repositories.user import UserRepo
 
 
 class AppProvider(Provider):

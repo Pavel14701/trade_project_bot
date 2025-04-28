@@ -1,39 +1,31 @@
 from dataclasses import asdict
 from typing import Any
-from dishka.integrations.fastapi import FromDishka, inject
-from fastapi import (
-    APIRouter,
-    Request,
-    HTTPException
-)
 
-from main_app.src.application.dto import (
-    LoginDto, 
-    OkxWebSocketConfigDTO,
-    UserSignupDTO
+from dishka.integrations.fastapi import FromDishka, inject
+from fastapi import APIRouter, HTTPException, Request
+
+from main_app.src.application.dto import LoginDto, OkxWebSocketConfigDTO, UserSignupDTO
+from main_app.src.application.exceptions import (
+    InvalidPasswordException,
+    UserAlreadyExistsError,
+    UserGetManyConnections,
+    UserNotFoundException,
 )
 from main_app.src.application.interactors import (
     GetOkxListnerConfigsInteractor,
     GetUserInteractor,
     LoginInteractor,
     SaveOkxListnerConfigInteractor,
-    SignupInteractor
+    SignupInteractor,
 )
 from main_app.src.controllers.schemas import (
-    OkxWebSocketConfigRequest, 
+    OkxWebSocketConfigRequest,
     UserLoginRequest,
-    UserSignupRequest
+    UserSignupRequest,
 )
-from main_app.src.application.exceptions import (
-    InvalidPasswordException,
-    UserAlreadyExistsError, 
-    UserGetManyConnections, 
-    UserNotFoundException
-) 
-
-
 
 router = APIRouter()
+
 
 class UserRoutes:
     @router.post("/login/")
@@ -66,9 +58,10 @@ class UserRoutes:
     @router.post("/signup")
     @inject
     async def create_user(
+        self,
         request_body: UserSignupRequest,
         interactor: FromDishka[SignupInteractor]
-    ) -> dict[str, int|str]:
+    ) -> dict[str, int | str]:
         dto = UserSignupDTO(**request_body.model_dump())
         try:
             user = await interactor(dto)
@@ -77,7 +70,6 @@ class UserRoutes:
                 status_code=409, detail="User with this username already exists."
             ) from e
         return {"id": user.id, "username": user.username}
-
 
     @router.get("/me/")
     @inject
@@ -98,7 +90,7 @@ class UserRoutes:
     @router.post("/listners/okx/config")
     @inject
     async def save_okx_listner_config(
-        self,  
+        self, 
         request_body: OkxWebSocketConfigRequest,
         request: FromDishka[Request],
         interactor: FromDishka[SaveOkxListnerConfigInteractor]
