@@ -24,6 +24,9 @@ dependencies = [
     "websockets>=15.0.1",
 ]
 
+[tool.setuptools]
+packages = ["main_app", "account_events"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
