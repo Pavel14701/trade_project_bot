@@ -4,14 +4,15 @@ from pydantic import BaseModel, Field
 
 
 class SecretConfig:
-    config_secret_key: str = Field(alias="CONFIG_ENCRYPTION_KEY")
+    config_secret_key: str = Field(alias="APP_CONFIG_ENCRYPTION_KEY")
 
 
 class RabbitMQConfig(BaseModel):
     host: str = Field(alias='RABBITMQ_HOST')
     port: int = Field(alias='RABBITMQ_PORT')
     login: str = Field(alias='RABBITMQ_USER')
-    password: str = Field(alias='RABBITMQ_PASS')
+    password: str = Field(alias='RABBITMQ_PASSWORD')
+    vhost: str = Field(alias='RABBITMQ_VHOST')
 
 
 class RedisConfig(BaseModel):

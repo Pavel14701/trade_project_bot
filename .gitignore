@@ -4,7 +4,7 @@ __pycache__
 *.log
 *.xlsx
 *.csv
-*.env
+.env
 *.db
 *.docx
 .vscode
@@ -12,3 +12,6 @@ __pycache__
 .mypy_cache
 .ruff_cache
 legacy
+secrets.txt
+pgdata
+redisdata
