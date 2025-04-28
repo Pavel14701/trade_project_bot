@@ -1,4 +1,9 @@
-from typing import AsyncIterator, Callable
+from typing import (
+    Any,
+    AsyncContextManager, 
+    Callable,
+    Mapping
+)
 
 from dishka import AsyncContainer
 from dishka.integrations import fastapi as fastapi_integration
@@ -13,7 +18,10 @@ from main_app.src.infrastructure.repositories.sessions import (
 
 async def create_fastapi_app(
     container: AsyncContainer, 
-    lifespan: Callable[[], AsyncIterator[None]]
+    lifespan: Callable[
+        [FastAPI], AsyncContextManager[None]] | Callable[[FastAPI],
+        AsyncContextManager[Mapping[str, Any]]
+    ] | None
 ) -> FastAPI:
     fastapi_app = FastAPI(lifespan=lifespan)
     async with container() as opened:

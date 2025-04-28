@@ -13,7 +13,7 @@ from main_app.src.fastapi_app import create_fastapi_app
 from main_app.src.faststream_app import create_faststream_app
 
 config = Config()
-broker = new_broker(config)
+broker = new_broker(config.rabbitmq)
 password_hasher = PasswordHasher()
 container = make_async_container(
     AppProvider(),
@@ -25,11 +25,13 @@ container = make_async_container(
 )
 
 @asynccontextmanager
-async def lifespan() -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     faststream_app = create_faststream_app(container, broker)
-    await faststream_app.broker.start()
+    if faststream_app.broker:
+        await faststream_app.broker.start()
     yield
-    await faststream_app.broker.close()
+    if faststream_app.broker:
+        await faststream_app.broker.close()
 
 async def main() -> FastAPI:
     return await create_fastapi_app(container, lifespan)

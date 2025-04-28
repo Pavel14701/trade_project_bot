@@ -1,12 +1,29 @@
 from enum import Enum
+from typing import Type
 
 import sqlalchemy as sa
-from sqlalchemy.orm import DeclarativeBase, Mapped
-from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy.orm import (
+    DeclarativeBase, 
+    Mapped,
+    mapped_column, 
+    relationship, 
+    object_mapper
+)
+
+from main_app.src.infrastructure.types import DomainModel
 
 
 class Base(DeclarativeBase):
-    pass
+    def to_domain(
+        self, 
+        dataclass: Type[DomainModel]
+    ) -> DomainModel:
+        """Mapping ORM model to dataclass"""
+        data = {
+            attr.key: getattr(self, attr.key)
+            for attr in object_mapper(self).attrs
+        }
+        return dataclass(**data)
 
 
 class UserRole(Enum):

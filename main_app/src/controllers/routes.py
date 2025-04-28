@@ -66,6 +66,7 @@ class UserRoutes:
     @router.post("/signup")
     @inject
     async def create_user(
+        self,
         request_body: UserSignupRequest,
         interactor: FromDishka[SignupInteractor]
     ) -> dict[str, int|str]:

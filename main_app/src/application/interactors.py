@@ -143,7 +143,9 @@ class SignupInteractor:
                 hashed_password=password_model.hashed_password,
                 salt=password_model.salt
             ))
-            await self._session.commit()
+            await self._session.flush()
+            user = await self._user_repo.get_user_by_username(dto.username)
+            return UserDTO(**asdict(user))
         except Exception as e:
             raise self._exc_handler.handle_error(
                 e, UserAlreadyExistsError

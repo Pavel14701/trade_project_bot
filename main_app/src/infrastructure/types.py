@@ -42,10 +42,10 @@ class DataclassProtocol(Protocol):
 
 
 SessionModel = TypeVar("SessionModel", bound=DataclassProtocol)
-SessionID = TypeVar("ID", bound=UUID)
+SessionID = TypeVar("SessionID", bound=UUID, contravariant=True)
 
-GuestSessionID = TypeVar("SessionID", bound=UUID)
-GuestSessionData = TypeVar("SessionData", bound=DataclassProtocol)
+GuestSessionID = TypeVar("GuestSessionID", bound=UUID, covariant=True)
+GuestSessionData = TypeVar("GuestSessionData", bound=DataclassProtocol)
 
 ExceptionType = TypeVar("ExceptionType", bound=DomainException)
 

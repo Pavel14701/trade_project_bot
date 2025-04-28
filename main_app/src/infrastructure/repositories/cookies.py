@@ -17,7 +17,7 @@ class CookieRepo(ICookieBackend):
             httponly=True,
             max_age=max_age,
             secure=True,
-            samesite="Strict"
+            samesite="strict"
         )
 
     def get_cookie(self, request: Request, key: str) -> str | None:
@@ -32,5 +32,5 @@ class CookieRepo(ICookieBackend):
             max_age=0,
             httponly=True,
             secure=True,
-            samesite="Strict"
+            samesite="strict"
         )

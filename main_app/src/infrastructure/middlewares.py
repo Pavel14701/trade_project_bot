@@ -63,7 +63,7 @@ class SessionMiddleware(BaseHTTPMiddleware):
             request.state.session = guest_session
             response.set_cookie(
                 key="guest_session", 
-                value=str(guest_session.id), 
+                value=str(guest_session), 
                 httponly=True
             )
         if session_data:

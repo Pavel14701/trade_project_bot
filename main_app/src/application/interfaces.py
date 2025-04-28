@@ -34,6 +34,9 @@ class IUser(Protocol):
         """Returns the current user's data by their ID."""
         ...
 
+    async def get_user_by_username(self, username: str) -> UserDm:
+        """Returns the current user's data by their Username."""
+        ...
 
 class ISecurity(Protocol):
     """Interface for password security management."""

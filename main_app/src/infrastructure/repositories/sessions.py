@@ -65,19 +65,18 @@ class GuestSessionBackend(IGuestSessionBackend[UUID, dict]):
     def __init__(self, cookie_manager: CookieRepo):
         self._cookie_manager = cookie_manager
 
-    def create_guest_session(self, response: Response) -> str:
+    def create_guest_session(self, response: Response) -> UUID:
         """Creates a new guest session."""
-        session_id = str(uuid4())
+        session_id = uuid4()
         self._cookie_manager.set_cookie(
-            response, self._cookie_manager._GUEST_COOKIE, session_id
+            response, self._cookie_manager._GUEST_COOKIE, str(session_id)
         )
         return session_id
 
-    def get_guest_session(self, request: Request) -> Optional[str]:
+    def get_guest_session(self, request: Request) -> Optional[UUID]:
         """Retrieves the current guest session."""
-        return self._cookie_manager.get_cookie(
-            request, self._cookie_manager._GUEST_COOKIE
-        )
+        session_id = self._cookie_manager.get_cookie(request, self._cookie_manager._GUEST_COOKIE)
+        return UUID(session_id) if session_id else None
 
     def delete_guest_session(self, response: Response) -> None:
         """Deletes the guest session."""
