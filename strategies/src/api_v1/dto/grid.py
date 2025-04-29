@@ -178,7 +178,6 @@ class RsiBacktestingPublicDTO:
     duration: str | None = None
 
 
-
 @dataclass(frozen=True, slots=True)
 class MaxGridQuantityPublicDTO:
     instId:	str	
