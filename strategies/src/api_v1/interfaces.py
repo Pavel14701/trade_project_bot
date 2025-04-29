@@ -275,7 +275,7 @@ class IOkxMarketData(Protocol):
 
 
 class IOkxExcHandler(Protocol):
-    async def handle_exception(self):
+    async def handle_exception(self) -> Any:
         # https://www.okx.com/docs-v5/en/#error-code
         ...
 
