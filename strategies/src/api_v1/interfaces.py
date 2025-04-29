@@ -1,17 +1,24 @@
 from typing import Any, Protocol
 
-from main_app.src.api.dto import (
+from strategies.src.api_v1.dto.grid import (
+    PlaceGridOrderDTO,
+    AmendGridOrderDTO,
+    StopGridOrderDTO
+)
+from strategies.src.api_v1.dto.trade import (
     AmendOrderDTO,
     CancelOrerDTO,
     GetBalanceDTO,
     GetLeverageDTO,
-    GetMarkPriceDTO,
     GetOrderDetailsDTO,
-    GetOrderListDTO, 
-    GetPriceDataDTO,
+    GetOrderListDTO,
     PlaceOrderDTO,
     SetLeverageDTO,
-    ClosePositionsDTO
+    ClosePositionsDTO,
+)
+from strategies.src.api_v1.dto.market import (
+    GetPriceDataDTO,
+    GetMarkPriceDTO,
 )
 
 
@@ -64,6 +71,19 @@ class IOkxTrade(Protocol):
         ...
 
 
+class OkcGridTrade(Protocol):
+    async def place_grid_algo_order(self, params: PlaceGridOrderDTO) -> dict[str, Any]:
+        # https://www.okx.com/docs-v5/en/?shell#order-book-trading-grid-trading-post-place-grid-algo-order
+        ...
+
+    async def amend_grid_algo_order(self, params: AmendGridOrderDTO) -> dict[str, Any]:
+        # https://www.okx.com/docs-v5/en/?shell#order-book-trading-grid-trading-post-amend-grid-algo-order
+        ...
+
+    async def stop_grid_algo_order(self, params: StopGridOrderDTO) -> dict[str, Any]:
+        # https://www.okx.com/docs-v5/en/?shell#order-book-trading-grid-trading-post-stop-grid-algo-order
+        ...
+
 
 class IOkxMarketData(Protocol):
     async def get_candlesticks(self, params: GetPriceDataDTO) -> dict[str, Any]: 
@@ -75,7 +95,8 @@ class IOkxMarketData(Protocol):
         ...
 
     async def get_ticker(self, instId: str) -> dict[str, Any]:
-        # https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
+        # https://www.okx.com/docs-v5/en/#order-\
+        # book-trading-market-data-get-ticker
         ...
 
     async def get_mark_price(self, params: GetMarkPriceDTO) -> dict[str, Any]:
