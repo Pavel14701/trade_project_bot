@@ -69,7 +69,7 @@ class AttachAlgoOrds:
     slOrdPx: str | None = None
     tpTriggerPxType: str | None = None
     slTriggerPxType: str | None = None
-    sz: str| None = None
+    sz: str | None = None
     amendPxOnTriggerType: str | None = None
 
 
