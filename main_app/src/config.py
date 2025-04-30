@@ -19,7 +19,9 @@ class SecretConfig(BaseModel):
 
     @field_validator("allowed_hosts", mode="before")
     def split_allowed_hosts(cls, value):
-        return value.split(",") if isinstance(value, str) else value
+        if isinstance(value, str):
+            return [] if value == "" else value.split(",")
+        return value
 
 
 class RabbitMQConfig(BaseModel):
@@ -46,7 +48,15 @@ class RedisConfig(BaseModel):
 
 
 class Config(BaseModel):
-    secret: SecretConfig = Field(default_factory=lambda: SecretConfig(**env))
-    rabbitmq: RabbitMQConfig = Field(default_factory=lambda: RabbitMQConfig(**env))
-    postgres: PostgresConfig = Field(default_factory=lambda: PostgresConfig(**env))
-    redis: RedisConfig = Field(default_factory=lambda: RedisConfig(**env))
+    secret: SecretConfig = Field(
+        default_factory=lambda: SecretConfig(**env)
+    )
+    rabbitmq: RabbitMQConfig = Field(
+        default_factory=lambda: RabbitMQConfig(**env)
+    )
+    postgres: PostgresConfig = Field(
+        default_factory=lambda: PostgresConfig(**env)
+    )
+    redis: RedisConfig = Field(
+        default_factory=lambda: RedisConfig(**env)
+    )

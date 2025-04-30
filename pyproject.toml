@@ -30,7 +30,7 @@ packages = ["main_app", "account_events", "strategies"]
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-exclude = ["migrations/*", "tests/*"]
+exclude = ["migrations/*", "tests/*", "api/*"]
 fix = true
 
 [tool.ruff.lint]
