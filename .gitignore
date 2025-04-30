@@ -13,6 +13,4 @@ __pycache__
 .ruff_cache
 legacy
 secrets.txt
-pgdata
-redisdata
-secrets.txt
+backups

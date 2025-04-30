@@ -276,7 +276,9 @@ class IOkxMarketData(Protocol):
 
 class IOkxExcHandler(Protocol):
     async def handle_exception(self) -> Any:
-        # https://www.okx.com/docs-v5/en/#error-code
+        # url link for exception handler
+        # (works only for Chrome, probably, but not for sure)
+        # https://www.okx.com/docs-v5/en/#error-code-rest-api-public#:~:text=50005
         ...
 
 
