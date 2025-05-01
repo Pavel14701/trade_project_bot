@@ -72,21 +72,21 @@ services:
     container_name: trading-questdb
     restart: always
     ports:
-      - "${QDB_WEB_PORT}:9000"
-      - "${QDB_INFLUX_PORT}:9009"
-      - "${QDB_PG_PORT}:8812"
-      - "${QDB_MONITOR_PORT}:9003"
+      - "127.0.0.1:${QDB_WEB_PORT}:9000"
+      - "127.0.0.1:${QDB_INFLUX_PORT}:9009"
+      - "127.0.0.1:${QDB_PG_PORT}:8812"
+      - "127.0.0.1:${QDB_MONITOR_PORT}:9003"
     volumes:
       - ./backups/questdb_data:/var/lib/questdb
     environment:
-      - QDB_PG_USER=admin
-      - QDB_PG_PASSWORD=secret
+      - QDB_PG_USER=${QDB_PG_USER}
+      - QDB_PG_PASSWORD=${QDB_PG_PASSWORD}
+      - QDB_PG_ALLOW_REMOTE=${QDB_PG_ALLOW_REMOTE}
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9000 || exit 1'"]
       interval: 30s
       timeout: 10s
       retries: 3
-
 
 volumes:
   rabbitmq_data:

@@ -7,20 +7,27 @@ from strategies.src.domain.entities import (
     InsertManyRecordsDM,
     InsertRecordDM,
 )
+from strategies.src.infrastructure.types import PriceDataFrame
 
 
-class IDataQueryBuilder(Protocol):
-    def create_datatable(self, params: CreateTableDM) -> str:
+class IDataQuery(Protocol):
+    async def create_datatable(self, params: CreateTableDM) -> bool:
         ...
 
-    def get_last_records(self, params: GetLastRecordsDM) -> str:
+    async def get_last_records(
+        self, 
+        params: GetLastRecordsDM
+    ) -> PriceDataFrame:
         ...
 
-    def get_records_by_date_range(self, params: GetRangeRecordsDM) -> str:
+    async def get_records_by_date_range(
+        self, 
+        params: GetRangeRecordsDM
+    ) -> PriceDataFrame:
         ...
 
-    def insert_record(self, params: InsertRecordDM) -> str:
+    async def insert_record(self, params: InsertRecordDM) -> bool:
         ...
 
-    def generate_insert_query(self, params: InsertManyRecordsDM) -> str:
+    async def insert_many_data(self, params: InsertManyRecordsDM) -> bool:
         ...
