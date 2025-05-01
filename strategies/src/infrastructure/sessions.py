@@ -11,7 +11,7 @@ async def fetch():
                 "User-Agent": "Client1"
             }
         )
-        response2 = await client.get(
+        response2 = await client.post(
             "https://www.example.com", 
             headers={
                 "User-Agent": "Client2",
