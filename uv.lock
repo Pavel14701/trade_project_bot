@@ -914,6 +914,15 @@ wheels = [
 ]
 
 [[package]]
+name = "setuptools"
+version = "80.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/b2/bd26ed086b842b68c8fe9aac380ad7e5118cf84fa7abd45bb059a88368a8/setuptools-80.1.0.tar.gz", hash = "sha256:2e308396e1d83de287ada2c2fd6e64286008fe6aca5008e0b6a8cb0e2c86eedd", size = 1354038, upload_time = "2025-04-30T17:41:06.171Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/f6/126c9309c8fe93e5d6bb850593cd58d591daf2da45cc78b61e48d8d95879/setuptools-80.1.0-py3-none-any.whl", hash = "sha256:ea0e7655c05b74819f82e76e11a85b31779fee7c4969e82f72bab0664e8317e4", size = 1240689, upload_time = "2025-04-30T17:41:03.789Z" },
+]
+
+[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -973,6 +982,16 @@ wheels = [
 ]
 
 [[package]]
+name = "ta-lib"
+version = "0.6.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/35/dc/e7fab66315fdd2e2eeb2e3dbb9d23ea615bafc1e9174a8965d310e40a3c2/ta_lib-0.6.3.tar.gz", hash = "sha256:0c628db09b3fab6e5c26979e608b674e7aecc10359c82ba8d53f729767a856ac", size = 376798, upload_time = "2025-02-10T22:17:43.489Z" }
+
+[[package]]
 name = "trade-project-bot"
 version = "0.1.0"
 source = { virtual = "." }
@@ -994,6 +1013,7 @@ dependencies = [
     { name = "redis" },
     { name = "ruff" },
     { name = "sqlalchemy" },
+    { name = "ta-lib" },
     { name = "uvicorn" },
     { name = "websockets" },
 ]
@@ -1017,6 +1037,7 @@ requires-dist = [
     { name = "redis", specifier = ">=5.2.1" },
     { name = "ruff", specifier = ">=0.11.7" },
     { name = "sqlalchemy", specifier = ">=2.0.40" },
+    { name = "ta-lib", specifier = ">=0.6.3" },
     { name = "uvicorn", specifier = ">=0.34.2" },
     { name = "websockets", specifier = ">=15.0.1" },
 ]

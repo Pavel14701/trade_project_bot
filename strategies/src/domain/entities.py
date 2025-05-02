@@ -45,3 +45,15 @@ class InsertManyRecordsDM:
     instId: str
     bar: str
     data: list[Data]
+
+
+@dataclass(slots=True, frozen=True)
+class RsiCloudsConfigDM:
+    rsi_length: int | None = None
+    macd_fast: int | None = None
+    macd_slow: int | None = None
+    macd_signal: int | None = None
+    scalar: float | None = None
+    drift: int | None = None
+    offset: int | None = None
+    talib: bool = True
