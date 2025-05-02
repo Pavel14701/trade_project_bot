@@ -1,8 +1,9 @@
+from httpx import AsyncClient, Response
 from sqlalchemy import text
 from sqlalchemy.sql import quoted_name
-from httpx import AsyncClient, Response
 
 from strategies.src.application.interfaces import IDataQuery
+from strategies.src.config import QuestConfig
 from strategies.src.domain.entities import (
     CreateTableDM,
     GetLastRecordsDM,
@@ -10,7 +11,6 @@ from strategies.src.domain.entities import (
     InsertManyRecordsDM,
     InsertRecordDM,
 )
-from strategies.src.config import QuestConfig
 from strategies.src.infrastructure.types import PriceDataFrame
 
 
