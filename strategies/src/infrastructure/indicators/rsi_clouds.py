@@ -45,8 +45,8 @@ class CloudsRsi:
         )
         suffixes = {"": "macd_line", "s": "macd_signal", "h": "histogram"}
         ohlc = ohlc.join(macd_ind.rename(columns={
-            f"MACD{suffix}_{config.macd_fast}_\
-            {config.macd_slow}_{config.macd_signal}": name
+            f"MACD{suffix}_{config.macd_fast}_"
+            f"{config.macd_slow}_{config.macd_signal}": name
             for suffix, name in suffixes.items()
         }))
         del macd_ind
