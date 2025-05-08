@@ -8,7 +8,7 @@ from main_app.src.infrastructure.repositories.sessions import (
     GuestSessionBackend,
     RedisSessionBackend,
 )
-from main_app.src.infrastructure.types import RequestResponseEndpoint
+from main_app.src.infrastructure._types import RequestResponseEndpoint
 
 
 class SessionMiddleware(BaseHTTPMiddleware):

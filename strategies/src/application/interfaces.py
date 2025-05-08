@@ -7,7 +7,7 @@ from strategies.src.domain.entities import (
     InsertManyRecordsDM,
     InsertRecordDM,
 )
-from strategies.src.infrastructure.types import PriceDataFrame
+from strategies.src.infrastructure._types import PriceDataFrame
 
 
 class IDataQuery(Protocol):

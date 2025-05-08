@@ -10,7 +10,7 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from main_app.src.infrastructure.types import DomainModel
+from main_app.src.infrastructure._types import DomainModel
 
 
 class Base(DeclarativeBase):

@@ -57,3 +57,20 @@ class RsiCloudsConfigDM:
     drift: int | None = None
     offset: int | None = None
     talib: bool = True
+
+
+@dataclass(slots=True, frozen=True)
+class AdxConfigDM:
+    length: int | None = None
+    lensig: int | None = None
+    mamode: str | None = None 
+    scalar: float | int | None = None 
+    drift: int | None = None
+    offset: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class AvslConfigDM:
+    lenght_fast: int
+    lenght_slow: int
+    stand_div: float

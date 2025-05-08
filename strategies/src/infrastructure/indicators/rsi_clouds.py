@@ -3,17 +3,17 @@ import pandas as pd
 import pandas_ta as ta
 
 from strategies.src.domain.entities import RsiCloudsConfigDM
-from strategies.src.infrastructure.types import PriceDataFrame
+from strategies.src.infrastructure._types import PriceDataFrame
 
 
 class CloudsRsi:
     def prepare_data(self, data: PriceDataFrame) -> pd.Series:
         """Создание среднего ценового ряда."""
         return (
-            data.low_price + 
+            data.low_prices + 
             data.high_price + 
             data.open_price + 
-            data.close_price
+            data.close_prices
         ) / 4
 
     def calculate(
