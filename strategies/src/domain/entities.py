@@ -74,3 +74,12 @@ class AvslConfigDM:
     lenght_fast: int
     lenght_slow: int
     stand_div: float
+
+
+@dataclass(slots=True, frozen=True)
+class StochRsiConfigDM:
+    timeperiod: int
+    fastk_period: int 
+    fastd_period: int
+    #talib.MA_Type
+    fastd_matype: int
