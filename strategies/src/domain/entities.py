@@ -108,3 +108,11 @@ class OrderBlockDetectorDM:
     wlen: Any | None = None
     rel_height: float = 0.5
     plateu_size: Any | None  = None
+
+
+@dataclass(slots=True, frozen=True)
+class ScrsiConfigDM:
+    domcycle: int = 20  # Основной цикл CRSI
+    vibration: int = 20  # Колебания
+    leveling: float =  10.0  # Уровень сглаживания
+
