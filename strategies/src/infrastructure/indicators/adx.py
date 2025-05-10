@@ -12,7 +12,7 @@ class ADXTrend:
         config: AdxConfigDM
     ) -> pd.DataFrame:
         adx_ind = ta.adx(
-            high=data.high_price, 
+            high=data.high_prices, 
             low=data.low_prices, 
             close=data.close_prices, 
             length=config.length, 

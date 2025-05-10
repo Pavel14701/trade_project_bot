@@ -11,7 +11,7 @@ class CloudsRsi:
         """Создание среднего ценового ряда."""
         return (
             data.low_prices + 
-            data.high_price + 
+            data.high_prices + 
             data.open_price + 
             data.close_prices
         ) / 4
@@ -83,14 +83,14 @@ class CloudsRsi:
         )
         return ohlc
 
-    def get_last_signal(self, ohlc: pd.DataFrame) -> str:
+    def get_last_signal(self, ohlc: pd.DataFrame) -> str | None:
         """Определяет последний сигнал MACD (без учета гистограммы)."""
         if ohlc.empty:
-            return "None"
+            return None
         last_macd_signal = ohlc['macd_cross_signal'].iloc[-1]
         if last_macd_signal == 1:
-            return "Buy"
+            return "buy"
         elif last_macd_signal == -1:
-            return "Sell"
+            return "sell"
         else:
-            return "None"
+            return None

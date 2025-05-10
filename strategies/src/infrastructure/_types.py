@@ -37,7 +37,7 @@ class PriceDataFrame(pd.DataFrame):
         return self["close_price"]
 
     @property
-    def high_price(self) -> pd.Series:
+    def high_prices(self) -> pd.Series:
         return self["high_price"]
 
     @property

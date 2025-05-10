@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(slots=True, frozen=True)
@@ -83,3 +84,27 @@ class StochRsiConfigDM:
     fastd_period: int
     #talib.MA_Type
     fastd_matype: int
+
+
+@dataclass(slots=True, frozen=True)
+class AcceletrationBandsDM:
+    length: int
+    drift: int
+    offset: int
+    mamode: str | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class OrderBlockDetectorDM:
+    peak_prominance: float = 0.02 
+    valley_prominance: float = -0.02 
+    width: int = 1
+    distance: int = 3 
+    height:  Any | None = None
+    threshould: Any | None = None
+    distance: Any | None = None
+    prominence: Any | None = None
+    width: Any | None = None
+    wlen: Any | None = None
+    rel_height: float = 0.5
+    plateu_size: Any | None  = None

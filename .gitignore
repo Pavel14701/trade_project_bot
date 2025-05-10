@@ -14,3 +14,5 @@ __pycache__
 legacy
 secrets.txt
 backups
+zigzag_spy.png
+order_block_develop.py
