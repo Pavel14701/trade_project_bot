@@ -10,32 +10,33 @@ from strategies.src.infrastructure._types import PriceDataFrame
 
 class AVSL:
     """
-    Adaptive Volume-Weighted Support Level 
-      (AVSL) Indicator Implementation.
+    Adaptive Volume-Weighted Support Level (
+      AVSL) Indicator Implementation.
 
-    The AVSL indicator calculates **dynamic 
-      support and resistance levels** using volume-weighted 
-      moving averages and volatility metrics.
+    The AVSL indicator calculates 
+      **dynamic support and resistance levels** using 
+      volume-weighted moving averages and 
+      volatility metrics.
 
     Formula:
-    1. Compute VWMA (**Volume-Weighted Moving Average**) 
-      over fast and slow periods.
+    1. Compute VWMA (**Volume-Weighted Moving Average**) over 
+      fast and slow periods.
     2. Calculate **Volume Price Confirmation (VPC)** to 
       measure price deviations.
-    3. Compute **Volume Price Ratio (VPR)** by dividing 
-      fast VWMA by a simple moving average.
-    4. Determine **Volume Momentum (VM)** by comparing 
-      fast and slow volume trends.
+    3. Compute **Volume Price Ratio (VPR)** by dividing fast 
+      VWMA by a simple moving average.
+    4. Determine **Volume Momentum (VM)** by comparing fast and 
+      slow volume trends.
     5. Combine VPC, VPR, and VM into **VPCI** for 
       trend confirmation.
-    6. Apply a **custom price function** to 
-      adjust support/resistance levels.
-    7. Use a smoothed moving average (**SMA**) 
-      to finalize AVSL levels.
+    6. Apply a **custom price function** to adjust 
+      support/resistance levels.
+    7. Use a smoothed moving average (**SMA**) to 
+      finalize AVSL levels.
 
     Usage:
-    - Identifies **strong support zones** based 
-      on price and volume dynamics.
+    - Identifies **strong support zones** based on 
+      price and volume dynamics.
     - Provides adaptive thresholds for **trend 
       validation and risk management**.
     """
@@ -52,123 +53,169 @@ class AVSL:
               high, low, close prices and volume.
             config (AvslConfigDM): AVSL configuration parameters.
         Returns:
-            pd.DataFrame: A DataFrame containing AVSL 
-              values indexed by date.
+            pd.DataFrame: A DataFrame containing AVSL values 
+              indexed by date.
         """
-        # Compute VWMA (Volume-Weighted Moving Average)
-        #  for fast and slow periods
-        vw_ma_fast: pd.Series = ta.vwma(
+        # Compute core components (VWMA, VPC, VPR, VM, VPCI)
+        vw_f, vw_s, vpc, vpr, vm, vpci = self._compute_base_series(data, config)
+        # Compute price adjustment and deviation
+        price_v = self._price_fun(data, vpc, vpr, vpci)
+        deviation = config.stand_div * vpci * vm
+        # Compute AVSL using SMA
+        avsl = ta.sma(
+            close=data.low_prices - price_v + deviation,
+            length=config.length_slow, 
+            talib=True
+        )
+        return pd.DataFrame(
+            {"avsl": avsl}, 
+            index=data.index
+        )
+
+    def _compute_base_series(
+        self, 
+        data: PriceDataFrame, 
+        config: AvslConfigDM
+    ) -> tuple[NDArray]:
+        """
+        Computes base technical indicators required 
+          for AVSL.
+        Args:
+            data (PriceDataFrame): Market price dataset.
+            config (AvslConfigDM): AVSL configuration 
+              parameters.
+        Returns:
+            Tuple[np.ndarray]: VWMA fast, VWMA slow, 
+              VPC, VPR, VM, VPCI.
+        """
+        vw_ma_fast = ta.vwma(
             close=data.close_prices, 
             volume=data.volumes, 
             length=config.length_fast
         )
-        vw_ma_slow: pd.Series = ta.vwma(
+        vw_ma_slow = ta.vwma(
             close=data.close_prices, 
-            volume=data.volumes,
+            volume=data.volumes, 
             length=config.length_slow
         )
-        # Compute Volume Price Confirmation (VPC)
-        vpc: pd.Series = vw_ma_slow - ta.sma(
+        vpc = vw_ma_slow - ta.sma(
             close=data.close_prices, 
-            length=config.length_slow,
+            length=config.length_slow, 
             talib=True
         )
-        # Compute Volume Price Ratio (VPR)
-        vpr: pd.Series = vw_ma_fast / ta.sma(
+        vpr = vw_ma_fast / ta.sma(
             close=data.close_prices, 
             length=config.length_fast, 
             talib=True
         )
-        # Compute Volume Momentum (VM)
-        vm: pd.Series = ta.sma(
+        vm = ta.sma(
             close=data.volumes, 
             length=config.length_fast, 
             talib=True
         ) / ta.sma(
             close=data.volumes, 
-            length=config.length_slow,
-            talib=True
-        )
-        # Compute Volume Price Confirmation Index (VPCI)
-        vpci: pd.Series = vpc * vpr * vm
-        # Compute custom price adjustment function
-        PriceV = self._price_fun(data, vpc, vpr, vpci)
-        # Compute AVSL deviation factor
-        deviation = config.stand_div * vpci * vm
-        # Compute final AVSL level using SMA
-        avsl = ta.sma(
-            close=data.low_prices - PriceV + deviation,
             length=config.length_slow, 
             talib=True
         )
-        return pd.DataFrame({"avsl": avsl}, index=data.index)
-
+        return (
+            vw_ma_fast, 
+            vw_ma_slow, 
+            vpc, vpr, vm, 
+            vpc * vpr * vm
+        )
 
     def _price_fun(
-        self,
-        data: PriceDataFrame,
-        vpc: pd.Series,
-        vpr: pd.Series,
-        vpci: pd.Series,
+        self, 
+        data: PriceDataFrame, 
+        vpc: pd.Series, 
+        vpr: pd.Series, 
+        vpci: pd.Series
     ) -> NDArray:
         """
-        Optimized price adjustment function using 
-          vectorized calculations and a 
-          Numba-jitted helper.
-
+        Optimized price adjustment function using vectorized 
+          calculations and a Numba-jitted helper.
         Args:
             data (PriceDataFrame): Market price dataset.
             vpc (pd.Series): Volume Price Confirmation values.
             vpr (pd.Series): Volume Price Ratio values.
             vpci (pd.Series): VPCI values.
-
         Returns:
-            np.ndarray: Adjusted price levels based 
-              on volume-price interaction.
+            np.ndarray: Adjusted price levels based on 
+              volume-price interaction.
         """
-        # Convert pandas Series to NumPy arrays for faster processing
-        low_np = data.low_prices.to_numpy()
-        vpc_np = vpc.to_numpy()
-        vpr_np = vpr.to_numpy()
-        vpci_np = vpci.to_numpy()
-        # Vectorized calculation of lenV
-        lenV = np.where(
-            np.isnan(vpci_np), 1,  # Prevent division by zero
+        # Convert pandas Series to NumPy arrays
+        # for faster processing
+        low_np, vpc_np, vpr_np, vpci_np = (
+            s.to_numpy() for s in (data.low_prices, vpc, vpr, vpci)
+        )
+        # Compute `lenV` (Volume Confirmation Length)
+        lenV = self.compute_len_v(vpc_np, vpci_np)
+        # Compute `VPCc` (Adjusted Volume Confirmation Coefficient)
+        VPCc = self.compute_vpcc(vpc_np)
+        # Call the optimized JIT helper function
+        return _compute_price_v(low_np, vpr_np, lenV, VPCc)
+
+    @staticmethod
+    def compute_len_v(
+        vpc: NDArray, 
+        vpci: NDArray
+    ) -> NDArray:
+        """
+        Computes volume confirmation length (`lenV`) 
+          using vectorized calculations.
+        Args:
+            vpc (np.ndarray): Volume Price 
+              Confirmation values.
+            vpci (np.ndarray): VPCI values.
+        Returns:
+            np.ndarray: Computed length values.
+        """
+        return np.where(
+            # Prevent division by zero
+            np.isnan(vpci), 1,  
             np.where(
-                vpc_np < 0,
-                np.round(np.abs(vpci_np - 3)).astype(np.int32),
-                np.round(vpci_np + 3).astype(np.int32),
+                vpc < 0,
+                np.round(np.abs(vpci - 3)).astype(np.int32),
+                np.round(vpci + 3).astype(np.int32),
             )
         )
-        # Vectorized calculation of VPCc
-        VPCc = np.where(
-            (vpc_np > -1) & (vpc_np < 0),
+
+    @staticmethod
+    def compute_vpcc(vpc: np.ndarray) -> np.ndarray:
+        """
+        Computes adjusted Volume Price 
+          Confirmation Coefficient (`VPCc`).
+        Args:
+            vpc (np.ndarray): Volume Price Confirmation values.
+        Returns:
+            np.ndarray: Adjusted VPC coefficients.
+        """
+        return np.where(
+            (vpc > -1) & (vpc < 0),
             -1.0,
             np.where(
                 (
-                    vpc_np >= 0
+                    vpc >= 0
                 ) & (
-                    vpc_np < 1
-                ), 1.0, vpc_np
+                    vpc < 1
+                ),
+                1.0, vpc
             ),
-        )
-        # Call the optimized JIT helper function
-        return _compute_price_v(
-            low_np, vpr_np, lenV, VPCc
         )
 
     def get_last_avsl_signal(
-            self, 
-            data: PriceDataFrame, 
-            config: AvslConfigDM
-        ) -> float | None:
+        self, 
+        data: PriceDataFrame, 
+        config: AvslConfigDM
+    ) -> float | None:
         """
         Retrieves the AVSL value on the last bar.
         Args:
             data (PriceDataFrame): Market data with price information.
             config (AvslConfigDM): Configuration settings for AVSL.
         Returns:
-            float | None: AVSL value of the last bar if available, otherwise None.
+            float | None: AVSL value of the last bar 
+              if available, otherwise None.
         """
         # Compute AVSL values
         avsl_df = self.calculate_avsl(data, config)
@@ -177,9 +224,6 @@ class AVSL:
             return None
         return avsl_df["avsl"].iloc[-1]
 
-
-from numba import njit
-import numpy as np
 
 @njit
 def _compute_price_v(
@@ -190,7 +234,6 @@ def _compute_price_v(
 ) -> NDArray:
     """
     Optimized price computation using Numba JIT for speed.
-
     Args:
         low (np.ndarray): Array of low prices.
         vpr (np.ndarray): Volume Price Ratio.
@@ -206,8 +249,8 @@ def _compute_price_v(
         if L > 0:
             s = np.sum(
                 np.divide(
-                    low[max(0, i - L + 1): i + 1], 
-                    VPCc[i] * vpr[max(0, i - L + 1): i + 1], 
+                    low[max(0, i - L + 1): i + 1],
+                    VPCc[i] * vpr[max(0, i - L + 1): i + 1],
                     out=np.zeros_like(
                         low[max(0, i - L + 1): i + 1]
                     ),
@@ -216,7 +259,7 @@ def _compute_price_v(
                         VPCc[i] != 0
                     ) & (
                         vpr[max(0, i - L + 1): i + 1] != 0
-                    )
+                    )  
                 )
             )
             out[i] = s / L / 100.0
