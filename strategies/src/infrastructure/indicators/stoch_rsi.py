@@ -120,8 +120,8 @@ class StochRSI:
         # Generate trading signals
         signals_df = self.create_signals(stoch_rsi_df)
         # Check the last signal and return appropriate action
-        if signals_df["Buy Signals"].iloc[-1] == 1:
+        if signals_df["buy_signals"].iloc[-1] == 1:
             return "long"
-        elif signals_df["Sell Signals"].iloc[-1] == 1:
+        elif signals_df["sell_signals"].iloc[-1] == 1:
             return "short"
         return None
