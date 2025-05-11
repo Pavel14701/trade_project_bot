@@ -220,7 +220,7 @@ class AVSL:
         # Compute AVSL values
         avsl_df = self.calculate_avsl(data, config)
         # Ensure AVSL is not empty before retrieving the last value
-        if avsl_df.empty or pd.isna(avsl_df["avsl"].iloc[-1]):
+        if avsl_df.empty or "avsl" not in avsl_df.columns or pd.isna(avsl_df["avsl"].iloc[-1]):
             return None
         return avsl_df["avsl"].iloc[-1]
 
