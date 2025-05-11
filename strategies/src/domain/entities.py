@@ -72,8 +72,8 @@ class AdxConfigDM:
 
 @dataclass(slots=True, frozen=True)
 class AvslConfigDM:
-    lenght_fast: int
-    lenght_slow: int
+    length_fast: int
+    length_slow: int
     stand_div: float
 
 
