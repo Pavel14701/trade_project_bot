@@ -153,40 +153,9 @@ class AVSL:
             ),
         )
         # Call the optimized JIT helper function
-        return self._compute_price_v(
+        return _compute_price_v(
             low_np, vpr_np, lenV, VPCc
         )
-
-    @njit
-    def _compute_price_v(
-        low: np.ndarray,
-        vpr: np.ndarray,
-        lenV: np.ndarray,
-        VPCc: np.ndarray,
-    ) -> np.ndarray:
-        """
-        Optimized price computation using Numba JIT for speed.
-        Args:
-            low (np.ndarray): Array of low prices.
-            vpr (np.ndarray): Volume Price Ratio.
-            lenV (np.ndarray): Length value for price calculation.
-            VPCc (np.ndarray): Adjusted VPC coefficient.
-        Returns:
-            np.ndarray: Optimized price values.
-        """
-        n = low.shape[0]
-        out = np.empty(n, dtype=np.float64)
-        for i in range(n):
-            L = lenV[i]
-            if L > 0:
-                s = 0.0
-                # Optimized summation using NumPy slicing
-                for j in range(max(0, i - L + 1), i + 1):
-                    s += low[j] / VPCc[i] / vpr[j]
-                out[i] = s / L / 100.0
-            else:
-                out[i] = low[i]
-        return out
 
     def get_last_avsl_signal(
             self, 
@@ -207,3 +176,50 @@ class AVSL:
         if avsl_df.empty or pd.isna(avsl_df["avsl"].iloc[-1]):
             return None
         return avsl_df["avsl"].iloc[-1]
+
+
+from numba import njit
+import numpy as np
+
+@njit
+def _compute_price_v(
+    low: NDArray, 
+    vpr: NDArray, 
+    lenV: NDArray, 
+    VPCc: NDArray
+) -> NDArray:
+    """
+    Optimized price computation using Numba JIT for speed.
+
+    Args:
+        low (np.ndarray): Array of low prices.
+        vpr (np.ndarray): Volume Price Ratio.
+        lenV (np.ndarray): Length value for price calculation.
+        VPCc (np.ndarray): Adjusted VPC coefficient.
+    Returns:
+        np.ndarray: Optimized price values.
+    """
+    n = low.shape[0]
+    out = np.empty(n, dtype=np.float64)
+    for i in range(n):
+        L = lenV[i]
+        if L > 0:
+            s = np.sum(
+                np.divide(
+                    low[max(0, i - L + 1): i + 1], 
+                    VPCc[i] * vpr[max(0, i - L + 1): i + 1], 
+                    out=np.zeros_like(
+                        low[max(0, i - L + 1): i + 1]
+                    ),
+                    # Prevent division by zero
+                    where=(
+                        VPCc[i] != 0
+                    ) & (
+                        vpr[max(0, i - L + 1): i + 1] != 0
+                    )
+                )
+            )
+            out[i] = s / L / 100.0
+        else:
+            out[i] = low[i]
+    return out
