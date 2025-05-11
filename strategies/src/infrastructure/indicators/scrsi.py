@@ -102,9 +102,12 @@ class SmoothCicleRsi:
                 crsi_clean[:cyclicmemory]
             ) > 0 else 100
         )
-        # Ensure arrays are 1D before storing results
-        crsi = crsi.flatten()
-        rsi_scaled = rsi_scaled.flatten()
+        # Ensure arrays are 1D before storing results 
+        # without misaligning indices
+        if getattr(crsi, "ndim", 1) > 1:
+            crsi = crsi.flatten()
+        if getattr(rsi_scaled, "ndim", 1) > 1:
+            rsi_scaled = rsi_scaled.flatten()
         return pd.DataFrame({
             'CRSI Scaled': rsi_scaled,
             'Lower Bound': db,

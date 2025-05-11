@@ -117,8 +117,8 @@ class AccelerationBands:
         # Generate buy/sell signals
         signals_df = self.generate_signals(acc_bands_df)
         # Determine the last signal based on recent price action
-        if signals_df["Buy Signals"].iloc[-1] == 1:
+        if signals_df["buy_signals"].iloc[-1] == 1:
             return "long"
-        elif signals_df["Sell Signals"].iloc[-1] == 1:
+        elif signals_df["sell_signals"].iloc[-1] == 1:
             return "short"        
         return None

@@ -40,11 +40,11 @@ class OrderBlockDetector:
         config: OrderBlockDetectorDM
     ) -> pd.DataFrame:
         """
-        Detects peaks and valleys in price data using 
-          ZigZag pattern analysis.
+        Detects peaks and valleys in price data 
+          using ZigZag pattern analysis.
         Args:
-            data (PriceDataFrame): Market price 
-              dataset containing high, low prices.
+            data (PriceDataFrame): Market price dataset 
+              containing high and low prices.
             config (OrderBlockDetectorDM): Configuration 
               settings for peak detection.
         Returns:
@@ -53,22 +53,14 @@ class OrderBlockDetector:
         # Detect peaks (local maxima) in high prices
         peaks, _ = find_peaks(
             x=data.high_prices, 
-            # Minimum peak height required
-            height=config.height,         
-            # Minimum threshold difference between neighboring values
+            height=config.height,
             threshold=config.threshould,
-            # Minimum separation distance between peaks
-            distance=config.distance,       
-            # Strength of peaks based on prominence
+            distance=config.distance,
             prominence=config.peak_prominance,
-            # Minimum width of peaks  
-            width=config.width,             
-            # Window length for peak detection
-            wlen=config.wlen,               
-            # Relative height for peak filtering
-            rel_height=config.rel_height,   
-            # Minimum plateau size for peak determination
-            plateau_size=config.plateu_size 
+            width=config.width,
+            wlen=config.wlen,
+            rel_height=config.rel_height,
+            plateau_size=config.plateu_size
         )
         # Detect valleys (local minima) in low prices
         valleys, _ = find_peaks(
@@ -76,21 +68,17 @@ class OrderBlockDetector:
             height=config.height,
             threshold=config.threshould,
             distance=config.distance,
-            # Strength of valleys based on prominence
             prominence=config.valley_prominance,
             width=config.width,
             wlen=config.wlen,
             rel_height=config.rel_height,
             plateau_size=config.plateu_size
         )
-        # Initialize arrays to store peak and valley values
-        # Fill with NaN initially
+        # Initialize arrays to store detected peaks and valleys
         peaks_array = np.full_like(data.high_prices, np.nan)
-        # Fill with NaN initially
         valleys_array = np.full_like(data.low_prices, np.nan)
-        # Assign detected peak and valley values
-        peaks_array[peaks] = data.high_prices[peaks]
-        valleys_array[valleys] = data.low_prices[valleys]
+        peaks_array[peaks] = data.high_prices.iloc[peaks]
+        valleys_array[valleys] = data.low_prices.iloc[valleys]
         return pd.DataFrame(
             {"peaks": peaks_array, "valleys": valleys_array},
             index=data.index

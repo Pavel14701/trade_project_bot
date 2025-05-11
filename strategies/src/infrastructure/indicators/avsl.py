@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from numba import njit
 from numpy.typing import NDArray
 import pandas_ta as ta
 
@@ -102,6 +103,7 @@ class AVSL:
         )
         return pd.DataFrame({"avsl": avsl}, index=data.index)
 
+
     def _price_fun(
         self,
         data: PriceDataFrame,
@@ -110,43 +112,81 @@ class AVSL:
         vpci: pd.Series,
     ) -> NDArray:
         """
-        Custom price function for AVSL calculation.
+        Optimized price adjustment function using 
+          vectorized calculations and a 
+          Numba-jitted helper.
+
         Args:
             data (PriceDataFrame): Market price dataset.
             vpc (pd.Series): Volume Price Confirmation values.
             vpr (pd.Series): Volume Price Ratio values.
             vpci (pd.Series): VPCI values.
+
         Returns:
-            NDArray: Adjusted price levels based on volume-price interaction.
+            np.ndarray: Adjusted price levels based 
+              on volume-price interaction.
         """
-        PriceV = np.zeros_like(vpc)
-        for i in range(len(vpc)):
-            if np.isnan(vpci.iloc[i]):
-                lenV = 0
+        # Convert pandas Series to NumPy arrays for faster processing
+        low_np = data.low_prices.to_numpy()
+        vpc_np = vpc.to_numpy()
+        vpr_np = vpr.to_numpy()
+        vpci_np = vpci.to_numpy()
+        # Vectorized calculation of lenV
+        lenV = np.where(
+            np.isnan(vpci_np), 1,  # Prevent division by zero
+            np.where(
+                vpc_np < 0,
+                np.round(np.abs(vpci_np - 3)).astype(np.int32),
+                np.round(vpci_np + 3).astype(np.int32),
+            )
+        )
+        # Vectorized calculation of VPCc
+        VPCc = np.where(
+            (vpc_np > -1) & (vpc_np < 0),
+            -1.0,
+            np.where(
+                (
+                    vpc_np >= 0
+                ) & (
+                    vpc_np < 1
+                ), 1.0, vpc_np
+            ),
+        )
+        # Call the optimized JIT helper function
+        return self._compute_price_v(
+            low_np, vpr_np, lenV, VPCc
+        )
+
+    @njit
+    def _compute_price_v(
+        low: np.ndarray,
+        vpr: np.ndarray,
+        lenV: np.ndarray,
+        VPCc: np.ndarray,
+    ) -> np.ndarray:
+        """
+        Optimized price computation using Numba JIT for speed.
+        Args:
+            low (np.ndarray): Array of low prices.
+            vpr (np.ndarray): Volume Price Ratio.
+            lenV (np.ndarray): Length value for price calculation.
+            VPCc (np.ndarray): Adjusted VPC coefficient.
+        Returns:
+            np.ndarray: Optimized price values.
+        """
+        n = low.shape[0]
+        out = np.empty(n, dtype=np.float64)
+        for i in range(n):
+            L = lenV[i]
+            if L > 0:
+                s = 0.0
+                # Optimized summation using NumPy slicing
+                for j in range(max(0, i - L + 1), i + 1):
+                    s += low[j] / VPCc[i] / vpr[j]
+                out[i] = s / L / 100.0
             else:
-                lenV = int(
-                    round(abs(vpci.iloc[i] - 3))
-                ) if vpc.iloc[i] < 0 else round(
-                    vpci.iloc[i] + 3
-                )
-            VPCc = -1 if (
-                vpc.iloc[i] > -1
-            ) & (
-                vpc.iloc[i] < 0
-            ) else 1 if (
-                vpc.iloc[i] < 1
-            ) & (
-                vpc.iloc[i] >= 0
-            ) else vpc.iloc[i]
-            Price = np.sum(
-                data.low_prices.iloc[
-                    i - lenV + 1:i + 1
-                ] / VPCc / vpr.iloc[
-                    i - lenV + 1:i + 1
-                ]
-            ) if lenV > 0 else data.low_prices.iloc[i]
-            PriceV[i] = Price / lenV / 100 if lenV > 0 else Price
-        return PriceV
+                out[i] = low[i]
+        return out
 
     def get_last_avsl_signal(
             self, 
