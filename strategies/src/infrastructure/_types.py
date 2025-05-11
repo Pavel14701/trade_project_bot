@@ -1,7 +1,7 @@
-from pandas import DataFrame, Index, Series, to_datetime
+from typing import Union
+import pandas as pd
 
-
-class PriceDataFrame(DataFrame):
+class PriceDataFrame(pd.DataFrame):
     """
     Кастомный DataFrame с автоматической обработкой
     типов QuestDB и доступом к колонкам через атрибуты.
@@ -16,7 +16,7 @@ class PriceDataFrame(DataFrame):
         Приводим типы данных в соответствие
         с таблицей QuestDB.
         """
-        self["date"] = to_datetime(self["date"])
+        self["date"] = pd.to_datetime(self["date"])
         self["open_price"] = self["open_price"].astype(float)
         self["close_price"] = self["close_price"].astype(float)
         self["high_price"] = self["high_price"].astype(float)
@@ -25,29 +25,29 @@ class PriceDataFrame(DataFrame):
         self["turnover"] = self["turnover"].astype(float)
 
     @property
-    def date(self) -> Index:
+    def date(self) -> pd.Index:
         return self.index
 
     @property
-    def open_price(self) -> Series:
+    def open_price(self) -> pd.Series:
         return self["open_price"]
 
     @property
-    def close_price(self) -> Series:
+    def close_prices(self) -> pd.Series:
         return self["close_price"]
 
     @property
-    def high_price(self) -> Series:
+    def high_prices(self) -> pd.Series:
         return self["high_price"]
 
     @property
-    def low_price(self) -> Series:
+    def low_prices(self) -> pd.Series:
         return self["low_price"]
 
     @property
-    def volume(self) -> Series:
+    def volumes(self) -> pd.Series:
         return self["volume"]
 
     @property
-    def turnover(self) -> Series:
+    def turnover(self) -> pd.Series:
         return self["turnover"]

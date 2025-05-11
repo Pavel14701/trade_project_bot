@@ -14,17 +14,21 @@ dependencies = [
     "fastapi>=0.115.12",
     "faststream>=0.5.39",
     "httpx>=0.28.1",
+    "matplotlib>=3.10.3",
     "mypy>=1.15.0",
+    "numba>=0.61.2",
     "pandas>=2.2.3",
     "pandas-stubs>=2.2.3.250308",
     "pandas-ta>=0.3.14b0",
     "psycopg>=3.2.6",
     "redis>=5.2.1",
     "ruff>=0.11.7",
+    "scipy>=1.15.3",
     "sqlalchemy>=2.0.40",
     "ta-lib>=0.6.3",
     "uvicorn>=0.34.2",
     "websockets>=15.0.1",
+    "yfinance>=0.2.59",
 ]
 
 [tool.setuptools]

@@ -11,7 +11,7 @@ from main_app.src.domain.entities import (
     UserSignupDM,
     WebSocketDM,
 )
-from main_app.src.infrastructure.types import (
+from main_app.src.infrastructure._types import (
     ExceptionType,
     GuestSessionData,
     GuestSessionID,
