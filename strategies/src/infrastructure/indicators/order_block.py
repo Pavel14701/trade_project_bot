@@ -54,7 +54,7 @@ class OrderBlockDetector:
         peaks, _ = find_peaks(
             x=data.high_prices, 
             height=config.height,
-            threshold=config.threshould,
+            threshold=config.threshold,
             distance=config.distance,
             prominence=config.peak_prominance,
             width=config.width,
@@ -66,7 +66,7 @@ class OrderBlockDetector:
         valleys, _ = find_peaks(
             x=data.low_prices, 
             height=config.height,
-            threshold=config.threshould,
+            threshold=config.threshold,
             distance=config.distance,
             prominence=config.valley_prominance,
             width=config.width,

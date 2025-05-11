@@ -101,10 +101,8 @@ class OrderBlockDetectorDM:
     width: int = 1
     distance: int = 3 
     height:  Any | None = None
-    threshould: Any | None = None
-    distance: Any | None = None
+    threshold: Any | None = None
     prominence: Any | None = None
-    width: Any | None = None
     wlen: Any | None = None
     rel_height: float = 0.5
     plateu_size: Any | None  = None
