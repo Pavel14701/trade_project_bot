@@ -1,4 +1,4 @@
-import pandas_ta as ta
+import pandas_ta as ta  # type: ignore
 import pandas as pd
 
 from strategies.src.domain.entities import AdxConfigDM
@@ -48,39 +48,33 @@ class ADXTrend:
             ValueError: If the ADX calculation returns missing 
               values for any required component.
         """
-        # Compute ADX and its components using pandas-ta
-        adx_ind = ta.adx(
+        adx_ind = ta.adx( #type: ignore
             high=data.high_prices,
             low=data.low_prices,
             close=data.close_prices,
             length=config.length,
-            # Signal length for ADX smoothing
             lensig=config.lensig,
-            # Scaling factor for values
             scalar=config.scalar,  
-            # Moving average mode (e.g., EMA, SMA)
             mamode=config.mamode,  
             drift=config.drift,
             offset=config.offset
         )
-        #  Validate if all required components exist
-        if missing_indicators := [
-            indicator
-            for indicator in ["ADX", "DMP", "DMN"]
-            if adx_ind.get(f"{indicator}_{config.length}") is None
-        ]:
+        if adx_ind is None:
+            raise ValueError("ADX calculation failed — result is None")
+        required_keys = {
+            "adx": f"ADX_{config.lensig}",
+            "dmp": f"DMP_{config.length}",
+            "dmn": f"DMN_{config.length}",
+        }
+        missing = [k for k, v in required_keys.items() if adx_ind.get(v) is None] # type: ignore
+        if missing:
             raise ValueError(
                 f"""Error: Missing required ADX components: 
-                {', '.join(missing_indicators)}."""
+                {', '.join(missing)}."""
             )
-        # Return structured DataFrame
         return pd.DataFrame(
-            {
-                "adx": adx_ind[f"ADX_{config.lensig}"],
-                "dmp": adx_ind[f"DMP_{config.length}"],
-                "dmn": adx_ind[f"DMN_{config.length}"],
-            },
-            index=data.index
+            {k: adx_ind[v] for k, v in required_keys.items()},
+            index=data.index  # type: ignore
         )
 
     def get_signal(self, adx_trigger: int, data: pd.DataFrame) -> bool:
@@ -92,4 +86,4 @@ class ADXTrend:
         Returns:
             bool: True if ADX exceeds the threshold, False otherwise.
         """
-        return int(data["adx"].iloc[-1]) >= adx_trigger
+        return int(data["adx"].iloc[-1]) >= adx_trigger  # type: ignore

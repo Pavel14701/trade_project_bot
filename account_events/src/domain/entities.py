@@ -1,14 +1,14 @@
 from dataclasses import asdict, dataclass
-from typing import Self
+from typing import Self, Any
 
 
 @dataclass(slots=True)
 class BaseDataClass:
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
-    def replace(cls, instance: Self, **kwargs) -> Self:
+    def replace(cls, instance: Self, **kwargs: Any) -> Self:
         return cls(**{**instance.to_dict(), **kwargs})
 
 

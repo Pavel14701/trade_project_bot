@@ -65,7 +65,7 @@ class SaveOkxListnerConfigInteractor:
         session: ISession,
         listner_repo: IOkxListner,
         encryptor: IConfigEncryption,
-        exc_handler: IErrorHandler
+        exc_handler: IErrorHandler[UserGetManyConnections]
     ) -> None:
         self._session = session
         self._listner_repo = listner_repo
@@ -121,7 +121,7 @@ class SignupInteractor:
         session: ISession,
         security: ISecurity,
         user_repo: IUser,
-        exc_handler: IErrorHandler 
+        exc_handler: IErrorHandler[UserAlreadyExistsError] 
     ) -> None:
         self._session = session
         self._security = security

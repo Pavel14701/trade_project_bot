@@ -1,6 +1,6 @@
 import json
 from dataclasses import asdict
-from typing import Optional
+from typing import Optional, Any, cast
 from uuid import UUID, uuid4
 
 from fastapi import Request, Response
@@ -52,7 +52,7 @@ class RedisSessionBackend(ISessionBackend[UUID, SessionData]):
         await self._redis.delete(session_id.hex)
 
 
-class GuestSessionBackend(IGuestSessionBackend[UUID, dict]):
+class GuestSessionBackend(IGuestSessionBackend[UUID, dict[str, Any]]):
     """Handles guest session management using CookieManager."""
 
     def __init__(self, cookie_manager: CookieRepo):
@@ -63,7 +63,7 @@ class GuestSessionBackend(IGuestSessionBackend[UUID, dict]):
         session_id = uuid4()
         self._cookie_manager.set_cookie(
             response=response, 
-            key=self._cookie_manager._GUEST_COOKIE, 
+            key=self._cookie_manager.GUEST_COOKIE, 
             value=str(session_id)
         )
         return session_id
@@ -72,7 +72,7 @@ class GuestSessionBackend(IGuestSessionBackend[UUID, dict]):
         """Retrieves the current guest session."""
         session_id = self._cookie_manager.get_cookie(
             request=request, 
-            key=self._cookie_manager._GUEST_COOKIE
+            key=self._cookie_manager.GUEST_COOKIE
         )
         return UUID(session_id) if session_id else None
 
@@ -80,30 +80,28 @@ class GuestSessionBackend(IGuestSessionBackend[UUID, dict]):
         """Deletes the guest session."""
         self._cookie_manager.delete_cookie(
             response=response, 
-            key=self._cookie_manager._GUEST_COOKIE
+            key=self._cookie_manager.GUEST_COOKIE
         )
         self._cookie_manager.delete_cookie(
             response=response, 
-            key=self._cookie_manager._DATA_COOKIE
+            key=self._cookie_manager.DATA_COOKIE
         )
 
     def update_guest_data(
-            self, 
-            request: Request,
-            response: Response, 
-            new_data: dict
-        ) -> None:
+        self, 
+        request: Request,
+        response: Response, 
+        new_data: dict[str, Any]
+    ) -> None:
         """Updates guest data while preserving existing information."""
         raw_data = self._cookie_manager.get_cookie(
             request=request, 
-            key=self._cookie_manager._DATA_COOKIE
+            key=self._cookie_manager.DATA_COOKIE
         )
-        current_data = json.loads(
-            raw_data
-        ) if raw_data else {}
+        current_data = cast(dict[str, Any], json.loads(raw_data)) if raw_data else {}
         current_data.update(new_data)
         self._cookie_manager.set_cookie(
             response=response, 
-            key=self._cookie_manager._DATA_COOKIE, 
+            key=self._cookie_manager.DATA_COOKIE, 
             value=json.dumps(current_data)
         )

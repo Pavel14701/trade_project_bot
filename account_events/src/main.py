@@ -1,5 +1,5 @@
 from dishka import make_async_container
-from dishka.integrations.faststream import setup_dishka
+from dishka.integrations.faststream import setup_dishka #type: ignore
 from faststream import FastStream
 from faststream.rabbit import RabbitBroker
 

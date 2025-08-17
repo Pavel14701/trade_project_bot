@@ -1,4 +1,5 @@
 import json
+from typing import cast
 
 from redis.asyncio import Redis
 
@@ -35,12 +36,8 @@ class ConnectionStorageGateway:
         Удаляет WebSocket-конфигурацию пользователя из Redis.
         """
         async with self._conn as conn:
-            await conn.delete(names=f"user_connection:{user_id}")
+            await conn.delete(f"user_connection:{user_id}")
 
     async def get_active_connections(self) -> list[int]:
-        """
-        Получает список всех активных подключений из Redis.
-        """
-        async with self._conn as conn:
-            keys: list[bytes] = await conn.keys(pattern="user_connection:*")
+        keys = cast(list[bytes], await self._conn.keys(pattern="user_connection:*")) #type: ignore
         return [int(key.decode().split(":")[-1]) for key in keys]

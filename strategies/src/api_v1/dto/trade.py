@@ -48,6 +48,7 @@ class PlaceOrderDTO:
 @dataclass(slots=True, frozen=True)
 class AmendOrderDTO:
     instId: str
+    attachAlgoOrds: list["AttachAlgoOrds"]
     cxlOnFail: bool | None = None
     ordId: str | None = None
     clOrdId: str | None = None
@@ -56,7 +57,6 @@ class AmendOrderDTO:
     newPx: str | None = None
     newPxUsd: str | None = None
     newPxVol: str | None = None
-    attachAlgoOrds: list["AttachAlgoOrds"]
 
 
 @dataclass(slots=True, frozen=True)
@@ -83,8 +83,8 @@ class CancelOrerDTO:
 @dataclass(frozen=True, slots=True)
 class ClosePositionsDTO:
     instId: str
-    posSide: str | None = None
     mgnMode: str
+    posSide: str | None = None
     ccy: str | None = None
     autoCxl: bool | None = None
     clOrdId: str | None = None

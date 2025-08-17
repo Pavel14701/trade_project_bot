@@ -1,6 +1,7 @@
+from typing import cast
 import numpy as np
 import pandas as pd
-import pandas_ta as ta
+import pandas_ta as ta #type: ignore
 
 from strategies.src.domain.entities import RsiCloudsConfigDM
 from strategies.src.infrastructure._types import PriceDataFrame
@@ -26,7 +27,7 @@ class RsiClouds:
     - Combines two powerful indicators (RSI + MACD) for enhanced signal accuracy.
     """
 
-    def prepare_data(self, data: PriceDataFrame) -> pd.Series:
+    def prepare_data(self, data: PriceDataFrame) -> pd.Series[float]:
         """
         Creates the average price series from OHLC values.
         Args:
@@ -37,7 +38,7 @@ class RsiClouds:
         """
         # Computes the mean price from open, high, low, and close.
         return (
-            data.low_prices + 
+            data.low_prices +  # type: ignore
             data.high_prices + 
             data.open_price + 
             data.close_prices
@@ -50,21 +51,21 @@ class RsiClouds:
     ) -> pd.DataFrame:
         """
         Computes RSI and MACD based on the average price.
+
         Args:
             data (PriceDataFrame): Market price dataset.
-            config (RsiCloudsConfigDM): RSI Clouds 
-              configuration settings.
+            config (RsiCloudsConfigDM): RSI Clouds configuration settings.
+
         Returns:
-            pd.DataFrame: A DataFrame containing 
-              RSI values and MACD indicators.
+            pd.DataFrame: A DataFrame containing RSI values and MACD indicators.
         """
         # Prepare average price data
-        ohlc = pd.DataFrame(
+        ohlc: pd.DataFrame = pd.DataFrame(
             data={"avg": self.prepare_data(data)}, 
             index=data.date
         )
         # Compute RSI based on average price
-        ohlc['rsi'] = ta.rsi(
+        ohlc["rsi"] = ta.rsi( # type: ignore
             close=ohlc["avg"], 
             length=config.rsi_length, 
             scalar=config.scalar,
@@ -73,24 +74,27 @@ class RsiClouds:
             talib=config.talib
         )
         # Compute MACD based on RSI values
-        macd_ind = ta.macd(
-            close=ohlc['rsi'],
+        macd_ind = ta.macd( # type: ignore
+            close=ohlc["rsi"],
             fast=config.macd_fast, 
             slow=config.macd_slow, 
             signal=config.macd_signal,
             talib=config.talib, 
             offset=config.offset
         )
+        # Validate MACD result
+        if macd_ind is None:
+            raise ValueError("MACD calculation failed")
         # Rename MACD components for clarity
         suffixes = {"": "macd_line", "s": "macd_signal", "h": "histogram"}
-        ohlc = ohlc.join(macd_ind.rename(columns={
-            f"MACD{suffix}_{config.macd_fast}_"
-            f"{config.macd_slow}_{config.macd_signal}": name
+        macd_renamed: pd.DataFrame = macd_ind.rename(columns={
+            f"MACD{suffix}_{config.macd_fast}_{config.macd_slow}_{config.macd_signal}": name
             for suffix, name in suffixes.items()
-        }))
-        # Free up memory
-        del macd_ind  
+        })
+        # Concatenate MACD data with main OHLC structure
+        ohlc = pd.concat([ohlc, macd_renamed], axis=1)
         return ohlc
+
 
     def create_signals(self, ohlc: pd.DataFrame) -> pd.DataFrame:
         """
@@ -107,8 +111,8 @@ class RsiClouds:
               with trading signals.
         """
         # Extract previous MACD values for crossover detection
-        prev_macd_line = ohlc['macd_line'].shift(1)
-        prev_macd_signal = ohlc['macd_signal'].shift(1)
+        prev_macd_line = cast(pd.Series[float], ohlc['macd_line'].shift(1)) # type: ignore
+        prev_macd_signal = cast(pd.Series[float], ohlc['macd_signal'].shift(1)) # type: ignore
         # Identify MACD signal line crossovers
         ohlc['macd_cross_signal'] = np.select(
             [
@@ -130,8 +134,8 @@ class RsiClouds:
         # Identify histogram crossing zero
         ohlc['histogram_cross_zero'] = np.select(
             [
-                (ohlc['histogram'].shift(1) < 0) & (ohlc['histogram'] > 0),
-                (ohlc['histogram'].shift(1) > 0) & (ohlc['histogram'] < 0),
+                (ohlc['histogram'].shift(1) < 0) & (ohlc['histogram'] > 0),  # type: ignore
+                (ohlc['histogram'].shift(1) > 0) & (ohlc['histogram'] < 0), # type: ignore
             ],
             # 1 → Uptrend confirmation, -1 → Downtrend confirmation
             [1, -1],  
@@ -152,7 +156,8 @@ class RsiClouds:
         # Ensure data is available
         if ohlc.empty:
             return None
-        last_macd_signal = ohlc['macd_cross_signal'].iloc[-1]
+        macd_series = cast(pd.Series[int], ohlc['macd_cross_signal'])
+        last_macd_signal: int = macd_series.iloc[-1]
         if last_macd_signal == 1:
             return "buy"
         elif last_macd_signal == -1:

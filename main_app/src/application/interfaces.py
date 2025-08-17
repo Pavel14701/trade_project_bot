@@ -43,7 +43,7 @@ class IUser(Protocol):
 class ISecurity(Protocol):
     """Interface for password security management."""
 
-    async def verify_password(self, password: PasswordDM) -> None:
+    async def verify_password(self, model: PasswordDM) -> None:
         """Verifies the correctness of a password."""
         ...
 

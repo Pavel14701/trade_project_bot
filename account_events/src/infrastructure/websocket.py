@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import json
 import time
-from typing import Dict
+from typing import Dict, Any
 
 import websockets
 from faststream.rabbit import RabbitBroker
@@ -59,7 +59,7 @@ class OKXWebsocketsChannelGateway:
         websocket = self.websocket_sessions.get(config.user_id)
         if not websocket:
             return
-        subscriptions: list[dict] = [
+        subscriptions: list[dict[str, Any]] = [
             {"channel": event, "instType": config.instType}
             if event in ["positions", "liquidation-warning"]
             else {"channel": event}

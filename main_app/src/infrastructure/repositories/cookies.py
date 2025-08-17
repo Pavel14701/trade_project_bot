@@ -6,9 +6,9 @@ from main_app.src.application.interfaces import ICookieBackend
 class CookieRepo(ICookieBackend):
     """Class for managing cookies: guest and authenticated sessions."""
     
-    _GUEST_COOKIE = "guest_session"
-    _AUTH_COOKIE = "auth_session"
-    _DATA_COOKIE = "guest_data"
+    GUEST_COOKIE = "guest_session"
+    AUTH_COOKIE = "auth_session"
+    DATA_COOKIE = "guest_data"
 
     def set_cookie(
         self, 

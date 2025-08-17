@@ -1,3 +1,4 @@
+from typing import Any
 from dishka.integrations.faststream import FromDishka, inject
 from faststream.rabbit import RabbitRouter
 
@@ -19,7 +20,7 @@ class AccountEventsRoutes:
     @inject
     async def websocket_task(
         self,
-        config: dict,
+        config: dict[str, Any],
         interactor: FromDishka[AccountEventsSubscriberInteractor],
     ) -> bool:
         """
@@ -34,7 +35,7 @@ class AccountEventsRoutes:
     @inject
     async def update_subscriptions(
         self,
-        data: dict,
+        data: dict[str, Any],
         interactor: FromDishka[AccountEventsUpdaterInteractor]
     ) -> bool:
         """
@@ -48,7 +49,7 @@ class AccountEventsRoutes:
     @inject
     async def close_connection(
         self,
-        data: dict,
+        data: dict[str, Any],
         interactor: FromDishka[AccountEventsDeleterInteractor]
     ) -> bool:
         user_id = data['user_id']

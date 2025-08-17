@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from argon2 import PasswordHasher
 from cryptography.fernet import Fernet
-from dishka import AnyOf, Provider, Scope, from_context, provide
+from dishka import AnyOf, Provider, Scope, from_context, provide #type: ignore
 from faststream.rabbit import RabbitBroker
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -34,10 +34,12 @@ from main_app.src.infrastructure.repositories.user import UserRepo
 
 
 class AppProvider(Provider):
+    # Context-based singletons
     config = from_context(provides=Config, scope=Scope.APP)
     broker = from_context(provides=RabbitBroker, scope=Scope.APP)
     password_hasher = from_context(provides=PasswordHasher, scope=Scope.APP)
 
+    # Core utilities
     @provide(scope=Scope.APP)
     def get_uuid_generator(self) -> interfaces.UUIDGenerator:
         return uuid4
@@ -56,17 +58,9 @@ class AppProvider(Provider):
         try:
             decoded_key = base64.urlsafe_b64decode(key)
         except Exception as e:
-            raise ValueError("""
-                Invalid Fernet encryption key: 
-                is not a valid URL-safe 
-                base64 string.
-            """) from e
+            raise ValueError("Invalid Fernet encryption key: not a valid URL-safe base64 string.") from e
         if len(decoded_key) != 32:
-            raise ValueError("""
-                Invalid Fernet encryption key: 
-                The decoded key must be 
-                exactly 32 bytes.
-            """)
+            raise ValueError("Invalid Fernet encryption key: must be exactly 32 bytes.")
         return Fernet(key)
 
     @provide(scope=Scope.APP)
@@ -74,52 +68,28 @@ class AppProvider(Provider):
         return config.secret
 
     @provide(scope=Scope.APP)
-    def get_session_maker(
-        self, 
-        config: Config
-    ) -> async_sessionmaker[AsyncSession]:
+    def get_session_maker(self, config: Config) -> async_sessionmaker[AsyncSession]:
         return new_session_maker(config.postgres)
 
     @provide(scope=Scope.REQUEST)
     async def get_session(
-        self, 
-        session_maker: async_sessionmaker[AsyncSession]
-    ) -> AsyncIterable[
-        AnyOf[AsyncSession, interfaces.ISession,]
-    ]:
+        self, session_maker: async_sessionmaker[AsyncSession]
+    ) -> AsyncIterable[AnyOf[AsyncSession, interfaces.ISession]]:
         async with session_maker() as session:
             yield session
 
-    for name, (provider, interface) in {
-        "cookie_repo": (
-            CookieRepo, interfaces.ICookieBackend
-        ),
-        "error_handler_repo": (
-            ExceptionHandlersRepo, interfaces.IErrorHandler
-        ),
-        "session_backend": (
-            RedisSessionBackend, interfaces.ISessionBackend
-        ),
-        "guest_session_backend": (
-            GuestSessionBackend, interfaces.IGuestSessionBackend
-        ),
-        "config_encryptor": (
-            ConfigEncryptionRepo, interfaces.IConfigEncryption
-        ),
-        "security_repo": (
-            SecurityRepo, interfaces.ISecurity
-        ),
-        "user_repo": (
-            UserRepo, interfaces.IUser
-        ),
-    }.items():
-        vars()[name] = provide(provider, scope=Scope.REQUEST, provides=interface)
+    # Repositories
+    cookie_repo = provide(CookieRepo, scope=Scope.REQUEST, provides=interfaces.ICookieBackend)
+    error_handler_repo = provide(ExceptionHandlersRepo, scope=Scope.REQUEST, provides=interfaces.IErrorHandler)
+    session_backend = provide(RedisSessionBackend, scope=Scope.REQUEST, provides=interfaces.ISessionBackend)
+    guest_session_backend = provide(GuestSessionBackend, scope=Scope.REQUEST, provides=interfaces.IGuestSessionBackend)
+    config_encryptor = provide(ConfigEncryptionRepo, scope=Scope.REQUEST, provides=interfaces.IConfigEncryption)
+    security_repo = provide(SecurityRepo, scope=Scope.REQUEST, provides=interfaces.ISecurity)
+    user_repo = provide(UserRepo, scope=Scope.REQUEST, provides=interfaces.IUser)
 
-    for name, interactor in {
-        "get_okx_listener_config": GetOkxListnerConfigsInteractor,
-        "save_okx_listener_config": SaveOkxListnerConfigInteractor,
-        "signup": SignupInteractor,
-        "login": LoginInteractor,
-        "get_user": GetUserInteractor,
-    }.items():
-        vars()[name] = provide(source=interactor, scope=Scope.REQUEST)
+    # Interactors
+    get_okx_listener_config = provide(source=GetOkxListnerConfigsInteractor, scope=Scope.REQUEST)
+    save_okx_listener_config = provide(source=SaveOkxListnerConfigInteractor, scope=Scope.REQUEST)
+    signup = provide(source=SignupInteractor, scope=Scope.REQUEST)
+    login = provide(source=LoginInteractor, scope=Scope.REQUEST)
+    get_user = provide(source=GetUserInteractor, scope=Scope.REQUEST)

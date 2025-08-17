@@ -11,7 +11,7 @@ def create_faststream_app(
     broker: RabbitBroker
 ) -> FastStream:
     faststream_app = FastStream(broker)
-    faststream_integration.setup_dishka(
+    faststream_integration.setup_dishka( #type: ignore
         container=container, 
         app=faststream_app, 
         auto_inject=True

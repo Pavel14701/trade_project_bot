@@ -1,7 +1,5 @@
 import talib as ta
 from pandas import DataFrame
-import pandas as pd
-import numpy as np
 
 from strategies.src.domain.entities import StochRsiConfigDM
 from strategies.src.infrastructure._types import PriceDataFrame
@@ -46,8 +44,8 @@ class StochRSI:
             DataFrame: A DataFrame containing the %K and %D values.
         """
         # Compute the Stochastic RSI components using TA-Lib
-        fastk, fastd = ta.STOCHRSI(
-            close=data.close_prices,
+        fastk, fastd = ta.STOCHRSI( # type: ignore
+            close=data.close_prices, # type: ignore
             # RSI calculation period
             timeperiod=config.timeperiod,
             # %K period (high-low RSI range)
@@ -57,7 +55,7 @@ class StochRSI:
             # Moving Average type for %D 
             fastd_matype=config.fastd_matype  
         )
-        return DataFrame({"fastk": fastk, "fastd": fastd}, index=data.index)
+        return DataFrame({"fastk": fastk, "fastd": fastd}, index=data.index) # type: ignore
 
     def create_signals(self, data: DataFrame) -> DataFrame:
         """
@@ -77,7 +75,7 @@ class StochRSI:
         buy_signals = (
             data['fastk'] > data['fastd']
         ) & (
-            data['fastk'].shift(1) < data['fastd'].shift(1)
+            data['fastk'].shift(1) < data['fastd'].shift(1) # type: ignore
         ) & (
             data['fastk'] < 20
         )
@@ -86,7 +84,7 @@ class StochRSI:
         sell_signals = (
             data['fastk'] < data['fastd']
         ) & (
-            data['fastk'].shift(1) > data['fastd'].shift(1)
+            data['fastk'].shift(1) > data['fastd'].shift(1) # type: ignore
         ) & (
             data['fastk'] > 80
         )
@@ -95,7 +93,7 @@ class StochRSI:
                 "buy_signals": buy_signals.astype(int), 
                 "sell_signals": sell_signals.astype(int)
             }, 
-            index=data.index
+            index=data.index # type: ignore
         )
 
     def get_last_signal(
@@ -120,8 +118,8 @@ class StochRSI:
         # Generate trading signals
         signals_df = self.create_signals(stoch_rsi_df)
         # Check the last signal and return appropriate action
-        if signals_df["buy_signals"].iloc[-1] == 1:
+        if signals_df["buy_signals"].iloc[-1] == 1: # type: ignore
             return "long"
-        elif signals_df["sell_signals"].iloc[-1] == 1:
+        elif signals_df["sell_signals"].iloc[-1] == 1: # type: ignore
             return "short"
         return None

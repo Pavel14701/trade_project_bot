@@ -1,6 +1,6 @@
 from typing import AsyncIterable
 
-from dishka import Provider, Scope, provide
+from dishka import Provider, Scope, provide # type: ignore
 from httpx import AsyncClient
 
 

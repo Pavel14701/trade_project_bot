@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from numpy.typing import NDArray
 
 from strategies.src.domain.entities import ScrsiConfigDM
 from strategies.src.infrastructure._types import PriceDataFrame
@@ -46,73 +47,59 @@ class SmoothCicleRsi:
         Returns:
             pd.DataFrame: A DataFrame containing the SCRSI 
             scaled values and boundary levels.
-        """
-        # Compute cycle length and cyclic memory for smoothing
+        """        # Compute cycle length and cyclic memory for smoothing
         cyclelen = config.domcycle // 2
         cyclicmemory = config.domcycle * 2
-        # Calculate RSI components: Up (gains) and Down (losses)
-        up = pd.Series(
-            np.maximum(
-                data.close_prices.diff(), 0
-            )
-        ).rolling(window=cyclelen).mean()
-        down = pd.Series(
-            np.minimum(
-                data.close_prices.diff(), 0
-            )
-        ).rolling(window=cyclelen).mean()
-        # Standard RSI calculation with safe division 
-        # (to avoid division by zero issues)
+        # Calculate price differences
+        price_diff = data.close_prices.diff()
+        # Separate gains and losses
+        up_raw = np.maximum(price_diff, 0)
+        down_raw = np.minimum(price_diff, 0)
+        # Rolling averages
+        up = pd.Series(up_raw, index=data.index, dtype=float).rolling(window=cyclelen).mean() # type: ignore
+        down = pd.Series(down_raw, index=data.index, dtype=float).rolling(window=cyclelen).mean() # type: ignore
+        # Convert to numpy arrays with explicit dtype
+        up_arr: NDArray[np.float64] = up.to_numpy(dtype=np.float64) # type: ignore
+        down_arr: NDArray[np.float64] = down.to_numpy(dtype=np.float64) # type: ignore
+        # Standard RSI calculation with safe division
         rsi = 100 - 100 / (1 + np.divide(
-            up, down, 
-            out=np.zeros_like(up), 
-            where=down != 0)
-        )
-        # Ensure RSI stays within [0, 100]
+            up_arr, down_arr,
+            out=np.zeros_like(up_arr, dtype=np.float64),
+            where=down_arr != 0
+        ))
+        # Clip RSI to [0, 100]
         rsi = np.clip(rsi, 0, 100)
-        # Convert RSI scale from [0,100] to [-100,100]
-        # for better trend visibility
+        # Scale RSI to [-100, 100]
         rsi_scaled = (rsi - 50) * 2
-        # Apply cyclic smoothing to RSI
+        # Apply cyclic smoothing
         torque = 2.0 / (config.vibration + 1)
         phasingLag = (config.vibration - 1) // 2
-        crsi = np.zeros_like(rsi_scaled)
-        # Apply smoothing logic using vectorization
+        crsi = np.zeros_like(rsi_scaled, dtype=np.float64)
         mask = np.arange(len(rsi_scaled)) >= phasingLag
         crsi[mask] = torque * (
-            2 * rsi_scaled[mask] - np.roll(
-                rsi_scaled, phasingLag
-            )[mask]
+            2 * rsi_scaled[mask] - np.roll(rsi_scaled, phasingLag)[mask]
         ) + (1 - torque) * np.roll(crsi, 1)[mask]
-        # Remove NaN values before calculating boundary levels
+        # Clean NaNs before boundary calculation
         crsi_clean = crsi[~np.isnan(crsi)]
-        # Define lower and upper bounds using percentile thresholds
         db = float(
-            np.percentile(
-                crsi_clean[:cyclicmemory], config.leveling
-            ) if len(
-                crsi_clean[:cyclicmemory]
-            ) > 0 else -100
+            np.percentile(crsi_clean[:cyclicmemory], config.leveling)
+            if len(crsi_clean[:cyclicmemory]) > 0 else -100
         )
         ub = float(
-            np.percentile(
-                crsi_clean[:cyclicmemory], 
-                100 - config.leveling
-            ) if len(
-                crsi_clean[:cyclicmemory]
-            ) > 0 else 100
+            np.percentile(crsi_clean[:cyclicmemory], 100 - config.leveling)
+            if len(crsi_clean[:cyclicmemory]) > 0 else 100
         )
-        # Ensure arrays are 1D before storing results 
-        # without misaligning indices
+        # Flatten arrays if needed
         if getattr(crsi, "ndim", 1) > 1:
             crsi = crsi.flatten()
         if getattr(rsi_scaled, "ndim", 1) > 1:
             rsi_scaled = rsi_scaled.flatten()
+        # Return DataFrame
         return pd.DataFrame({
             'CRSI Scaled': rsi_scaled,
             'Lower Bound': db,
             'Upper Bound': ub
-        }, index=data.index)
+        }, index=data.index) # type: ignore
 
     def generate_scrsi_signals(
         self, 
@@ -129,11 +116,11 @@ class SmoothCicleRsi:
             pd.DataFrame: A DataFrame with separate buy and sell signal series.
         """
         # Create a series for BUY signals (0 = no signal, 1 = buy)
-        buy_signals = pd.Series(0, index=data.index)
+        buy_signals = pd.Series(0, index=data.index) # type: ignore
         # Buy signal: Crossing 50 from below
         buy_signals[
             (
-                data["CRSI Scaled"].shift(1) < 50
+                data["CRSI Scaled"].shift(1) < 50 # type: ignore
             ) & (
                 data["CRSI Scaled"] >= 50
             )
@@ -141,17 +128,17 @@ class SmoothCicleRsi:
         # Buy signal: Reversal from oversold region (0)
         buy_signals[
             (
-                data["CRSI Scaled"].shift(1) <= 0
+                data["CRSI Scaled"].shift(1) <= 0 # type: ignore
             ) & (
                 data["CRSI Scaled"] > 0
             )
         ] = 1
         # Create a series for SELL signals (0 = no signal, 1 = sell)
-        sell_signals = pd.Series(0, index=data.index)
+        sell_signals = pd.Series(0, index=data.index) # type: ignore
         # Sell signal: Crossing 50 from above
         sell_signals[
             (
-                data["CRSI Scaled"].shift(1) > 50
+                data["CRSI Scaled"].shift(1) > 50 # type: ignore
             ) & (
                 data["CRSI Scaled"] <= 50
             )
@@ -159,7 +146,7 @@ class SmoothCicleRsi:
         # Sell signal: Reversal from overbought region (100)
         sell_signals[
             (
-                data["CRSI Scaled"].shift(1) >= 100
+                data["CRSI Scaled"].shift(1) >= 100 # type: ignore
             ) & (
                 data["CRSI Scaled"] < 100
             )
@@ -169,7 +156,7 @@ class SmoothCicleRsi:
                 "buy_signals": buy_signals, 
                 "sell_signals": sell_signals
             }, 
-            index=data.index
+            index=data.index # type: ignore
         )
 
     def get_last_signal(
@@ -194,8 +181,8 @@ class SmoothCicleRsi:
         # Generate trading signals
         signals_df = self.generate_scrsi_signals(scrsi_df)
         # Check the last signal and return appropriate action
-        if signals_df["buy_signals"].iloc[-1] == 1:
+        if signals_df["buy_signals"].iloc[-1] == 1: # type: ignore
             return "long"
-        elif signals_df["sell_signals"].iloc[-1] == 1:
+        elif signals_df["sell_signals"].iloc[-1] == 1: # type: ignore
             return "short"
         return None

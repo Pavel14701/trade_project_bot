@@ -15,8 +15,8 @@ class PlaceGridOrderDTO:
     tag: str | None = None
     profitSharingRatio: str | None = None
     triggerParams: list["PlaceTriggerParams"] | None = None
-    spotGridOrder: "SpotGridOrder" | None = None
-    contractGridOrder: "ContractGridOrder" | None = None
+    spotGridOrder: "SpotGridOrder | None" = None
+    contractGridOrder: "ContractGridOrder | None" = None
 
 
 @dataclass(frozen=True, slots=True)
