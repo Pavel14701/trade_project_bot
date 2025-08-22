@@ -1,5 +1,5 @@
-import pandas_ta as ta  # type: ignore
 import pandas as pd
+import pandas_ta as ta  # type: ignore
 
 from strategies.src.domain.entities import AdxConfigDM
 from strategies.src.infrastructure._types import PriceDataFrame
@@ -48,14 +48,14 @@ class ADXTrend:
             ValueError: If the ADX calculation returns missing 
               values for any required component.
         """
-        adx_ind = ta.adx( #type: ignore
+        adx_ind = ta.adx(  # type: ignore
             high=data.high_prices,
             low=data.low_prices,
             close=data.close_prices,
             length=config.length,
             lensig=config.lensig,
-            scalar=config.scalar,  
-            mamode=config.mamode,  
+            scalar=config.scalar, 
+            mamode=config.mamode, 
             drift=config.drift,
             offset=config.offset
         )
@@ -66,7 +66,7 @@ class ADXTrend:
             "dmp": f"DMP_{config.length}",
             "dmn": f"DMN_{config.length}",
         }
-        missing = [k for k, v in required_keys.items() if adx_ind.get(v) is None] # type: ignore
+        missing = [k for k, v in required_keys.items() if adx_ind.get(v) is None]  # type: ignore
         if missing:
             raise ValueError(
                 f"""Error: Missing required ADX components: 

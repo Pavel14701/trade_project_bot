@@ -1,9 +1,9 @@
 from typing import Any, AsyncContextManager, Callable, Mapping
-from starlette.middleware import Middleware
 
 from dishka import AsyncContainer
 from dishka.integrations import fastapi as fastapi_integration
 from fastapi import FastAPI
+from starlette.middleware import Middleware
 
 from main_app.src.controllers.routes import router
 from main_app.src.infrastructure.middlewares import SessionMiddleware

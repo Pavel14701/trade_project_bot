@@ -5,11 +5,11 @@ from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
+from main_app.src.infrastructure._types import RequestResponseEndpoint
 from main_app.src.infrastructure.repositories.sessions import (
     GuestSessionBackend,
     RedisSessionBackend,
 )
-from main_app.src.infrastructure._types import RequestResponseEndpoint
 
 
 class SessionMiddleware(BaseHTTPMiddleware):

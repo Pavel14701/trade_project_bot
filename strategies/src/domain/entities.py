@@ -82,7 +82,7 @@ class StochRsiConfigDM:
     timeperiod: int
     fastk_period: int 
     fastd_period: int
-    #talib.MA_Type
+    # talib.MA_Type
     fastd_matype: int
 
 
@@ -105,12 +105,12 @@ class OrderBlockDetectorDM:
     prominence: Any | None = None
     wlen: Any | None = None
     rel_height: float = 0.5
-    plateu_size: Any | None  = None
+    plateu_size: Any | None = None
 
 
 @dataclass(slots=True, frozen=True)
 class ScrsiConfigDM:
     domcycle: int = 20  # Основной цикл CRSI
     vibration: int = 20  # Колебания
-    leveling: float =  10.0  # Уровень сглаживания
+    leveling: float = 10.0  # Уровень сглаживания
 

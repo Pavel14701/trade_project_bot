@@ -1,10 +1,10 @@
 from typing import cast
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pandas_ta as ta  # type: ignore
 from numba import njit  # type: ignore
 from numpy.typing import NDArray
-import pandas_ta as ta  # type: ignore
 
 from strategies.src.domain.entities import AvslConfigDM
 from strategies.src.infrastructure._types import PriceDataFrame
@@ -15,16 +15,22 @@ class AVSL:
     Adaptive Volume-Weighted Support Level (AVSL) Indicator.
 
     This indicator calculates dynamic support levels based on volume, price movement,
-    and volatility. It is designed to adapt to changing market conditions by incorporating
+    and volatility. It is designed to adapt to changing market conditions 
+    by incorporating
     volume-weighted price behavior and momentum.
 
     Core Components:
-    - VWMA (Volume-Weighted Moving Average): Reflects price levels weighted by trading volume.
-    - VPC (Volume Price Confirmation): Measures the difference between volume-weighted and simple moving averages.
+    - VWMA (Volume-Weighted Moving Average): Reflects price levels weighted 
+    by trading volume.
+    - VPC (Volume Price Confirmation): Measures the difference between 
+    volume-weighted and 
+    simple moving averages.
     - VPR (Volume-Price Ratio): Captures the relationship between volume and price.
     - VM (Volume Momentum): Indicates the strength of volume trends.
-    - VPCI (Volume Price Confirmation Index): A composite metric combining VPC, VPR, and VM.
-    - AVSL (Adaptive Support Level): A smoothed support level derived from price and volume dynamics.
+    - VPCI (Volume Price Confirmation Index): A composite metric 
+    combining VPC, VPR, and VM.
+    - AVSL (Adaptive Support Level): A smoothed support level derived from price 
+    and volume dynamics.
     """
 
     def calculate_avsl(
@@ -35,12 +41,15 @@ class AVSL:
         """
         Calculates the AVSL indicator values for the given market data.
 
-        This method computes the core AVSL components and derives a smoothed support level
+        This method computes the core AVSL components and derives a 
+        smoothed support level
         using volume-adjusted price deviations.
 
         Args:
-            data (PriceDataFrame): Historical market data containing close, low prices and volume.
-            config (AvslConfigDM): Configuration parameters including moving average lengths and deviation factor.
+            data (PriceDataFrame): Historical market data containing close, 
+            low prices and volume.
+            config (AvslConfigDM): Configuration parameters including moving 
+            average lengths and deviation factor.
 
         Returns:
             pd.DataFrame: A DataFrame containing the AVSL values indexed by time.
@@ -76,8 +85,10 @@ class AVSL:
         as well as derived metrics that reflect volume-price dynamics.
 
         Args:
-            data (PriceDataFrame): Historical market data including close prices and volumes.
-            config (AvslConfigDM): Configuration parameters specifying fast and slow lengths.
+            data (PriceDataFrame): Historical market data including close 
+            prices and volumes.
+            config (AvslConfigDM): Configuration parameters specifying 
+            fast and slow lengths.
 
         Returns:
             tuple: A tuple containing six pandas Series:
@@ -154,8 +165,10 @@ class AVSL:
         """
         Computes the dynamic window length for price adjustment based on VPCI values.
 
-        The window length determines how many past values are considered when calculating
-        adjusted prices. It adapts based on the strength and direction of volume-price signals.
+        The window length determines how many past values are considered 
+        when calculating
+        adjusted prices. It adapts based on the strength and direction of 
+        volume-price signals.
 
         Args:
             vpc (np.ndarray): Volume Price Confirmation values.
@@ -208,7 +221,8 @@ class AVSL:
             config (AvslConfigDM): Configuration parameters for AVSL calculation.
 
         Returns:
-            float | None: The latest AVSL value, or None if the data is empty or invalid.
+            float | None: The latest AVSL value, or None if the data 
+            is empty or invalid.
         """
         avsl_df = self.calculate_avsl(data, config)
         if avsl_df.empty:
@@ -228,7 +242,8 @@ def _compute_price_v(
     Performs fast computation of adjusted price values using Numba JIT compilation.
 
     This function applies a rolling calculation over a dynamic window length (lenV),
-    dividing low prices by volume-price coefficients (VPCc * VPR) and averaging the result.
+    dividing low prices by volume-price coefficients (VPCc * VPR) 
+    and averaging the result.
     It is optimized for performance and avoids division by zero using masking.
 
     Args:

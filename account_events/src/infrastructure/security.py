@@ -16,7 +16,7 @@ class ConfigEncryptionGateway(IConfigEncryption):
 
     async def encrypt(self, model: WebSocketDM) -> WebSocketDM:
         """Шифрует API-ключи и пароли, возвращая новый объект."""
-        return WebSocketDM.replace( #type: ignore
+        return WebSocketDM.replace(  # type: ignore
             model,
             api_key=self._cipher.encrypt(model.api_key.encode()).decode(),
             secret_key=self._cipher.encrypt(model.secret_key.encode()).decode(),
@@ -26,7 +26,7 @@ class ConfigEncryptionGateway(IConfigEncryption):
     async def decrypt(self, model: WebSocketDM) -> WebSocketDM:
         """Расшифровывает API-ключи и пароли, возвращая новый объект."""
         try:
-            return WebSocketDM.replace( #type: ignore
+            return WebSocketDM.replace(  # type: ignore
                 model,
                 api_key=self._cipher.decrypt(model.api_key.encode()).decode(),
                 secret_key=self._cipher.decrypt(model.secret_key.encode()).decode(),

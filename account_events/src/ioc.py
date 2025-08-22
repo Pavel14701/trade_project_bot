@@ -1,6 +1,6 @@
 from typing import AsyncIterable
 
-from dishka import Provider, Scope, from_context, provide #type: ignore
+from dishka import Provider, Scope, from_context, provide  # type: ignore
 from faststream.rabbit import RabbitBroker
 from redis.asyncio import Redis
 

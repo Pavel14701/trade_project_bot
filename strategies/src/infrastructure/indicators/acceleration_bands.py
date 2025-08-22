@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 from pandas_ta import accbands  # type: ignore
 
@@ -32,10 +32,12 @@ class AccelerationBands:
 
         Args:
             data (PriceDataFrame): Price dataset containing high, low, and close prices.
-            config (AcceletrationBandsDM): Configuration for Acceleration Bands (length, smoothing method, drift, offset).
+            config (AcceletrationBandsDM): Configuration for Acceleration Bands 
+            (length, smoothing method, drift, offset).
 
         Returns:
-            pd.DataFrame: A DataFrame containing upper, lower, and center acceleration bands, plus close prices.
+            pd.DataFrame: A DataFrame containing upper, lower, and center 
+            acceleration bands, plus close prices.
         """
         acc_bands = accbands(
             high=data.high_prices,
@@ -47,7 +49,7 @@ class AccelerationBands:
             offset=config.offset,
         )
         if acc_bands is not None:
-            acc_bands.index = pd.DatetimeIndex(data.index) #type: ignore
+            acc_bands.index = pd.DatetimeIndex(data.index)  # type: ignore
             acc_bands["close_prices"] = data.close_prices
             return acc_bands
         raise ValueError("Failed to compute Acceleration Bands — result is None")
@@ -61,21 +63,28 @@ class AccelerationBands:
         - Sell: Price crosses below the upper band
 
         Args:
-            data (pd.DataFrame): DataFrame containing Acceleration Bands and close prices.
+            data (pd.DataFrame): DataFrame containing Acceleration Bands 
+            and close prices.
 
         Returns:
             pd.DataFrame: A DataFrame containing buy_signals and sell_signals (0 or 1).
         """
-        upper_band: NDArray[np.float64] = data["ACCbands_upper"].to_numpy(dtype=np.float64) #type: ignore
-        lower_band: NDArray[np.float64] = data["ACCbands_lower"].to_numpy(dtype=np.float64) #type: ignore
-        close_prices: NDArray[np.float64] = data["close_prices"].to_numpy(dtype=np.float64) #type: ignore
+        upper_band: NDArray[np.float64] = data["ACCbands_upper"].to_numpy(  # type: ignore
+            dtype=np.float64
+        )
+        lower_band: NDArray[np.float64] = data["ACCbands_lower"].to_numpy(  # type: ignore
+            dtype=np.float64
+        )
+        close_prices: NDArray[np.float64] = data["close_prices"].to_numpy(  # type: ignore
+            dtype=np.float64
+            )
         buy_signal: NDArray[np.int_] = (
             (close_prices < upper_band) & (np.roll(close_prices, 1) > upper_band)
         ).astype(np.int_)
         sell_signal: NDArray[np.int_] = (
             (close_prices > lower_band) & (np.roll(close_prices, 1) < lower_band)
         ).astype(np.int_)
-        signals = pd.DataFrame(index=pd.DatetimeIndex(data.index)) #type: ignore
+        signals = pd.DataFrame(index=pd.DatetimeIndex(data.index))  # type: ignore
         signals["buy_signals"] = buy_signal
         signals["sell_signals"] = sell_signal
         return signals
