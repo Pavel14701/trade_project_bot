@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
 
 from strategies.src.domain.entities import ScrsiConfigDM
@@ -56,11 +56,23 @@ class SmoothCicleRsi:
         up_raw = np.maximum(price_diff, 0)
         down_raw = np.minimum(price_diff, 0)
         # Rolling averages
-        up = pd.Series(up_raw, index=data.index, dtype=float).rolling(window=cyclelen).mean() # type: ignore
-        down = pd.Series(down_raw, index=data.index, dtype=float).rolling(window=cyclelen).mean() # type: ignore
+        up = pd.Series(  # type: ignore
+            up_raw, 
+            index=data.index,  # type: ignore
+            dtype=float
+        ).rolling(
+            window=cyclelen
+        ).mean()  # type: ignore
+        down = pd.Series(  # type: ignore
+            down_raw, 
+            index=data.index,  # type: ignore
+            dtype=float
+        ).rolling(
+            window=cyclelen
+        ).mean()  # type: ignore
         # Convert to numpy arrays with explicit dtype
-        up_arr: NDArray[np.float64] = up.to_numpy(dtype=np.float64) # type: ignore
-        down_arr: NDArray[np.float64] = down.to_numpy(dtype=np.float64) # type: ignore
+        up_arr: NDArray[np.float64] = up.to_numpy(dtype=np.float64)  # type: ignore
+        down_arr: NDArray[np.float64] = down.to_numpy(dtype=np.float64)  # type: ignore
         # Standard RSI calculation with safe division
         rsi = 100 - 100 / (1 + np.divide(
             up_arr, down_arr,
@@ -99,7 +111,7 @@ class SmoothCicleRsi:
             'CRSI Scaled': rsi_scaled,
             'Lower Bound': db,
             'Upper Bound': ub
-        }, index=data.index) # type: ignore
+        }, index=data.index)  # type: ignore
 
     def generate_scrsi_signals(
         self, 
@@ -116,11 +128,11 @@ class SmoothCicleRsi:
             pd.DataFrame: A DataFrame with separate buy and sell signal series.
         """
         # Create a series for BUY signals (0 = no signal, 1 = buy)
-        buy_signals = pd.Series(0, index=data.index) # type: ignore
+        buy_signals = pd.Series(0, index=data.index)  # type: ignore
         # Buy signal: Crossing 50 from below
         buy_signals[
             (
-                data["CRSI Scaled"].shift(1) < 50 # type: ignore
+                data["CRSI Scaled"].shift(1) < 50  # type: ignore
             ) & (
                 data["CRSI Scaled"] >= 50
             )
@@ -128,17 +140,17 @@ class SmoothCicleRsi:
         # Buy signal: Reversal from oversold region (0)
         buy_signals[
             (
-                data["CRSI Scaled"].shift(1) <= 0 # type: ignore
+                data["CRSI Scaled"].shift(1) <= 0  # type: ignore
             ) & (
                 data["CRSI Scaled"] > 0
             )
         ] = 1
         # Create a series for SELL signals (0 = no signal, 1 = sell)
-        sell_signals = pd.Series(0, index=data.index) # type: ignore
+        sell_signals = pd.Series(0, index=data.index)  # type: ignore
         # Sell signal: Crossing 50 from above
         sell_signals[
             (
-                data["CRSI Scaled"].shift(1) > 50 # type: ignore
+                data["CRSI Scaled"].shift(1) > 50  # type: ignore
             ) & (
                 data["CRSI Scaled"] <= 50
             )
@@ -146,7 +158,7 @@ class SmoothCicleRsi:
         # Sell signal: Reversal from overbought region (100)
         sell_signals[
             (
-                data["CRSI Scaled"].shift(1) >= 100 # type: ignore
+                data["CRSI Scaled"].shift(1) >= 100  # type: ignore
             ) & (
                 data["CRSI Scaled"] < 100
             )
@@ -156,7 +168,7 @@ class SmoothCicleRsi:
                 "buy_signals": buy_signals, 
                 "sell_signals": sell_signals
             }, 
-            index=data.index # type: ignore
+            index=data.index  # type: ignore
         )
 
     def get_last_signal(
@@ -181,8 +193,8 @@ class SmoothCicleRsi:
         # Generate trading signals
         signals_df = self.generate_scrsi_signals(scrsi_df)
         # Check the last signal and return appropriate action
-        if signals_df["buy_signals"].iloc[-1] == 1: # type: ignore
+        if signals_df["buy_signals"].iloc[-1] == 1:  # type: ignore
             return "long"
-        elif signals_df["sell_signals"].iloc[-1] == 1: # type: ignore
+        elif signals_df["sell_signals"].iloc[-1] == 1:  # type: ignore
             return "short"
         return None

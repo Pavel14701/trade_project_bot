@@ -39,5 +39,5 @@ class ConnectionStorageGateway:
             await conn.delete(f"user_connection:{user_id}")
 
     async def get_active_connections(self) -> list[int]:
-        keys = cast(list[bytes], await self._conn.keys(pattern="user_connection:*")) #type: ignore
+        keys = cast(list[bytes], await self._conn.keys(pattern="user_connection:*"))  # type: ignore
         return [int(key.decode().split(":")[-1]) for key in keys]

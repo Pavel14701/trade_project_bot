@@ -1,6 +1,6 @@
 import json
 from dataclasses import asdict
-from typing import Optional, Any, cast
+from typing import Any, Optional, cast
 from uuid import UUID, uuid4
 
 from fastapi import Request, Response

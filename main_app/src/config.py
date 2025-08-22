@@ -1,8 +1,7 @@
 from os import environ as env
-from typing import get_type_hints, TypeVar, Type
+from typing import Type, TypeVar, get_type_hints
 
 from pydantic import BaseModel, Field, field_validator
-
 
 ConfigModelType = TypeVar("ConfigModelType", bound="EnvModel")
 

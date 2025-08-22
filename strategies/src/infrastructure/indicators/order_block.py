@@ -1,7 +1,8 @@
 from typing import Any, Tuple, cast
-from numpy.typing import NDArray
+
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from scipy.signal import find_peaks  # type: ignore
 
 from strategies.src.domain.entities import OrderBlockDetectorDM
@@ -85,13 +86,19 @@ class OrderBlockDetector:
         )
         valleys, _ = valley_result
         # Initialize arrays to store detected peaks and valleys
-        peaks_array: NDArray[np.float64] = np.empty_like(data.high_prices.to_numpy(), dtype=np.float64) # type: ignore
+        peaks_array: NDArray[np.float64] = np.empty_like(
+            data.high_prices.to_numpy(),  # type: ignore 
+            dtype=np.float64
+        )
         peaks_array.fill(np.nan)
-        valleys_array: NDArray[np.float64] = np.empty_like(data.low_prices.to_numpy(), dtype=np.float64) # type: ignore
+        valleys_array: NDArray[np.float64] = np.empty_like(
+          data.low_prices.to_numpy(),  # type: ignore 
+          dtype=np.float64
+        )
         valleys_array.fill(np.nan)
         peaks_array[peaks] = data.high_prices.iloc[peaks]
         valleys_array[valleys] = data.low_prices.iloc[valleys]
         return pd.DataFrame(
             {"peaks": peaks_array, "valleys": valleys_array},
-            index=data.index # type: ignore
+            index=data.index  # type: ignore
         )

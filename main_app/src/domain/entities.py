@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from typing import Self, Any
+from typing import Any, Self
 
 
 @dataclass(slots=True)

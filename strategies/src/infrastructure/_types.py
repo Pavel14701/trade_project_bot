@@ -1,5 +1,6 @@
+from typing import Any, Iterable, Optional, Sequence, Union, cast
+
 import pandas as pd
-from typing import Iterable, Sequence, Optional, Union, Any, cast
 
 
 class PriceDataFrame(pd.DataFrame):
@@ -9,7 +10,13 @@ class PriceDataFrame(pd.DataFrame):
     """
 
     REQUIRED_COLUMNS: Sequence[str] = (
-        "date", "open_price", "close_price", "high_price", "low_price", "volume", "turnover"
+        "date", 
+        "open_price", 
+        "close_price", 
+        "high_price", 
+        "low_price", 
+        "volume", 
+        "turnover"
     )
 
     def __init__(
@@ -39,7 +46,7 @@ class PriceDataFrame(pd.DataFrame):
 
     @property
     def date(self) -> pd.DatetimeIndex:
-        if isinstance(self.index, pd.DatetimeIndex): # type: ignore
+        if isinstance(self.index, pd.DatetimeIndex):  # type: ignore
             return self.index
         raise TypeError("Expected DatetimeIndex as index")
 
