@@ -99,7 +99,7 @@ class SecurityGateway(ISecurity):
         Returns:
             dict[str, str]: A dictionary containing 'OK-ACCESS-TIMESTAMP' and 'OK-ACCESS-SIGN'.
         """
-        timestamp: str = datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z')
+        timestamp: str = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
         pre_hash = timestamp + params.method.upper() + params.request_path + params.body
         signature = hmac.new(
             params.secret_key.encode('utf-8'),

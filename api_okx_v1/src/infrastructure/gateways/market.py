@@ -60,7 +60,8 @@ class OkxMarketService(IOkxMarketData):
         instId: str
     ) -> dict[str, Any]:
         return await self._get(
-            endpoint=f"{self._consts.GET_TICKER}={instId.upper()}"
+            endpoint=f"{self._consts.GET_TICKER}",
+            params={"instId": instId.upper()}
         )
 
     async def get_mark_price(
