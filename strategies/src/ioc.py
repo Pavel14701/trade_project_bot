@@ -4,7 +4,7 @@ from dishka import Provider, Scope, provide  # type: ignore
 from httpx import AsyncClient
 
 
-class MyProvider(Provider):
+class MainAppProvider(Provider):
     @provide(scope=Scope.REQUEST)
     async def get_session(
         self, 

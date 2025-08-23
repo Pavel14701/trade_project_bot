@@ -1,6 +1,6 @@
 from typing import Any, Protocol
 
-from strategies.src.api_v1.dto.grid import (
+from api_okx_v1.src.application.dto.grid import (
     AddIvestmentDTO,
     AdjustMarginBalanceDTO,
     AiParamsPublicDTO,
@@ -17,11 +17,12 @@ from strategies.src.api_v1.dto.grid import (
     RsiBacktestingPublicDTO,
     StopGridOrderDTO,
 )
-from strategies.src.api_v1.dto.market import (
-    GetMarkPriceDTO,
+from api_okx_v1.src.application.dto.market import (
+    GetMarketPriceDTO,
     GetPriceDataDTO,
+    GetInstrumentsDTO,
 )
-from strategies.src.api_v1.dto.trade import (
+from api_okx_v1.src.application.dto.trade import (
     AmendOrderDTO,
     CancelOrerDTO,
     ClosePositionsDTO,
@@ -31,6 +32,10 @@ from strategies.src.api_v1.dto.trade import (
     GetOrderListDTO,
     PlaceOrderDTO,
     SetLeverageDTO,
+)
+from api_okx_v1.src.domain.entities import (
+    SecretConfigDM,
+    SignatureDM
 )
 
 
@@ -261,14 +266,14 @@ class IOkxMarketData(Protocol):
 
     async def get_mark_price(
         self, 
-        params: GetMarkPriceDTO
+        params: GetMarketPriceDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
         ...
 
     async def get_instruments(
         self, 
-        instId: str
+        params: GetInstrumentsDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#public-data-rest-api-get-instruments
         ...
@@ -279,6 +284,17 @@ class IOkxExcHandler(Protocol):
         # url link for exception handler
         # (works only for Chrome, probably, but not for sure)
         # https://www.okx.com/docs-v5/en/#error-code-rest-api-public#:~:text=50005
+        ...
+
+
+class ISecurity(Protocol):
+    async def encrypt(self, model: SecretConfigDM) -> SecretConfigDM:
+        ...
+
+    async def decrypt(self, model: SecretConfigDM) -> SecretConfigDM:
+        ...
+
+    async def get_signature(self, params: SignatureDM) -> dict[str, str]:
         ...
 
 
