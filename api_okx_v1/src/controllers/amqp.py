@@ -20,7 +20,7 @@ from api_okx_v1.src.application.interactors.market import (
 controller = RabbitRouter(prefix="okx_api")
 
 
-class OkxApiRoutes:
+class OkxMarketRoutes:
     @controller.subscriber("get_candlesticks")
     @controller.publisher("send_candlesticks")
     @inject
@@ -75,3 +75,6 @@ class OkxApiRoutes:
     ) -> dict[str, Any]:
         return await interactor(instId)
 
+
+class OkxTradeRoutes:
+    pass

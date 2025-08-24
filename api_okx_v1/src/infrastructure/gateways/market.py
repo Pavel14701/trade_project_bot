@@ -7,9 +7,13 @@ from api_okx_v1.src.application.dto.market import (
 from api_okx_v1.src.application.interfaces import IOkxMarketData
 from api_okx_v1.src.infrastructure._types import MarketClient
 from api_okx_v1.src.infrastructure.consts import OkxMarketConsts
+from api_okx_v1.src.infrastructure.gateways.base import BaseQuerySet
 
 
-class OkxMarketService(IOkxMarketData):
+class OkxMarketService(
+    BaseQuerySet[MarketClient, OkxMarketConsts], 
+    IOkxMarketData
+):
     def __init__(
         self, 
         market_client: MarketClient, 
@@ -18,30 +22,11 @@ class OkxMarketService(IOkxMarketData):
         self._client = market_client
         self._consts = consts
 
-    async def _prepare_query_params(
-        self, 
-        dto: GetPriceDataDTO|GetMarketPriceDTO|GetInstrumentsDTO
-    ) -> dict[str, Any]:
-        return {k: v for k, v in dto.to_dict().items() if v is not None}
-
-    async def _get(
-        self, 
-        endpoint: str, 
-        params: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
-        response = await self._client.get(
-            url=f"{self._consts.BASE_URL}{endpoint}",
-            params=params,
-            headers={"Content-Type": "application/json"}
-        )
-        response.raise_for_status()
-        return response.json()
-
     async def get_candlesticks(
         self, 
         params: GetPriceDataDTO
     ) -> dict[str, Any]:
-        return await self._get(
+        return await self.get(
             endpoint=self._consts.GET_CANDLESTICKS, 
             params=await self._prepare_query_params(params)
         )
@@ -50,7 +35,7 @@ class OkxMarketService(IOkxMarketData):
         self, 
         params: GetPriceDataDTO
     ) -> dict[str, Any]:
-        return await self._get(
+        return await self.get(
             endpoint=self._consts.GET_CANDLESTICKS_HISTORY, 
             params=await self._prepare_query_params(params)
         )
@@ -59,7 +44,7 @@ class OkxMarketService(IOkxMarketData):
         self, 
         instId: str
     ) -> dict[str, Any]:
-        return await self._get(
+        return await self.get(
             endpoint=f"{self._consts.GET_TICKER}",
             params={"instId": instId.upper()}
         )
@@ -68,7 +53,7 @@ class OkxMarketService(IOkxMarketData):
         self, 
         params: GetMarketPriceDTO
     ) -> dict[str, Any]:
-        return await self._get(
+        return await self.get(
             endpoint=self._consts.GET_MARK_PRICE, 
             params=await self._prepare_query_params(params)
         )
@@ -77,7 +62,7 @@ class OkxMarketService(IOkxMarketData):
         self, 
         params: GetInstrumentsDTO
     ) -> dict[str, Any]:
-        return await self._get(
+        return await self.get(
             endpoint=self._consts.GET_INSTRUMENTS, 
             params=await self._prepare_query_params(params)
         )

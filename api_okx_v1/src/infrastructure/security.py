@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 
 from cryptography.fernet import Fernet
 
+from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.interfaces import ISecurity
 from api_okx_v1.src.config import SecretConfig
 from api_okx_v1.src.domain.entities import (
-    SecretConfigDM,
     SignatureDM
 )
 
@@ -31,47 +31,47 @@ class SecurityGateway(ISecurity):
     def __init__(self, cipher: Fernet) -> None:
         self._cipher = cipher
 
-    async def encrypt(self, model: SecretConfigDM) -> SecretConfigDM:
+    async def encrypt(self, model: SecretDTO) -> SecretDTO:
         """
-        Encrypts sensitive fields in a SecretConfigDM model.
+        Encrypts sensitive fields in a SecretDTO model.
 
         This method takes an object containing API credentials and encrypts each field 
         (API key, secret key, passphrase) using the configured Fernet cipher. It returns 
-        a new instance of SecretConfigDM with encrypted values.
+        a new instance of SecretDTO with encrypted values.
 
         Args:
-            model (SecretConfigDM): The original configuration object with plaintext credentials.
+            model (SecretDTO): The original configuration object with plaintext credentials.
 
         Returns:
-            SecretConfigDM: A new configuration object with encrypted credentials.
+            SecretDTO: A new configuration object with encrypted credentials.
         """
 
-        return SecretConfigDM.replace(  # type: ignore
+        return SecretDTO.replace(  # type: ignore
             model,
             api_key=self._cipher.encrypt(model.api_key.encode()).decode(),
             secret_key=self._cipher.encrypt(model.secret_key.encode()).decode(),
             passphrase=self._cipher.encrypt(model.passphrase.encode()).decode()
         )
 
-    async def decrypt(self, model: SecretConfigDM) -> SecretConfigDM:
+    async def decrypt(self, model: SecretDTO) -> SecretDTO:
         """
-        Decrypts sensitive fields in a SecretConfigDM model.
+        Decrypts sensitive fields in a SecretDTO model.
 
         This method takes an object containing encrypted API credentials and decrypts each field 
-        using the configured Fernet cipher. It returns a new instance of SecretConfigDM with 
+        using the configured Fernet cipher. It returns a new instance of SecretDTO with 
         plaintext values.
 
         Args:
-            model (SecretConfigDM): The configuration object with encrypted credentials.
+            model (SecretDTO): The configuration object with encrypted credentials.
 
         Returns:
-            SecretConfigDM: A new configuration object with decrypted credentials.
+            SecretDTO: A new configuration object with decrypted credentials.
 
         Raises:
             ValueError: If decryption fails due to invalid input or corrupted data.
         """
         try:
-            return SecretConfigDM.replace(  # type: ignore
+            return SecretDTO.replace(  # type: ignore
                 model,
                 api_key=self._cipher.decrypt(model.api_key.encode()).decode(),
                 secret_key=self._cipher.decrypt(model.secret_key.encode()).decode(),
@@ -111,4 +111,3 @@ class SecurityGateway(ISecurity):
             'OK-ACCESS-TIMESTAMP': timestamp,
             'OK-ACCESS-SIGN': sign_base64
         }
-

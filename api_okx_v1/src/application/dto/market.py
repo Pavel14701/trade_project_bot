@@ -1,10 +1,7 @@
-from typing import Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
-@dataclass(slots=True, frozen=True)
-class BaseDataClass:
-    def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+from api_okx_v1.src.application.dto.base import BaseDataClass
+
 
 @dataclass(slots=True, frozen=True)
 class GetPriceDataDTO(BaseDataClass):
@@ -19,6 +16,7 @@ class GetPriceDataDTO(BaseDataClass):
 class GetMarketPriceDTO(BaseDataClass):
     instType: str
     instId: str | None = None
+
 
 @dataclass(slots=True, frozen=True)
 class GetInstrumentsDTO(BaseDataClass):

@@ -1,5 +1,6 @@
 from typing import Any, Protocol
 
+from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.dto.grid import (
     AddIvestmentDTO,
     AdjustMarginBalanceDTO,
@@ -24,7 +25,7 @@ from api_okx_v1.src.application.dto.market import (
 )
 from api_okx_v1.src.application.dto.trade import (
     AmendOrderDTO,
-    CancelOrerDTO,
+    CancelOrderDTO,
     ClosePositionsDTO,
     GetBalanceDTO,
     GetLeverageDTO,
@@ -34,7 +35,6 @@ from api_okx_v1.src.application.dto.trade import (
     SetLeverageDTO,
 )
 from api_okx_v1.src.domain.entities import (
-    SecretConfigDM,
     SignatureDM
 )
 
@@ -45,77 +45,88 @@ class IOkxTrade(Protocol):
 
     async def get_account_balance(
         self, 
-        ccy: str
+        ccy: str,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
         ...
 
     async def get_positions(
         self, 
-        params: GetBalanceDTO
+        params: GetBalanceDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions
         ...
 
     async def set_position_mode(
         self, 
-        posMode: str
+        posMode: str,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
         ...
 
     async def set_leverage(
         self, 
-        params: SetLeverageDTO
+        params: SetLeverageDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
         ...
 
     async def get_leverage(
         self, 
-        params: GetLeverageDTO
+        params: GetLeverageDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-leverage
         ...
 
     async def place_order(
         self, 
-        params: PlaceOrderDTO
+        params: PlaceOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
         ...
 
     async def amend_order(
         self, 
-        params: AmendOrderDTO
+        params: AmendOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-post-amend-order
         ...
 
     async def cancel_order(
         self, 
-        params: CancelOrerDTO
+        params: CancelOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-post-cancel-order
         ...
 
     async def close_positions(
         self, 
-        params: ClosePositionsDTO
+        params: ClosePositionsDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-post-close-positions
         ...
 
     async def get_order_details(
         self, 
-        params: GetOrderDetailsDTO
+        params: GetOrderDetailsDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-get-order-details
         ...
 
     async def get_order_list(
         self, 
-        params: GetOrderListDTO
+        params: GetOrderListDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-get-order-list
         ...
@@ -280,7 +291,7 @@ class IOkxMarketData(Protocol):
 
 
 class IOkxExcHandler(Protocol):
-    async def handle_exception(self) -> Any:
+    async def __call__(self) -> Any:
         # url link for exception handler
         # (works only for Chrome, probably, but not for sure)
         # https://www.okx.com/docs-v5/en/#error-code-rest-api-public#:~:text=50005
@@ -288,13 +299,22 @@ class IOkxExcHandler(Protocol):
 
 
 class ISecurity(Protocol):
-    async def encrypt(self, model: SecretConfigDM) -> SecretConfigDM:
+    async def encrypt(
+        self, 
+        model: SecretDTO
+    ) -> SecretDTO:
         ...
 
-    async def decrypt(self, model: SecretConfigDM) -> SecretConfigDM:
+    async def decrypt(
+        self, 
+        model: SecretDTO
+    ) -> SecretDTO:
         ...
 
-    async def get_signature(self, params: SignatureDM) -> dict[str, str]:
+    async def get_signature(
+        self, 
+        params: SignatureDM
+    ) -> dict[str, str]:
         ...
 
 
