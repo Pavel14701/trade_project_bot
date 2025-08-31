@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from cryptography.fernet import Fernet
 
 from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.interfaces import ISecurity
+from api_okx_v1.src.application.interfaces import ISecurity, ISignature
 from api_okx_v1.src.config import SecretConfig
 from api_okx_v1.src.domain.entities import (
     SignatureDM
@@ -80,6 +80,8 @@ class SecurityGateway(ISecurity):
         except Exception as e:
             raise ValueError(f"Decryption error: {e}") from e
 
+
+class Signature(ISignature):
     async def get_signature(
         self, 
         params: SignatureDM

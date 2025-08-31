@@ -3,7 +3,7 @@ from typing import Any, Generic
 import json
 
 from api_okx_v1.src.application.dto.base import BaseDataClass, SecretDTO
-from api_okx_v1.src.application.interfaces import ISecurity
+from api_okx_v1.src.application.interfaces import ISignature
 from api_okx_v1.src.domain.entities import SignatureDM
 from api_okx_v1.src.infrastructure._types import TClient, TConsts
 
@@ -25,7 +25,7 @@ class BaseQuerySet(Generic[TClient, TConsts], ABC):
         self,
         client: TClient,
         consts: TConsts,
-        security: ISecurity | None
+        security: ISignature | None
     ) -> None:
         """
         Initializes the query set with a client, constants, and optional security handler.
@@ -74,16 +74,15 @@ class BaseQuerySet(Generic[TClient, TConsts], ABC):
         """
         headers = {"Content-Type": "application/json"}
         if secret and self._security:
-            decrypted = await self._security.decrypt(secret)
             signature_headers = await self._security.get_signature(SignatureDM(
-                secret_key=decrypted.secret_key,
+                secret_key=secret.secret_key,
                 method=method,
                 request_path=endpoint,
                 body=body_str
             ))
             headers.update({
-                "OK-ACCESS-KEY": decrypted.api_key,
-                "OK-ACCESS-PASSPHRASE": decrypted.passphrase,
+                "OK-ACCESS-KEY": secret.api_key,
+                "OK-ACCESS-PASSPHRASE": secret.passphrase,
                 **signature_headers
             })
         return headers
@@ -114,7 +113,7 @@ class BaseQuerySet(Generic[TClient, TConsts], ABC):
             HTTPError: If the response status indicates an error.
         """
         self._consts: TConsts
-        self._security: ISecurity
+        self._security: ISignature
         self._client: TClient
         url = f"{self._consts.BASE_URL}{endpoint}"
         body_str = json.dumps(body) if body else ""

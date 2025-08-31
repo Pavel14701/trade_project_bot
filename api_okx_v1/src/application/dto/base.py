@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Self
 from dataclasses import dataclass, asdict
 
 
@@ -6,6 +6,11 @@ from dataclasses import dataclass, asdict
 class BaseDataClass:
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+    @classmethod
+    def replace(cls, instance: Self, **kwargs: Any) -> Self:
+        return cls(**{**instance.to_dict(), **kwargs})
+
 
 
 @dataclass(slots=True, frozen=True)

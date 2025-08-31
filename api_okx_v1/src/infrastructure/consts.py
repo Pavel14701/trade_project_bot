@@ -29,3 +29,8 @@ class OkxTradeConsts(OkxBaseConsts):
     CLOSE_POSITIONS: ClassVar[str] = "/api/v5/trade/close-position"
     GET_ORDER_DETAILS: ClassVar[str] = "/api/v5/trade/order"
     GET_ORDER_LIST: ClassVar[str] = "/api/v5/trade/orders-pending"
+
+
+@dataclass(frozen=True, slots=True)
+class OkxGridConsts(OkxBaseConsts):
+    ...
