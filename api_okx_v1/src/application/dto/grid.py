@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
+from api_okx_v1.src.application.dto.base import BaseDataClass
+
 
 @dataclass(frozen=True, slots=True)
-class PlaceGridOrderDTO:
+class PlaceGridOrderDTO(BaseDataClass):
     instId: str
     algoOrdType: str
     maxPx: str
@@ -20,7 +22,7 @@ class PlaceGridOrderDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class PlaceTriggerParams:
+class PlaceTriggerParams(BaseDataClass):
     triggerAction: str
     triggerStrategy: str
     delaySeconds: str | None = None
@@ -33,13 +35,13 @@ class PlaceTriggerParams:
 
 
 @dataclass(frozen=True, slots=True)
-class SpotGridOrder:
+class SpotGridOrder(BaseDataClass):
     quoteSz: str | None = None
     baseSz: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class ContractGridOrder:
+class ContractGridOrder(BaseDataClass):
     sz: str
     direction: str
     lever: str
@@ -49,7 +51,7 @@ class ContractGridOrder:
 
 
 @dataclass(frozen=True, slots=True)
-class AmendGridOrderDTO:
+class AmendGridOrderDTO(BaseDataClass):
     algoId: str
     instId: str
     slTriggerPx: str | None = None
@@ -60,7 +62,7 @@ class AmendGridOrderDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class AmendTriggerParams:
+class AmendTriggerParams(BaseDataClass):
     triggerAction: str
     triggerStrategy: str
     triggerPx: str | None = None
@@ -68,7 +70,7 @@ class AmendTriggerParams:
 
 
 @dataclass(frozen=True, slots=True)
-class StopGridOrderDTO:
+class StopGridOrderDTO(BaseDataClass):
     algoId: str
     instId: str
     algoOrdType: str
@@ -76,7 +78,7 @@ class StopGridOrderDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class CloseContractGridDTO:
+class CloseContractGridDTO(BaseDataClass):
     algoId: str
     mktClose: bool
     sz: str | None = None
@@ -84,13 +86,13 @@ class CloseContractGridDTO:
 
 
 @dataclass(slots=True, frozen=True)
-class CancelCloseContractGridDTO:
+class CancelCloseContractGridDTO(BaseDataClass):
     algoId: str
     ordId: str
 
 
 @dataclass(slots=True, frozen=True)
-class GetGridOrderListDTO:
+class GetGridOrderListDTO(BaseDataClass):
     algoOrdType: str  
     algoId: str | None = None
     instId: str | None = None
@@ -101,13 +103,13 @@ class GetGridOrderListDTO:
 
 
 @dataclass(slots=True, frozen=True)
-class GetGridOrderDetailsDTO:
+class GetGridOrderDetailsDTO(BaseDataClass):
     algoOrdType: str
     algoId: str
 
 
 @dataclass(frozen=True, slots=True)
-class GetGridSubOrersDTO:
+class GetGridSubOrersDTO(BaseDataClass):
     algoOrdType: str
     algoId: str | None = None
     instId: str | None = None
@@ -118,14 +120,14 @@ class GetGridSubOrersDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class ComputeMarginBalanceDTO:
+class ComputeMarginBalanceDTO(BaseDataClass):
     algoId: str
     type: str
     amt: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class AdjustMarginBalanceDTO:
+class AdjustMarginBalanceDTO(BaseDataClass):
     algoId: str
     type: str
     amt: str | None = None
@@ -133,14 +135,14 @@ class AdjustMarginBalanceDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class AddIvestmentDTO:
+class AddIvestmentDTO(BaseDataClass):
     algoId: str
     amt: str
     allowReinvestProfit: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class AiParamsPublicDTO:
+class AiParamsPublicDTO(BaseDataClass):
     algoOrdType: str
     instId: str
     direction: str | None = None
@@ -148,7 +150,7 @@ class AiParamsPublicDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class ComputeMinInvestmentPublicDTO:
+class ComputeMinInvestmentPublicDTO(BaseDataClass):
     instId: str
     algoOrdType: str
     maxPx: str
@@ -164,13 +166,13 @@ class ComputeMinInvestmentPublicDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class InvestmentData:
+class InvestmentData(BaseDataClass):
     amt: str
     ccy: str
 
 
 @dataclass(frozen=True, slots=True)
-class RsiBacktestingPublicDTO:
+class RsiBacktestingPublicDTO(BaseDataClass):
     instId: str
     timeframe: str
     thold: str
@@ -179,7 +181,7 @@ class RsiBacktestingPublicDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class MaxGridQuantityPublicDTO:
+class MaxGridQuantityPublicDTO(BaseDataClass):
     instId:	str	
     runType: str
     algoOrdType: str

@@ -1,15 +1,16 @@
 from dataclasses import dataclass
+from api_okx_v1.src.application.dto.base import BaseDataClass
 
 
 @dataclass(slots=True, frozen=True)
-class GetBalanceDTO:
+class GetBalanceDTO(BaseDataClass):
     instType: str | None = None
     instId: str | None = None
     posId: str | None = None
 
 
 @dataclass(slots=True, frozen=True)
-class SetLeverageDTO:
+class SetLeverageDTO(BaseDataClass):
     instId: str
     ccy: str
     lever: str
@@ -18,14 +19,14 @@ class SetLeverageDTO:
 
 
 @dataclass(slots=True, frozen=True)
-class GetLeverageDTO:
+class GetLeverageDTO(BaseDataClass):
     instId: str
     ccy: str
     mgn_mode: str
 
 
 @dataclass(slots=True, frozen=True)
-class PlaceOrderDTO:
+class PlaceOrderDTO(BaseDataClass):
     instId: str
     tdMode: str
     side: str
@@ -46,7 +47,7 @@ class PlaceOrderDTO:
 
 
 @dataclass(slots=True, frozen=True)
-class AmendOrderDTO:
+class AmendOrderDTO(BaseDataClass):
     instId: str
     attachAlgoOrds: list["AttachAlgoOrds"]
     cxlOnFail: bool | None = None
@@ -60,7 +61,7 @@ class AmendOrderDTO:
 
 
 @dataclass(slots=True, frozen=True)
-class AttachAlgoOrds:
+class AttachAlgoOrds(BaseDataClass):
     attachAlgoClOrdId: str | None = None 
     tpTriggerPx: str | None = None
     tpOrdPx: str | None = None
@@ -74,14 +75,14 @@ class AttachAlgoOrds:
 
 
 @dataclass(slots=True, frozen=True)
-class CancelOrerDTO:
+class CancelOrderDTO(BaseDataClass):
     instId: str
     ordId: str | None = None
     clOrdId: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class ClosePositionsDTO:
+class ClosePositionsDTO(BaseDataClass):
     instId: str
     mgnMode: str
     posSide: str | None = None
@@ -92,14 +93,14 @@ class ClosePositionsDTO:
 
 
 @dataclass(frozen=True, slots=True)
-class GetOrderDetailsDTO:
+class GetOrderDetailsDTO(BaseDataClass):
     instId: str
     ordId: str | None = None
     clOrdId: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
-class GetOrderListDTO:
+class GetOrderListDTO(BaseDataClass):
     instType: str | None = None
     uly: str | None = None
     instFamily: str | None = None
