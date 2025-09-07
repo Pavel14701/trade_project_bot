@@ -6,7 +6,7 @@ from typing import List, Mapping, Union
 
 class FiLM(nn.Module):
     def __init__(self, d_model: int) -> None:
-        super().__init__() #type: ignore
+        super().__init__()
         self.net = nn.Sequential(
             nn.Linear(d_model, 2 * d_model),
             nn.GELU(),
@@ -27,7 +27,7 @@ class ColumnTokenizer(nn.Module):
         asset_vocab: List[str],
         d_model: int
     ) -> None:
-        super().__init__() #type: ignore 
+        super().__init__()
         self.d_model = d_model
         self.num_proj = nn.Linear(1, d_model)
         self.num_norm = nn.LayerNorm(d_model)
@@ -37,12 +37,17 @@ class ColumnTokenizer(nn.Module):
         self.cat_embeddings = nn.ModuleList([
             nn.Embedding(card, d_model) for card in cat_cardinalities
         ])
-        self.asset_embedding = nn.Embedding(len(asset_vocab), d_model)
+
+        # Добавляем UNK_ASSET в словарь
+        self.asset_vocab = {name: i for i, name in enumerate(asset_vocab)}
+        self.unk_asset_idx = len(self.asset_vocab)
+        self.asset_vocab["UNK_ASSET"] = self.unk_asset_idx
+
+        self.asset_embedding = nn.Embedding(len(self.asset_vocab), d_model)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, d_model))
 
         self.num_col_ids = {name: i for i, name in enumerate(num_col_names)}
         self.cat_col_names = cat_col_names
-        self.asset_vocab = {name: i for i, name in enumerate(asset_vocab)}
 
     def tokenize(self, row: Mapping[str, Union[str, float, int]], device: torch.device) -> torch.Tensor:
         num_tokens: List[torch.Tensor] = []
@@ -54,16 +59,26 @@ class ColumnTokenizer(nn.Module):
             col_emb = self.num_col_emb(col_idx)
             token = self.film(col_emb, proj)
             num_tokens.append(token)
+
         cat_tokens: List[torch.Tensor] = []
         for i, name in enumerate(self.cat_col_names):
             val = row.get(name, 0)
             val_tensor = torch.tensor([val], dtype=torch.long, device=device)
             cat_tokens.append(self.cat_embeddings[i](val_tensor))
-        asset_idx = torch.tensor([self.asset_vocab.get(str(row["asset_id"]), 0)], device=device)
+
+        # Безопасная обработка asset_id
+        asset_id_str = str(row.get("asset_id", "UNK_ASSET"))
+        asset_idx = torch.tensor(
+            [self.asset_vocab.get(asset_id_str, self.unk_asset_idx)],
+            device=device
+        )
         asset_token = self.asset_embedding(asset_idx)
+
         cls = self.cls_token.to(device)
         all_tokens = torch.cat([cls] + num_tokens + cat_tokens + [asset_token], dim=1)
         return all_tokens.squeeze(0)
 
     def tokenize_batch(self, df: pd.DataFrame, device: torch.device) -> torch.Tensor:
-        return torch.stack([self.tokenize(row, device) for _, row in df.iterrows()]) #type: ignore
+        return torch.stack([
+            self.tokenize(row, device) for _, row in df.iterrows()
+        ])

@@ -53,8 +53,7 @@ class SchemaInfer:
         if self._schema is None:
             raise RuntimeError("SchemaInfer must be fit before transform.")
 
-        missing = [col for col in self._schema.cat_cols if col not in df.columns]
-        if missing:
+        if missing := [col for col in self._schema.cat_cols if col not in df.columns]:
             raise ValueError(f"Missing categorical columns: {missing}")
 
         num = df[self._schema.num_cols].copy()
@@ -94,5 +93,5 @@ class SchemaInfer:
 
     def __repr__(self) -> str:
         if self._schema is None:
-            return f"SchemaInfer(fit=False)"
+            return "SchemaInfer(fit=False)"
         return f"SchemaInfer(fit=True, num={len(self._schema.num_cols)}, cat={len(self._schema.cat_cols)})"

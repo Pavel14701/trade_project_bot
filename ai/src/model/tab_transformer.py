@@ -71,11 +71,16 @@ class TabTransformer(nn.Module):
         )
 
     def generate_attention_mask(self, x_cat: torch.Tensor) -> torch.Tensor:
+        """
+        Returns a boolean mask of shape [B, 1 + 1 + C], where:
+        - True indicates positions to ignore (padding)
+        - False indicates positions to keep
+        """
         pad_mask = (x_cat == self.padding_idx)  # [B, C]
-        cls_mask = torch.zeros(x_cat.size(0), 1, dtype=torch.bool, device=x_cat.device)
-        num_mask = torch.zeros(x_cat.size(0), 1, dtype=torch.bool, device=x_cat.device)
-        full_mask = torch.cat([cls_mask, num_mask, pad_mask], dim=1)
-        return ~full_mask  # Transformer expects True for keep
+        cls_mask = torch.zeros(x_cat.size(0), 1, dtype=torch.bool, device=x_cat.device)  # keep CLS
+        num_mask = torch.zeros(x_cat.size(0), 1, dtype=torch.bool, device=x_cat.device)  # keep numeric
+        full_mask = torch.cat([cls_mask, num_mask, pad_mask], dim=1)  # [B, 1+1+C]
+        return full_mask  # PyTorch expects True for ignore
 
     def forward(
         self,

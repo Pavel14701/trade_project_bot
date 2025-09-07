@@ -14,7 +14,10 @@ class ClickHouseProvider(BaseProvider):
         password: Optional[str] = None,
         port: int = 9000
     ) -> None:
-        uri = f"clickhouse+native://{user}:{password or ''}@{host}:{port}/{database}"
+        if password is not None:
+            uri = f"clickhouse+native://{user}:{password}@{host}:{port}/{database}"
+        else:
+            uri = f"clickhouse+native://{user}@{host}:{port}/{database}"
         self.engine = create_engine(uri)
 
     def fetch(self, symbol: str, start: str, end: str) -> pd.DataFrame:

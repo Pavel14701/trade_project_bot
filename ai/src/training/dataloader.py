@@ -24,7 +24,9 @@ def collate_fn(
     df = pd.concat(batch, axis=0).reset_index(drop=True)
     num, cat = schema.transform(df)
     x_num, x_cat = to_tensor(num, cat, device=device)
-    return {"x_num": x_num, "x_cat": x_cat}
+    y = torch.tensor(df["target"].values, dtype=torch.float32, device=device)
+    return {"x_num": x_num, "x_cat": x_cat, "target": y}
+
 
 def create_dataloader(
     df: pd.DataFrame,

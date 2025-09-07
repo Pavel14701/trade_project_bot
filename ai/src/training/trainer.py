@@ -19,23 +19,25 @@ class Trainer:
         self.device = device
         self.alpha = alpha
 
-    def train_epoch(self, dataloader, targets: torch.Tensor) -> float:
+    def train_epoch(self, dataloader) -> float:
         self.model.train()
         total_loss = 0.0
 
-        for batch_idx, batch in enumerate(dataloader):
+        for batch in dataloader:
             x_num = batch["x_num"]
             x_cat = batch["x_cat"]
+            y_true = batch["target"]
 
             self.optimizer.zero_grad()
             logits = self.model(x_num, x_cat)
             probs = calibrated_sigmoid(logits.squeeze(), alpha=self.alpha)
-            loss = self.loss_fn(probs, targets[batch_idx * len(probs):(batch_idx + 1) * len(probs)])
+            loss = self.loss_fn(probs, y_true)
             loss.backward()
             self.optimizer.step()
             total_loss += loss.item()
 
         return total_loss / len(dataloader)
+
 
     def evaluate(self, dataloader, targets: torch.Tensor) -> torch.Tensor:
         self.model.eval()
