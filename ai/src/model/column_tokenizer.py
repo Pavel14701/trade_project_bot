@@ -5,6 +5,15 @@ from typing import List, Mapping, Union
 
 
 class FiLM(nn.Module):
+    """
+    Feature-wise Linear Modulation (FiLM) layer.
+
+    Applies learned affine transformations to input features conditioned on context.
+    Used to inject column-specific embeddings into projected numeric values.
+
+    Parameters:
+        d_model (int): Dimensionality of the token space.
+    """
     def __init__(self, d_model: int) -> None:
         super().__init__()
         self.net = nn.Sequential(
@@ -13,12 +22,43 @@ class FiLM(nn.Module):
             nn.Linear(2 * d_model, 2 * d_model)
         )
 
-    def forward(self, context: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, 
+        context: torch.Tensor, 
+        x: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Applies FiLM modulation to input tensor.
+
+        Splits the output of the conditioning network into gamma and beta,
+        then applies element-wise affine transformation.
+
+        Parameters:
+            context (torch.Tensor): Conditioning tensor of shape [B, 1, D].
+            x (torch.Tensor): Input tensor to modulate of shape [B, 1, D].
+
+        Returns:
+            torch.Tensor: Modulated tensor of shape [B, 1, D].
+        """
         gamma, beta = self.net(context).chunk(2, dim=-1)
         return gamma * x + beta
 
 
 class ColumnTokenizer(nn.Module):
+    """
+    Tokenizer for tabular data rows.
+
+    Converts a single row of mixed numeric and categorical features into a unified
+    token sequence suitable for Transformer-based models. Includes support for
+    column-wise embeddings, FiLM modulation, and asset-specific embeddings.
+
+    Parameters:
+        num_col_names (List[str]): Names of numeric columns.
+        cat_col_names (List[str]): Names of categorical columns.
+        cat_cardinalities (List[int]): Cardinalities for each categorical column.
+        asset_vocab (List[str]): Known asset identifiers.
+        d_model (int): Dimensionality of token embeddings.
+    """
     def __init__(
         self,
         num_col_names: List[str],
@@ -49,7 +89,24 @@ class ColumnTokenizer(nn.Module):
         self.num_col_ids = {name: i for i, name in enumerate(num_col_names)}
         self.cat_col_names = cat_col_names
 
-    def tokenize(self, row: Mapping[str, Union[str, float, int]], device: torch.device) -> torch.Tensor:
+    def tokenize(
+        self, 
+        row: Mapping[str, Union[str, float, int]], 
+        device: torch.device
+    ) -> torch.Tensor:
+        """
+        Tokenizes a single row into a sequence of embeddings.
+
+        Applies FiLM-modulated projections to numeric features, categorical embeddings,
+        and asset-specific embedding. Prepends a learnable CLS token.
+
+        Parameters:
+            row (Mapping): Dictionary-like row with feature values.
+            device (torch.device): Target device for tensor allocation.
+
+        Returns:
+            torch.Tensor: Token sequence of shape [1 + 1 + C + 1, D].
+        """
         num_tokens: List[torch.Tensor] = []
         for col_name in self.num_col_ids:
             val = row.get(col_name, 0.0)
@@ -78,7 +135,23 @@ class ColumnTokenizer(nn.Module):
         all_tokens = torch.cat([cls] + num_tokens + cat_tokens + [asset_token], dim=1)
         return all_tokens.squeeze(0)
 
-    def tokenize_batch(self, df: pd.DataFrame, device: torch.device) -> torch.Tensor:
+    def tokenize_batch(
+        self, 
+        df: pd.DataFrame, 
+        device: torch.device
+    ) -> torch.Tensor:
+        """
+        Tokenizes a batch of rows into stacked token sequences.
+
+        Applies row-wise tokenization and stacks the results into a batch tensor.
+
+        Parameters:
+            df (pd.DataFrame): Input dataframe with feature columns.
+            device (torch.device): Target device for tensor allocation.
+
+        Returns:
+            torch.Tensor: Batched token tensor of shape [B, T, D].
+        """
         return torch.stack([
             self.tokenize(row, device) for _, row in df.iterrows()
         ])
