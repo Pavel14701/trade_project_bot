@@ -70,8 +70,11 @@ def rolling_robust_scale_by_asset(
         pd.DataFrame: Dataframe with scaled features added.
     """
     out: pd.DataFrame = df.copy()
-    index_name: str = out.index.name if isinstance(out.index.name, str) else "index"  # type: ignore[reportUnknownMemberType]
-    sort_keys: List[str] = [asset_col, index_name] 
+    # Ensure index is named and unique for sorting
+    if out.index.name is None or not out.index.is_unique: # type: ignore[reportUnknownMemberType]
+        out = out.reset_index()
+    index_name: str = out.index.name if isinstance(out.index.name, str) else "index" # type: ignore[reportUnknownMemberType]
+    sort_keys: List[str] = [asset_col, index_name]
     out = out.sort_values(sort_keys) # type: ignore[reportUnknownMemberType]
     scaled: pd.DataFrame = out.groupby(asset_col, group_keys=False).apply( # type: ignore[reportUnknownMemberType]
         lambda g: scale_group(g, cols, window, eps, clip_iqr, suffix)

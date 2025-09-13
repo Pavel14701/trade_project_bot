@@ -91,7 +91,6 @@ class TabTransformer(nn.Module):
             norm_first=True
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-
         # Output head
         self.head = nn.Sequential(
             nn.Linear(d_model, ff_dim),
@@ -152,15 +151,11 @@ class TabTransformer(nn.Module):
         # Normalize + dropout
         tokens = self.input_norm(tokens)
         tokens = self.token_dropout(tokens)
-        # Encode with attention mask validation
-        if attention_mask is not None:
-            if attention_mask.dtype != torch.bool:
-                attention_mask = attention_mask.bool()
-            if attention_mask.shape != tokens.shape[:2]:
-                raise ValueError(f"Expected attention_mask shape {tokens.shape[:2]}, got {attention_mask.shape}")
-            encoded = self.encoder(tokens, src_key_padding_mask=attention_mask)
-        else:
-            encoded = self.encoder(tokens)
+        # Encode with optional attention mask
+        encoded = self.encoder(
+            tokens,
+            src_key_padding_mask=None if attention_mask is None else attention_mask.bool()
+        )
         # Use CLS token
         cls_out = self.output_norm(encoded[:, 0])
         return self.head(cls_out)
