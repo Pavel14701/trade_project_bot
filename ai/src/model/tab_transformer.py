@@ -135,7 +135,8 @@ class TabTransformer(nn.Module):
         Parameters:
             x_num (torch.Tensor): Numeric input tensor of shape [B, F].
             x_cat (torch.Tensor): Categorical input tensor of shape [B, C].
-            attention_mask (Optional[torch.Tensor]): Optional mask of shape [B, T].
+            attention_mask (Optional[torch.Tensor]): Optional mask of shape [B, T],
+                where True indicates positions to ignore.
 
         Returns:
             torch.Tensor: Output tensor of shape [B, num_classes].
@@ -147,12 +148,19 @@ class TabTransformer(nn.Module):
         num_proj = self.num_proj(x_num).unsqueeze(1)  # [B, 1, D]
         # Combine with CLS token
         cls = self.cls_token.expand(x_num.size(0), -1, -1)  # [B, 1, D]
-        tokens = torch.cat([cls, num_proj, cat_stack], dim=1)  # [B, 1+1+C, D]
+        tokens = torch.cat([cls, num_proj, cat_stack], dim=1)  # [B, T, D]
         # Normalize + dropout
         tokens = self.input_norm(tokens)
         tokens = self.token_dropout(tokens)
-        # Encode
-        encoded = self.encoder(tokens, src_key_padding_mask=attention_mask)
+        # Encode with attention mask validation
+        if attention_mask is not None:
+            if attention_mask.dtype != torch.bool:
+                attention_mask = attention_mask.bool()
+            if attention_mask.shape != tokens.shape[:2]:
+                raise ValueError(f"Expected attention_mask shape {tokens.shape[:2]}, got {attention_mask.shape}")
+            encoded = self.encoder(tokens, src_key_padding_mask=attention_mask)
+        else:
+            encoded = self.encoder(tokens)
         # Use CLS token
         cls_out = self.output_norm(encoded[:, 0])
         return self.head(cls_out)

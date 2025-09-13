@@ -26,8 +26,9 @@ class BaseHead(nn.Module):
         """
         Applies the output head to the input tensor.
 
-        If the output dimension is 1, returns a squeezed tensor for compatibility
-        with binary loss functions.
+        If the output dimension is 1, reshapes the output to [B] for compatibility
+        with binary loss functions. This avoids shape collapse to scalar when batch
+        size is 1, which can break downstream code expecting consistent tensor shapes.
 
         Parameters:
             x (torch.Tensor): Input tensor of shape [B, D].
@@ -35,7 +36,8 @@ class BaseHead(nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape [B] or [B, out_dim].
         """
-        return self.head(x).squeeze(-1) if self.head[-1].out_features == 1 else self.head(x)
+        return self.head(x).reshape(-1) if self.head[-1].out_features == 1 else self.head(x)
+
 
 class SignalHead(BaseHead):
     """

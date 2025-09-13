@@ -140,6 +140,7 @@ class ColumnTokenizer(nn.Module):
         Tokenizes a batch of rows into stacked token sequences.
 
         Applies row-wise tokenization and stacks the results into a batch tensor.
+        Ensures consistent sequence length across all rows.
 
         Parameters:
             df (pd.DataFrame): Input dataframe with feature columns.
@@ -148,6 +149,5 @@ class ColumnTokenizer(nn.Module):
         Returns:
             torch.Tensor: Batched token tensor of shape [B, T, D].
         """
-        return torch.cat([
-            self.tokenize(row, device) for _, row in df.iterrows() #type: ignore
-        ], dim=0)
+        tokenized = [self.tokenize(row, device) for _, row in df.iterrows()]  # List of [1, T, D] # type: ignore
+        return torch.stack(tokenized, dim=0).squeeze(1)  # [B, T, D]
