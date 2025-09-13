@@ -100,10 +100,6 @@ class ColumnTokenizer(nn.Module):
         Applies FiLM-modulated projections to numeric features, categorical embeddings,
         and asset-specific embedding. Prepends a learnable CLS token.
 
-        Parameters:
-            row (Mapping): Dictionary-like row with feature values.
-            device (torch.device): Target device for tensor allocation.
-
         Returns:
             torch.Tensor: Token sequence of shape [T, D], where T = 1 + 1 + C + 1.
         """
@@ -115,20 +111,20 @@ class ColumnTokenizer(nn.Module):
             col_idx = torch.tensor([self.num_col_ids[col_name]], device=device)
             col_emb = self.num_col_emb(col_idx)
             token = self.film(col_emb, proj)
-            num_tokens.append(token.squeeze(0))  # [D]
+            num_tokens.append(token.view(-1, self.d_model))  # [1, D]
         cat_tokens: List[torch.Tensor] = []
         for i, name in enumerate(self.cat_col_names):
             val = row.get(name, 0)
             val_tensor = torch.tensor([val], dtype=torch.long, device=device)
-            cat_tokens.append(self.cat_embeddings[i](val_tensor).squeeze(0))  # [D]
+            cat_tokens.append(self.cat_embeddings[i](val_tensor).view(-1, self.d_model))  # [1, D]
         asset_id_str = str(row.get("asset_id", "UNK_ASSET"))
         asset_idx = torch.tensor(
             [self.asset_vocab.get(asset_id_str, self.unk_asset_idx)],
             device=device
         )
-        asset_token = self.asset_embedding(asset_idx).squeeze(0)  # [D]
-        cls = self.cls_token.to(device).squeeze(0)  # [D]
-        return torch.stack([cls] + num_tokens + cat_tokens + [asset_token], dim=0)  # [T, D]
+        asset_token = self.asset_embedding(asset_idx).view(-1, self.d_model)  # [1, D]
+        cls = self.cls_token.to(device).view(-1, self.d_model)  # [1, D]
+        return torch.cat([cls] + num_tokens + cat_tokens + [asset_token], dim=0)  # [T, D]
 
     def tokenize_batch(
         self, 
