@@ -151,11 +151,14 @@ class TabTransformer(nn.Module):
         # Normalize + dropout
         tokens = self.input_norm(tokens)
         tokens = self.token_dropout(tokens)
-        # Encode with optional attention mask
-        encoded = self.encoder(
-            tokens,
-            src_key_padding_mask=None if attention_mask is None else attention_mask.bool()
-        )
+        # Validate attention mask shape and type
+        if attention_mask is not None:
+            if attention_mask.shape != tokens.shape[:2]:
+                raise ValueError(f"Attention mask shape {attention_mask.shape} does not match token shape {tokens.shape[:2]}")
+            if attention_mask.dtype != torch.bool:
+                attention_mask = attention_mask.bool()
+        # Encode
+        encoded = self.encoder(tokens, src_key_padding_mask=attention_mask)
         # Use CLS token
         cls_out = self.output_norm(encoded[:, 0])
         return self.head(cls_out)

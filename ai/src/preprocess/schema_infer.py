@@ -57,8 +57,8 @@ class SchemaInfer:
         for col in df.select_dtypes(include=["object"]).columns:
             if col in exclude:
                 continue
-            non_null = df[col].dropna()
-            if len(non_null) > 0 and non_null.apply(lambda x: isinstance(x, str) and x.replace('.', '', 1).isdigit()).all():
+            non_null = df[col].dropna() # type: ignore
+            if len(non_null) > 0 and non_null.apply(lambda x: isinstance(x, str) and x.replace('.', '', 1).isdigit()).all(): # type: ignore
                 num_cols.append(col)
                 if col in cat_cols:
                     cat_cols.remove(col)
@@ -67,7 +67,7 @@ class SchemaInfer:
         for col in cat_cols:
             vc = df[col].astype("object").value_counts()
             vc = vc[vc >= self.min_freq]
-            top = list(vc.index[:self.max_card])
+            top = list(vc.index[:self.max_card]) # type: ignore
             vocab = {v: i for i, v in enumerate(top)}
             cat_vocabs[col] = vocab
             cat_unk_idx[col] = self.unk_index  # Reserved index for unknowns
@@ -78,7 +78,6 @@ class SchemaInfer:
             cat_unk_idx=cat_unk_idx
         )
         return self
-
 
     def transform(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """

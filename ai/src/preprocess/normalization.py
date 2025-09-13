@@ -57,26 +57,26 @@ def rolling_robust_scale_by_asset(
     normalization using rolling median and IQR. Scaled columns are appended
     with the specified suffix.
 
-    Parameters:
-        df (pd.DataFrame): Input dataframe with asset and numeric columns.
-        cols (List[str]): Columns to normalize.
-        asset_col (str): Column identifying asset groups.
-        window (int): Rolling window size (default: 252).
-        eps (float): Small constant to avoid division by zero.
-        clip_iqr (Optional[float]): Optional clipping threshold (default: 3.0).
-        suffix (str): Suffix for scaled column names (default: "_scaled").
-
     Returns:
         pd.DataFrame: Dataframe with scaled features added.
     """
     out: pd.DataFrame = df.copy()
-    # Ensure index is named and unique for sorting
-    if out.index.name is None or not out.index.is_unique: # type: ignore[reportUnknownMemberType]
-        out = out.reset_index()
-    index_name: str = out.index.name if isinstance(out.index.name, str) else "index" # type: ignore[reportUnknownMemberType]
+    # Determine index column name safely
+    index_name: Optional[str] = out.index.name # type: ignore
+    if index_name is None or not out.index.is_unique: # type: ignore
+        # Preserve index as column before reset
+        out["_original_index"] = out.index # type: ignore
+        out = out.reset_index(drop=True) 
+        index_name = "_original_index"
+    # Sort by asset and index
     sort_keys: List[str] = [asset_col, index_name]
-    out = out.sort_values(sort_keys) # type: ignore[reportUnknownMemberType]
-    scaled: pd.DataFrame = out.groupby(asset_col, group_keys=False).apply( # type: ignore[reportUnknownMemberType]
+    out = out.sort_values(sort_keys) # type: ignore
+    # Apply scaling per asset
+    scaled: pd.DataFrame = out.groupby(asset_col, group_keys=False).apply( # type: ignore
         lambda g: scale_group(g, cols, window, eps, clip_iqr, suffix)
     )
+    # Restore original index if it was preserved
+    if "_original_index" in scaled.columns:
+        scaled = scaled.set_index("_original_index") # type: ignore
+        scaled.index.name = df.index.name # type: ignore
     return scaled
