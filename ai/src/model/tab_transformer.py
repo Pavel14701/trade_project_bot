@@ -67,26 +67,20 @@ class TabTransformer(nn.Module):
         super().__init__() # type: ignore
         self.d_model = d_model
         self.padding_idx = padding_idx
-
         # Embedding for categorical features
         self.cat_embeddings = nn.ModuleList([
             nn.Embedding(card + 1, d_model, padding_idx=padding_idx)
             for card in cat_cardinalities
         ])
-
         # Projection for numerical features
         self.num_proj = nn.Linear(num_features, d_model)
-
         # Learnable [CLS] token
         self.cls_token = nn.Parameter(torch.randn(1, 1, d_model))
-
         # Normalization
         self.input_norm = nn.LayerNorm(d_model)
         self.output_norm = nn.LayerNorm(d_model)
-
         # Token dropout
         self.token_dropout = TokenDropout(p=token_dropout)
-
         # Transformer encoder
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,

@@ -15,7 +15,7 @@ class FiLM(nn.Module):
         d_model (int): Dimensionality of the token space.
     """
     def __init__(self, d_model: int) -> None:
-        super().__init__()
+        super().__init__() # type: ignore
         self.net = nn.Sequential(
             nn.Linear(d_model, 2 * d_model),
             nn.GELU(),
@@ -67,7 +67,7 @@ class ColumnTokenizer(nn.Module):
         asset_vocab: List[str],
         d_model: int
     ) -> None:
-        super().__init__()
+        super().__init__() # type: ignore
         self.d_model = d_model
         self.num_proj = nn.Linear(1, d_model)
         self.num_norm = nn.LayerNorm(d_model)
@@ -95,7 +95,7 @@ class ColumnTokenizer(nn.Module):
         device: torch.device
     ) -> torch.Tensor:
         """
-        Tokenizes a single row into a sequence of embeddings.
+        Tokenizes a single row into a seqauence of embeddings.
 
         Applies FiLM-modulated projections to numeric features, categorical embeddings,
         and asset-specific embedding. Prepends a learnable CLS token.
@@ -105,7 +105,7 @@ class ColumnTokenizer(nn.Module):
             device (torch.device): Target device for tensor allocation.
 
         Returns:
-            torch.Tensor: Token sequence of shape [1 + 1 + C + 1, D].
+            torch.Tensor: Token sequence of shape [1, T, D], where T = 1 + 1 + C + 1.
         """
         num_tokens: List[torch.Tensor] = []
         for col_name in self.num_col_ids:
@@ -116,24 +116,20 @@ class ColumnTokenizer(nn.Module):
             col_emb = self.num_col_emb(col_idx)
             token = self.film(col_emb, proj)
             num_tokens.append(token)
-
         cat_tokens: List[torch.Tensor] = []
         for i, name in enumerate(self.cat_col_names):
             val = row.get(name, 0)
             val_tensor = torch.tensor([val], dtype=torch.long, device=device)
             cat_tokens.append(self.cat_embeddings[i](val_tensor))
-
-        # Безопасная обработка asset_id
         asset_id_str = str(row.get("asset_id", "UNK_ASSET"))
         asset_idx = torch.tensor(
             [self.asset_vocab.get(asset_id_str, self.unk_asset_idx)],
             device=device
         )
         asset_token = self.asset_embedding(asset_idx)
-
         cls = self.cls_token.to(device)
-        all_tokens = torch.cat([cls] + num_tokens + cat_tokens + [asset_token], dim=1)
-        return all_tokens.squeeze(0)
+        all_tokens = torch.cat([cls] + num_tokens + cat_tokens + [asset_token], dim=1)  # [1, T, D]
+        return all_tokens  # shape preserved: [1, T, D]
 
     def tokenize_batch(
         self, 
@@ -152,6 +148,6 @@ class ColumnTokenizer(nn.Module):
         Returns:
             torch.Tensor: Batched token tensor of shape [B, T, D].
         """
-        return torch.stack([
-            self.tokenize(row, device) for _, row in df.iterrows()
-        ])
+        return torch.cat([
+            self.tokenize(row, device) for _, row in df.iterrows() #type: ignore
+        ], dim=0)

@@ -11,6 +11,24 @@ def scale_group(
     clip_iqr: Optional[float],
     suffix: str
 ) -> pd.DataFrame:
+    """
+    Applies rolling robust scaling to selected columns within a single group.
+
+    For each column, computes rolling median and IQR over a specified window,
+    then normalizes values using (x - median) / (IQR + eps). Optionally clips
+    extreme values to a fixed range.
+
+    Parameters:
+        g (pd.DataFrame): Grouped dataframe (e.g., one asset).
+        cols (List[str]): Columns to normalize.
+        window (int): Rolling window size.
+        eps (float): Small constant to avoid division by zero.
+        clip_iqr (Optional[float]): Optional clipping threshold for scaled values.
+        suffix (str): Suffix to append to scaled column names.
+
+    Returns:
+        pd.DataFrame: Group with added scaled columns.
+    """
     for col in cols:
         col_series: pd.Series[float] = g[col].astype(float)
         med: pd.Series[float] = col_series.rolling(window).median().shift(1)  # type: ignore[reportUnknownMemberType]
@@ -23,7 +41,6 @@ def scale_group(
         g[f"{col}{suffix}"] = z
     return g
 
-
 def rolling_robust_scale_by_asset(
     df: pd.DataFrame,
     cols: List[str],
@@ -33,6 +50,25 @@ def rolling_robust_scale_by_asset(
     clip_iqr: Optional[float] = 3.0,
     suffix: str = "_scaled"
 ) -> pd.DataFrame:
+    """
+    Applies rolling robust scaling to numeric features per asset.
+
+    Sorts the dataframe by asset and time index, then applies asset-wise
+    normalization using rolling median and IQR. Scaled columns are appended
+    with the specified suffix.
+
+    Parameters:
+        df (pd.DataFrame): Input dataframe with asset and numeric columns.
+        cols (List[str]): Columns to normalize.
+        asset_col (str): Column identifying asset groups.
+        window (int): Rolling window size (default: 252).
+        eps (float): Small constant to avoid division by zero.
+        clip_iqr (Optional[float]): Optional clipping threshold (default: 3.0).
+        suffix (str): Suffix for scaled column names (default: "_scaled").
+
+    Returns:
+        pd.DataFrame: Dataframe with scaled features added.
+    """
     out: pd.DataFrame = df.copy()
     index_name: str = out.index.name if isinstance(out.index.name, str) else "index"  # type: ignore[reportUnknownMemberType]
     sort_keys: List[str] = [asset_col, index_name] 

@@ -3,18 +3,17 @@ import torch.nn as nn
 from typing import Literal
 
 class BaseHead(nn.Module):
-    class BaseHead(nn.Module):
-        """
-        Generic output head for tabular models.
+    """
+    Generic output head for tabular models.
 
-        Applies layer normalization, dropout, and a final linear projection.
-        Supports both regression and classification tasks depending on output dimension.
+    Applies layer normalization, dropout, and a final linear projection.
+    Supports both regression and classification tasks depending on output dimension.
 
-        Parameters:
-            d_model (int): Input feature dimension.
-            out_dim (int): Output dimension (e.g., 1 for binary, >1 for multi-class).
-            dropout (float): Dropout rate applied before the final layer.
-        """
+    Parameters:
+        d_model (int): Input feature dimension.
+        out_dim (int): Output dimension (e.g., 1 for binary, >1 for multi-class).
+        dropout (float): Dropout rate applied before the final layer.
+    """
     def __init__(self, d_model: int, out_dim: int, dropout: float = 0.1) -> None:
         super().__init__() # type: ignore
         self.head = nn.Sequential(
