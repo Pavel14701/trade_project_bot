@@ -1,3 +1,5 @@
+# src/ai/model/column_tokenizer.py
+
 import torch
 import torch.nn as nn
 import pandas as pd
