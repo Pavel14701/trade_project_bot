@@ -30,12 +30,10 @@ class SchemaInfer:
     Parameters:
         max_card (int): Maximum number of unique values to keep per categorical column.
         min_freq (int): Minimum frequency required for a categorical value to be included.
-        unk_index (int): Reserved index for unknown categorical values.
     """
-    def __init__(self, max_card: int = 1000, min_freq: int = 1, unk_index: int = 2**30) -> None:
+    def __init__(self, max_card: int = 1000, min_freq: int = 1) -> None:
         self.max_card = max_card
         self.min_freq = min_freq
-        self.unk_index = unk_index
         self._schema: Optional[Schema] = None
 
     def fit(self, df: pd.DataFrame, exclude: Optional[List[str]] = None) -> "SchemaInfer":
@@ -49,19 +47,18 @@ class SchemaInfer:
         Returns:
             SchemaInfer: Self with fitted schema.
         """
-        exclude = exclude or []
-        # Initial type inference using pandas selectors
-        num_cols = [col for col in df.select_dtypes(include=["number"]).columns if col not in exclude]
-        cat_cols = [col for col in df.select_dtypes(exclude=["number"]).columns if col not in exclude]
-        # Explicitly check object columns for numeric strings
-        for col in df.select_dtypes(include=["object"]).columns:
-            if col in exclude:
-                continue
-            non_null = df[col].dropna() # type: ignore
-            if len(non_null) > 0 and non_null.apply(lambda x: isinstance(x, str) and x.replace('.', '', 1).isdigit()).all(): # type: ignore
-                num_cols.append(col)
-                if col in cat_cols:
-                    cat_cols.remove(col)
+        exclude = set(exclude or []) # type: ignore
+        # 1. Pick up true numeric dtypes
+        num_cols = set(df.select_dtypes(include=["number"]).columns) - exclude # type: ignore
+        # 2. Look for object-dtype cols that coerce 100% to numeric
+        obj_cols = set(df.select_dtypes(include=["object"]).columns) - exclude # type: ignore
+        num_str_cols = [ # type: ignore
+            col for col in obj_cols # type: ignore
+            if pd.to_numeric(df[col], errors="coerce").notna().all() # type: ignore
+        ]
+        num_cols.update(num_str_cols) # type: ignore
+        # 3. Everything else is categorical
+        cat_cols = [col for col in df.columns if col not in exclude and col not in num_cols] # type: ignore
         cat_vocabs: Dict[str, Dict[str, int]] = {}
         cat_unk_idx: Dict[str, int] = {}
         for col in cat_cols:
@@ -70,9 +67,9 @@ class SchemaInfer:
             top = list(vc.index[:self.max_card]) # type: ignore
             vocab = {v: i for i, v in enumerate(top)}
             cat_vocabs[col] = vocab
-            cat_unk_idx[col] = self.unk_index  # Reserved index for unknowns
+            cat_unk_idx[col] = len(vocab)  # safe index for unknowns
         self._schema = Schema(
-            num_cols=num_cols,
+            num_cols=sorted(num_cols), # type: ignore
             cat_cols=cat_cols,
             cat_vocabs=cat_vocabs,
             cat_unk_idx=cat_unk_idx
@@ -91,8 +88,7 @@ class SchemaInfer:
         """
         if self._schema is None:
             raise RuntimeError("SchemaInfer must be fit before transform.")
-        missing = [col for col in self._schema.cat_cols if col not in df.columns]
-        if missing:
+        if missing := [col for col in self._schema.cat_cols if col not in df.columns]:
             raise ValueError(f"Missing categorical columns: {missing}")
         num = df[self._schema.num_cols].copy()
         cat = pd.DataFrame(index=df.index) # type: ignore

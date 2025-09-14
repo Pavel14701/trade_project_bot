@@ -26,7 +26,7 @@ class BaseHead(nn.Module):
         """
         Applies the output head to the input tensor.
 
-        If the output dimension is 1, reshapes the output to [B] for compatibility
+        If the output dimension is 1, squeezes the last dimension for compatibility
         with binary loss functions. This avoids collapsing the batch dimension when
         batch size is 1, ensuring consistent output shape.
 
@@ -37,7 +37,7 @@ class BaseHead(nn.Module):
             torch.Tensor: Output tensor of shape [B] or [B, out_dim].
         """
         out = self.head(x)
-        return out.view(-1) if out.shape[-1] == 1 else out
+        return out.squeeze(-1) if out.shape[-1] == 1 else out
 
 
 
