@@ -45,14 +45,16 @@ class IOkxTrade(Protocol):
 
     async def get_account_balance(
         self, 
-        ccy: str
+        ccy: str,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
         raise NotImplementedError()
 
     async def get_positions(
         self, 
-        params: GetBalanceDTO
+        params: GetBalanceDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-positions
         raise NotImplementedError()
@@ -60,6 +62,7 @@ class IOkxTrade(Protocol):
     async def set_position_mode(
         self, 
         posMode: str,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-position-mode
         raise NotImplementedError()
@@ -67,55 +70,63 @@ class IOkxTrade(Protocol):
     async def set_leverage(
         self, 
         params: SetLeverageDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-set-leverage
         raise NotImplementedError()
 
     async def get_leverage(
         self, 
-        params: GetLeverageDTO
+        params: GetLeverageDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-leverage
         raise NotImplementedError()
 
     async def place_order(
         self, 
-        params: PlaceOrderDTO
+        params: PlaceOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
         raise NotImplementedError()
 
     async def amend_order(
         self, 
-        params: AmendOrderDTO
+        params: AmendOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-post-amend-order
         raise NotImplementedError()
 
     async def cancel_order(
         self, 
-        params: CancelOrderDTO
+        params: CancelOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-post-cancel-order
         raise NotImplementedError()
 
     async def close_positions(
         self, 
-        params: ClosePositionsDTO
+        params: ClosePositionsDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-post-close-positions
         raise NotImplementedError()
 
     async def get_order_details(
         self, 
-        params: GetOrderDetailsDTO
+        params: GetOrderDetailsDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-get-order-details
         raise NotImplementedError()
 
     async def get_order_list(
         self, 
-        params: GetOrderListDTO
+        params: GetOrderListDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         # https://www.okx.com/docs-v5/en/?shell#order-book-trading-trade-get-order-list
         raise NotImplementedError()
