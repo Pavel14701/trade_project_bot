@@ -15,6 +15,19 @@ from api_okx_v1.src.application.interactors.market import (
     GetMarketPriceInteractor,
     GetTickerInteractor
 )
+from api_okx_v1.src.application.interactors.trade import (
+    GetAccountBalanceInteractor,
+    GetOrderListInteractor,
+    GetPositionsInteractor,
+    SetPositionModeInteractor,
+    SetLeverageInteractor,
+    GetLeverageInteractor,  
+    PlaceOrderInteractor,
+    AmendOrderInteractor,
+    CancelOrderInteractor,
+    ClosePositionsDTO,
+    GetOrderDetailsInteractor
+)
 
 
 controller = RabbitRouter(prefix="okx_api")
@@ -77,4 +90,13 @@ class OkxMarketRoutes:
 
 
 class OkxTradeRoutes:
-    pass
+    @controller.subscriber("get_candlesticks")
+    @controller.publisher("send_candlesticks")
+    @inject
+    async def get_account_balance(
+        self,
+        params: dict[str, Any],
+        interactor: FromDishka[GetAccountBalanceInteractor],
+    ) -> dict[str, Any]:
+        dto = GetPriceDataDTO(**params)
+        return await interactor(dto)

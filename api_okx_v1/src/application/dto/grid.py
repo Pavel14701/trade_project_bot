@@ -109,7 +109,7 @@ class GetGridOrderDetailsDTO(BaseDataClass):
 
 
 @dataclass(frozen=True, slots=True)
-class GetGridSubOrersDTO(BaseDataClass):
+class GetGridSubOrdersDTO(BaseDataClass):
     algoOrdType: str
     algoId: str | None = None
     instId: str | None = None

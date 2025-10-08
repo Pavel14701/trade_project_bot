@@ -122,7 +122,7 @@ class GetOrderDetailsInteractor(BaseTradeInteractor):
         return await self._gateway.get_order_details(params, secret)
 
 
-class GetOrderListInteracctor(BaseTradeInteractor):
+class GetOrderListInteractor(BaseTradeInteractor):
     async def __call__(
         self, 
         params: GetOrderListDTO,
