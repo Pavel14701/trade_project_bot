@@ -47,7 +47,7 @@ class GetPositionsInteractor(BaseTradeInteractor):
         params: GetBalanceDTO, 
         secret: SecretDTO
     ) -> dict[str, Any]:
-        return await self._gateway.get_positions(params, secret)
+        return await self._gateway.get_positions(params=params, secret=secret)
 
 
 class SetPositionModeInteractor(BaseTradeInteractor):
@@ -56,7 +56,7 @@ class SetPositionModeInteractor(BaseTradeInteractor):
         posMode: str,
         secret: SecretDTO
     ) -> dict[str, Any]:
-        return await self._gateway.set_position_mode(posMode, secret)
+        return await self._gateway.set_position_mode(posMode=posMode, secret=secret)
 
 
 class SetLeverageInteractor(BaseTradeInteractor):
@@ -65,7 +65,7 @@ class SetLeverageInteractor(BaseTradeInteractor):
         params: SetLeverageDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
-        return await self._gateway.set_leverage(params, secret)
+        return await self._gateway.set_leverage(params=params, secret=secret)
 
 
 class GetLeverageInteractor(BaseTradeInteractor):
@@ -74,7 +74,7 @@ class GetLeverageInteractor(BaseTradeInteractor):
         params: GetLeverageDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
-        return await self._gateway.get_leverage(params, secret)
+        return await self._gateway.get_leverage(params=params, secret=secret)
 
 
 class PlaceOrderInteractor(BaseTradeInteractor):
