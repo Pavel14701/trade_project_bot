@@ -1,5 +1,6 @@
 from typing import Any
 
+from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.dto.trade import (
     AmendOrderDTO,
     CancelOrderDTO,
@@ -36,99 +37,121 @@ class OkxTradeService(
 
     async def get_account_balance(
         self, 
-        ccy: str
+        ccy: str,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.get(
             endpoint=self._consts.GET_ACCOUNT_BALANCE,
-            params={"ccy": ccy}
+            params={"ccy": ccy},
+            secret=secret
         )
 
     async def get_positions(
         self, 
-        params: GetBalanceDTO
+        params: GetBalanceDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.get(
             endpoint=self._consts.GET_POSITIONS,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def set_position_mode(
         self, 
-        posMode: str
+        posMode: str,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.post(
             endpoint=self._consts.SET_POSITION_MODE,
             params={"posMode": posMode},
+            secret=secret
         )
 
     async def set_leverage(
         self, 
-        params: SetLeverageDTO
+        params: SetLeverageDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.post(
             endpoint=self._consts.SET_LEVERAGE,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def get_leverage(
         self, 
-        params: GetLeverageDTO
+        params: GetLeverageDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.get(
             endpoint=self._consts.GET_LEVERAGE,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def place_order(
         self, 
-        params: PlaceOrderDTO
+        params: PlaceOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.post(
             endpoint=self._consts.PLACE_ORDER,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def amend_order(
         self, 
-        params: AmendOrderDTO
+        params: AmendOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.post(
             endpoint=self._consts.AMEND_ORDER,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def cancel_order(
         self, 
-        params: CancelOrderDTO
+        params: CancelOrderDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.post(
             endpoint=self._consts.CANCEL_ORDER,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def close_positions(
         self, 
-        params: ClosePositionsDTO
+        params: ClosePositionsDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.post(
             endpoint=self._consts.CLOSE_POSITIONS,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def get_order_details(
         self, 
-        params: GetOrderDetailsDTO
+        params: GetOrderDetailsDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.get(
             endpoint=self._consts.GET_ORDER_DETAILS,
-            params=params
+            params=params,
+            secret=secret
         )
 
     async def get_order_list(
         self, 
-        params: GetOrderListDTO
+        params: GetOrderListDTO,
+        secret: SecretDTO
     ) -> dict[str, Any]:
         return await self.get(
             endpoint=self._consts.GET_ORDER_LIST,
-            params=params
+            params=params,
+            secret=secret
         )

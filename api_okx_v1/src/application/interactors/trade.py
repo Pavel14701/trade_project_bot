@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Any
 
+from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.interfaces import (
     GetOrderDetailsDTO,
     IOkxTrade,
@@ -32,55 +33,99 @@ class BaseTradeInteractor(ABC):
 
 
 class GetAccountBalanceInteractor(BaseTradeInteractor):
-    async def __call__(self, ccy: str) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        ccy: str, 
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.get_account_balance(ccy, secret)
 
 
 class GetPositionsInteractor(BaseTradeInteractor):
-    async def __call__(self, params: GetBalanceDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: GetBalanceDTO, 
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.get_positions(params=params, secret=secret)
 
 
 class SetPositionModeInteractor(BaseTradeInteractor):
-    async def __call__(self, posMode: str) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        posMode: str,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.set_position_mode(posMode=posMode, secret=secret)
 
 
 class SetLeverageInteractor(BaseTradeInteractor):
-    async def __call__(self, params: SetLeverageDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: SetLeverageDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.set_leverage(params=params, secret=secret)
 
 
 class GetLeverageInteractor(BaseTradeInteractor):
-    async def __call__(self, params: GetLeverageDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: GetLeverageDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.get_leverage(params=params, secret=secret)
 
 
 class PlaceOrderInteractor(BaseTradeInteractor):
-    async def __call__(self, params: PlaceOrderDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: PlaceOrderDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.place_order(params, secret)
 
 
 class AmendOrderInteractor(BaseTradeInteractor):
-    async def __call__(self, params: AmendOrderDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: AmendOrderDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.amend_order(params, secret)
 
 
 class CancelOrderInteractor(BaseTradeInteractor):
-    async def __call__(self, params: CancelOrderDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: CancelOrderDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.cancel_order(params, secret)
 
 
 class ClosePostionsInteractor(BaseTradeInteractor):
-    async def __call__(self, params: ClosePositionsDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: ClosePositionsDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.close_positions(params, secret)
 
 
 class GetOrderDetailsInteractor(BaseTradeInteractor):
-    async def __call__(self, params: GetOrderDetailsDTO) -> dict[str, Any]:
-        ...
+    async def __call__(
+        self, 
+        params: GetOrderDetailsDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.get_order_details(params, secret)
 
 
-class GetOrderListInteracctor(BaseTradeInteractor):
-    async def __call__(self, params: GetOrderListDTO) -> dict[str, Any]:
-        ...
+class GetOrderListInteractor(BaseTradeInteractor):
+    async def __call__(
+        self, 
+        params: GetOrderListDTO,
+        secret: SecretDTO
+    ) -> dict[str, Any]:
+        return await self._gateway.get_order_list(params, secret)

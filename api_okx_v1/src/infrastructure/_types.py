@@ -12,6 +12,6 @@ class MarketClient(AsyncClient):
 class PrivateClient(AsyncClient):
     pass
 
-
 TClient = TypeVar("TClient", bound=AsyncClient)
 TConsts = TypeVar("TConsts", bound=OkxBaseConsts)
+DataclassType = TypeVar("DataclassType")

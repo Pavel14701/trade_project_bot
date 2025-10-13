@@ -1,3 +1,5 @@
+# src/ai/inference/predict.py
+
 from typing import Protocol, Any, Optional, Dict, runtime_checkable
 import pandas as pd
 import torch

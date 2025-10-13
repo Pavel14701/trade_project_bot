@@ -1,0 +1,47 @@
+# 🔹 Источник данных
+provider:
+  type: clickhouse
+  use_env: true
+
+# 🔹 Активы и период
+symbols: ["AAPL", "BTC-USD"]
+start: "2022-01-01"
+end: "2023-01-01"
+
+# 🔹 Признаки и нормализация
+features:
+  numeric: ["open", "high", "low", "close", "volume"]
+  asset_col: "asset_id"
+  window: 252
+
+# 🔹 Разметка
+labeling:
+  lag_bars: 1
+  horizon_bars: 64
+  sl_pct: 0.02
+  tp_pct: 0.04
+
+# 🔹 Модель
+model:
+  d_model: 128
+  nhead: 4
+  num_layers: 4
+  ff_dim: 256
+  dropout: 0.1
+
+# 🔹 Обучение
+training:
+  batch_size: 64
+  epochs: 20
+  lr: 0.001
+
+# 🔹 Калибровка и reproducibility
+alpha: 1.2
+seed: 42
+
+# 🔹 Артефакты
+artifacts:
+  checkpoint_path: artifacts/checkpoints/model.pt
+  schema_path: artifacts/schemas/schema.pkl
+  temp_scaler_path: artifacts/calibrators/temp_scaler.pkl
+  platt_path: artifacts/calibrators/platt.pkl

@@ -12,7 +12,6 @@ class BaseDataClass:
         return cls(**{**instance.to_dict(), **kwargs})
 
 
-
 @dataclass(slots=True, frozen=True)
 class SecretDTO(BaseDataClass):
     api_key: str
