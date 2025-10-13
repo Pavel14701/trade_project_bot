@@ -33,7 +33,7 @@ class RouterUtils:
             return non_none[0] if non_none else Any
         return tp
 
-    def construct(self, cls: Type[DataclassType], data: Dict[str, Any]) -> DataclassType:
+    def construct(self, data: Dict[str, Any], cls: Type[DataclassType]) -> DataclassType:
         """
         Recursively constructs an instance of the given dataclass type from a dictionary.
         Supports nested dataclasses and lists of dataclasses.
@@ -96,5 +96,5 @@ class RouterUtils:
 
         names = [cls.__name__ for cls in classes]
         NamedResult = namedtuple("ConstructedDataclasses", names)
-        instances = [self.construct(cls, data) for cls in classes]
+        instances = [self.construct(data, cls) for cls in classes]
         return NamedResult(*instances)

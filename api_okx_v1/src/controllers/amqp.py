@@ -9,6 +9,16 @@ from api_okx_v1.src.application.dto.market import (
     GetPriceDataDTO
 )
 from api_okx_v1.src.application.dto.base import SecretDTO
+from api_okx_v1.src.application.dto.trade import (
+    CancelOrderDTO, 
+    ClosePositionsDTO, 
+    GetBalanceDTO, 
+    GetLeverageDTO, 
+    GetOrderDetailsDTO, 
+    GetOrderListDTO, 
+    PlaceOrderDTO, 
+    SetLeverageDTO
+)
 from api_okx_v1.src.application.interactors.market import (
     GetCandlesticksInteractor,
     GetCandlesticksHistoryInteractor,
@@ -29,6 +39,7 @@ from api_okx_v1.src.application.interactors.trade import (
     ClosePostionsInteractor,
     GetOrderDetailsInteractor
 )
+from api_okx_v1.src.application.interfaces import AmendOrderDTO
 from api_okx_v1.src.controllers.base_router import RouterUtils
 
 controller = RabbitRouter(prefix="okx_api")
@@ -103,8 +114,11 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[GetAccountBalanceInteractor],
     ) -> dict[str, Any]:
-        dto = self.construct_many_named(params, classes=[SecretDTO, GetPriceDataDTO])
-        return await interactor(dto)
+        dto = self.construct(params, SecretDTO)
+        return await interactor(
+            ccy=params['ccy'],
+            secret=dto
+        )
 
     @controller.subscriber(queue="get_order_list")
     @controller.publisher(queue="send_order_list")
@@ -114,8 +128,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[GetOrderListInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[GetOrderListDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "GetOrderListDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_positions")
     @controller.publisher(queue="send_positions")
@@ -125,8 +145,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[GetPositionsInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[GetBalanceDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "GetBalanceDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_position_mode")
     @controller.publisher(queue="send_position_mode")
@@ -136,8 +162,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[SetPositionModeInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct(
+            data=params,
+            cls=SecretDTO
+        )
+        return await interactor(
+            posMode=params['posMode'], 
+            secret=dto
+        )
 
     @controller.subscriber(queue="get_set_leverage")
     @controller.publisher(queue="send_set_leverage")
@@ -147,8 +179,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[SetLeverageInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[SetLeverageDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "SetLeverageDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_get_leverage")
     @controller.publisher(queue="send_get_leverage")
@@ -158,8 +196,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[GetLeverageInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[GetLeverageDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "GetLeverageDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_place_order")
     @controller.publisher(queue="send_place_order")
@@ -169,19 +213,31 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[PlaceOrderInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[PlaceOrderDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "PlaceOrderDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_amend_order")
     @controller.publisher(queue="send_amend_order")
     @inject
-    async def get_place_order(
+    async def get_amend_order(
         self,
         params: dict[str, Any],
         interactor: FromDishka[AmendOrderInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[AmendOrderDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "AmendOrderDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_cancel_order")
     @controller.publisher(queue="send_cancel_order")
@@ -191,8 +247,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[CancelOrderInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[CancelOrderDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "CancelOrderDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_close_positions")
     @controller.publisher(queue="send_close_positions")
@@ -202,8 +264,14 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[ClosePostionsInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[ClosePositionsDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "ClosePositionsDTO"), 
+            getattr(dto, "SecretDTO")
+        )
 
     @controller.subscriber(queue="get_order_details")
     @controller.publisher(queue="send_order_details")
@@ -213,5 +281,11 @@ class OkxTradeRoutes(RouterUtils):
         params: dict[str, Any],
         interactor: FromDishka[GetOrderDetailsInteractor],
     ) -> dict[str, Any]:
-        dto = GetPriceDataDTO(**params)
-        return await interactor(dto)
+        dto = self.construct_many_named(
+            data=params,
+            classes=[GetOrderDetailsDTO, SecretDTO]
+        )
+        return await interactor(
+            getattr(dto, "GetOrderDetailsDTO"), 
+            getattr(dto, "SecretDTO")
+        )
