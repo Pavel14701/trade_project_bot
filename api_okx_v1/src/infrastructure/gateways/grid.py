@@ -207,7 +207,7 @@ class OkxGridService(
         params: RsiBacktestingPublicDTO
     ) -> dict[str, Any]:
         return await self.get(
-            endpoint=self._consts.COMPUTE_MIN_INVESTMENT_PUBLIC,
+            endpoint=self._consts.GET_RSI_BACK_TESTING_PUBLIC,
             params=params
         )
 
@@ -216,6 +216,6 @@ class OkxGridService(
         params: MaxGridQuantityPublicDTO
     ) -> dict[str, Any]:
         return await self.get(
-            endpoint=self._consts.COMPUTE_MIN_INVESTMENT_PUBLIC,
+            endpoint=self._consts.GET_MAX_GRID_QUANTITY_PUBLIC,
             params=params
         )
