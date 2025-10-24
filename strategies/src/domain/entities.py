@@ -50,24 +50,25 @@ class InsertManyRecordsDM:
 
 @dataclass(slots=True, frozen=True)
 class RsiCloudsConfigDM:
-    rsi_length: int | None = None
-    macd_fast: int | None = None
-    macd_slow: int | None = None
-    macd_signal: int | None = None
-    scalar: float | None = None
-    drift: int | None = None
-    offset: int | None = None
+    rsi_length: int = 14
+    macd_fast: int = 12
+    macd_slow: int = 26
+    macd_signal: int = 9
+    scalar: float = 100.0
+    drift: int = 1
+    offset: int = 0
     talib: bool = True
 
 
 @dataclass(slots=True, frozen=True)
 class AdxConfigDM:
-    length: int | None = None
-    lensig: int | None = None
-    mamode: str | None = None 
-    scalar: float | int | None = None 
-    drift: int | None = None
-    offset: int | None = None
+    length: int = 14
+    lensig: int = 14
+    adxr_length: int = 14
+    mamode: str = "ema"
+    scalar: float = 100.0
+    drift: int = 1
+    offset: int = 0
 
 
 @dataclass(slots=True, frozen=True)
@@ -91,7 +92,7 @@ class AcceletrationBandsDM:
     length: int
     drift: int
     offset: int
-    mamode: str | None = None
+    mamode: str = "ema"
 
 
 @dataclass(slots=True, frozen=True)
