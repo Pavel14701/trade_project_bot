@@ -1,6 +1,8 @@
 from typing import Any, Tuple, cast
+
 import numpy as np
 import pandas as pd
+import pandas_ta as ta
 from numpy.typing import NDArray
 from scipy.signal import find_peaks  # type: ignore
 
@@ -159,8 +161,32 @@ class OrderBlockDetector:
         arr[indices] = series.iloc[indices]
         return arr
 
+
     def _calculate_atr(self, data: PriceDataFrame, period: int) -> pd.Series:
-        return data.high_prices.rolling(window=period).max() - data.low_prices.rolling(window=period).min()
+        """
+        ## Calculates Average True Range (ATR) using pandas_ta with TA-Lib backend.
+        This method uses the standard definition of True Range:
+            ```
+            max(
+                high - low,
+                abs(high - previous_close),
+                abs(low - previous_close)
+            )
+            ```
+        If TA-Lib is installed, setting talib=True will use its optimized implementation.
+        Args:
+            data (PriceDataFrame): Price data with high, low, and close prices.
+            period (int): ATR calculation window.
+        Returns:
+            pd.Series: ATR values.
+        """
+        return ta.atr(
+            high=data.high_prices,
+            low=data.low_prices,
+            close=data.close_prices,
+            length=period,
+            talib=True
+        )
 
     def _is_valid_breakout(self, data: PriceDataFrame, idx: int, i: int, avg_volume: pd.Series, direction: str) -> bool:
         if direction == "down":
