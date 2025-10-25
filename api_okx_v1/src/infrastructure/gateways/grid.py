@@ -27,10 +27,12 @@ from api_okx_v1.src.infrastructure.consts import OkxGridConsts
 from api_okx_v1.src.infrastructure.gateways.base import BaseQuerySet
 
 
-class OkxGridService(
-    BaseQuerySet[PrivateClient, OkxGridConsts], 
-    IOkxGridTrade
-):
+class OkxGridService(BaseQuerySet[PrivateClient, OkxGridConsts], IOkxGridTrade):
+    """
+    Service class for interacting with OKX Grid Trading API endpoints.
+    Provides methods to place, amend, stop, and query grid trading orders,
+    as well as manage margin and investment operations.
+    """
     def __init__(
         self,
         private_client: PrivateClient,
@@ -43,9 +45,19 @@ class OkxGridService(
 
     async def place_grid_algo_order(
         self, 
-        params: PlaceGridOrderDTO,
+        params: PlaceGridOrderDTO, 
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Place a new grid algorithmic trading order.
+
+        Args:
+            params (PlaceGridOrderDTO): Parameters for placing the grid order.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.PLACE_GRID_ALGO_ORDER,
             params=params,
@@ -57,6 +69,16 @@ class OkxGridService(
         params: AmendGridOrderDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Amend an existing grid algorithmic trading order.
+
+        Args:
+            params (AmendGridOrderDTO): Parameters for amending the grid order.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.AMEND_GRID_ALGO_ORDER,
             params=params,
@@ -68,6 +90,16 @@ class OkxGridService(
         params: StopGridOrderDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Stop an active grid algorithmic trading order.
+
+        Args:
+            params (StopGridOrderDTO): Parameters for stopping the grid order.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.STOP_GRID_ALGO_ORDER,
             params=params,
@@ -79,6 +111,16 @@ class OkxGridService(
         params: CloseContractGridDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Close a position for a contract-based grid order.
+
+        Args:
+            params (CloseContractGridDTO): Parameters for closing the position.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.CLOSE_POSITION_CONTRACT_GRID,
             params=params,
@@ -90,6 +132,16 @@ class OkxGridService(
         params: CancelCloseContractGridDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Cancel a previously requested position close for a contract-based grid order.
+
+        Args:
+            params (CancelCloseContractGridDTO): Parameters for canceling the close request.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.CANCEL_CLOSE_POSITION_CONTRACT_GRID,
             params=params,
@@ -101,6 +153,16 @@ class OkxGridService(
         algoId: str,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Instantly trigger a grid order by its algorithm ID.
+
+        Args:
+            algoId (str): Identifier of the grid algorithm.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.INSTANT_TRIGGER_GRID_ORDER,
             params={'algoId': algoId},
@@ -112,6 +174,16 @@ class OkxGridService(
         params: GetGridOrderListDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Retrieve a list of grid trading orders.
+
+        Args:
+            params (GetGridOrderListDTO): Query parameters for retrieving the order list.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.get(
             endpoint=self._consts.GET_GRID_ORDER_LIST,
             params=params,
@@ -123,6 +195,16 @@ class OkxGridService(
         params: GetGridOrderDetailsDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Retrieve detailed information about a specific grid order.
+
+        Args:
+            params (GetGridOrderDetailsDTO): Parameters identifying the grid order.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.get(
             endpoint=self._consts.GET_GRID_ORDER_DETAILS,
             params=params,
@@ -134,6 +216,16 @@ class OkxGridService(
         params: GetGridSubOrdersDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Retrieve sub-orders associated with a grid order.
+
+        Args:
+            params (GetGridSubOrdersDTO): Parameters identifying the grid order.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.get(
             endpoint=self._consts.GET_GRID_ORDER_DETAILS,
             params=params,
@@ -145,6 +237,16 @@ class OkxGridService(
         algoId: str,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Withdraw income generated from a spot grid order.
+
+        Args:
+            algoId (str): Identifier of the grid algorithm.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.SPOT_GRID_WITHDRAW_INCOME,
             params={'algoId': algoId},
@@ -156,6 +258,16 @@ class OkxGridService(
         params: ComputeMarginBalanceDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Compute the margin balance for a grid order.
+
+        Args:
+            params (ComputeMarginBalanceDTO): Parameters for margin computation.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.COMPUTE_MARGIN_BALANCE,
             params=params,
@@ -167,6 +279,16 @@ class OkxGridService(
         params: AdjustMarginBalanceDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Adjust the margin balance for a grid order.
+
+        Args:
+            params (AdjustMarginBalanceDTO): Parameters for margin adjustment.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.ADJUST_MARGIN_BALANCE,
             params=params,
@@ -178,6 +300,16 @@ class OkxGridService(
         params: AddIvestmentDTO,
         secret: SecretDTO
     ) -> dict[str, Any]:
+        """
+        Add investment to an existing grid order.
+
+        Args:
+            params (AddIvestmentDTO): Parameters for adding investment.
+            secret (SecretDTO): Authentication credentials.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.ADD_INVESTMENT,
             params=params,
@@ -188,6 +320,15 @@ class OkxGridService(
         self, 
         params: AiParamsPublicDTO
     ) -> dict[str, Any]:
+        """
+        Retrieve public AI parameters for grid trading.
+
+        Args:
+            params (AiParamsPublicDTO): Parameters for the AI query.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.get(
             endpoint=self._consts.GET_AI_PARAMETER_PUBLIC,
             params=params
@@ -197,6 +338,15 @@ class OkxGridService(
         self, 
         params: ComputeMinInvestmentPublicDTO
     ) -> dict[str, Any]:
+        """
+        Compute the minimum investment required for a public grid strategy.
+
+        Args:
+            params (ComputeMinInvestmentPublicDTO): Parameters for investment computation.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.post(
             endpoint=self._consts.COMPUTE_MIN_INVESTMENT_PUBLIC,
             params=params
@@ -206,8 +356,17 @@ class OkxGridService(
         self, 
         params: RsiBacktestingPublicDTO
     ) -> dict[str, Any]:
+        """
+        Retrieve RSI backtesting results for public grid strategies.
+
+        Args:
+            params (RsiBacktestingPublicDTO): Parameters for backtesting.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.get(
-            endpoint=self._consts.COMPUTE_MIN_INVESTMENT_PUBLIC,
+            endpoint=self._consts.GET_RSI_BACK_TESTING_PUBLIC,
             params=params
         )
 
@@ -215,7 +374,16 @@ class OkxGridService(
         self, 
         params: MaxGridQuantityPublicDTO
     ) -> dict[str, Any]:
+        """
+        Retrieve the maximum grid quantity allowed for public strategies.
+
+        Args:
+            params (MaxGridQuantityPublicDTO): Parameters for the query.
+
+        Returns:
+            dict[str, Any]: Response from the API.
+        """
         return await self.get(
-            endpoint=self._consts.COMPUTE_MIN_INVESTMENT_PUBLIC,
+            endpoint=self._consts.GET_MAX_GRID_QUANTITY_PUBLIC,
             params=params
         )
