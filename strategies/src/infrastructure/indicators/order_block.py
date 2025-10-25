@@ -1,5 +1,4 @@
 from typing import Any, Tuple, cast
-
 import numpy as np
 import pandas as pd
 import pandas_ta as ta
@@ -64,9 +63,6 @@ class OrderBlockDetector:
         volume_window: int,
         liquidity_window: int
     ) -> dict:
-        """
-        Computes ATR, average volume, and local highs/lows.
-        """
         atr = self._calculate_atr(data, atr_period)
         avg_volume = data.volume.rolling(window=volume_window).mean()
         local_highs = data.high_prices.rolling(window=liquidity_window).max()
@@ -92,9 +88,6 @@ class OrderBlockDetector:
         lookback: int,
         liquidity_tolerance: float
     ) -> list[dict]:
-        """
-        Scans ZigZag peaks/valleys and identifies potential block candidates.
-        """
         candidates = []
         for i in range(lookback, len(data)):
             idx = i - lookback
@@ -114,29 +107,36 @@ class OrderBlockDetector:
         candidates: list[dict],
         indicators: dict,
         confirmation_window: int,
-        min_reaction_size: float
+        min_reaction_size: float,
     ) -> list[dict]:
-        """
-        Validates each candidate by checking breakout, retest, and reaction.
-        """
         confirmed = []
+        avg_volume = indicators["avg_volume"]
+        zone_low_series = indicators["zone_low"]
+        zone_high_series = indicators["zone_high"]
+
         for c in candidates:
             idx = c["idx"]
-            i = c["break_idx"]
-            zone_low = indicators["zone_low"].iloc[idx]
-            zone_high = indicators["zone_high"].iloc[idx]
-            avg_volume = indicators["avg_volume"]
+            breakout_idx = c["break_idx"]
+            is_supply = c["type"] == "supply"
+            direction = "down" if is_supply else "up"
 
-            if c["type"] == "supply":
-                if self._is_valid_breakout(data, idx, i, avg_volume, direction="down"):
-                    block = self._confirm_supply_block(data, idx, i, confirmation_window, zone_low, zone_high, avg_volume, min_reaction_size)
-                    if block:
-                        confirmed.append(block)
-            else:
-                if self._is_valid_breakout(data, idx, i, avg_volume, direction="up"):
-                    block = self._confirm_demand_block(data, idx, i, confirmation_window, zone_low, zone_high, avg_volume, min_reaction_size)
-                    if block:
-                        confirmed.append(block)
+            if not self._is_valid_breakout(data, idx, breakout_idx, avg_volume, direction):
+                continue
+
+            block = self._confirm_block(
+                data=data,
+                idx=idx,
+                breakout_idx=breakout_idx,
+                window=confirmation_window,
+                zone_low=zone_low_series.iloc[idx],
+                zone_high=zone_high_series.iloc[idx],
+                avg_volume=avg_volume,
+                min_reaction_size=min_reaction_size,
+                is_supply=is_supply,
+            )
+            if block:
+                confirmed.append(block)
+
         return confirmed
 
     # --- Core utilities ---
@@ -161,24 +161,9 @@ class OrderBlockDetector:
         arr[indices] = series.iloc[indices]
         return arr
 
-
     def _calculate_atr(self, data: PriceDataFrame, period: int) -> pd.Series:
         """
-        ## Calculates Average True Range (ATR) using pandas_ta with TA-Lib backend.
-        This method uses the standard definition of True Range:
-            ```
-            max(
-                high - low,
-                abs(high - previous_close),
-                abs(low - previous_close)
-            )
-            ```
-        If TA-Lib is installed, setting talib=True will use its optimized implementation.
-        Args:
-            data (PriceDataFrame): Price data with high, low, and close prices.
-            period (int): ATR calculation window.
-        Returns:
-            pd.Series: ATR values.
+        Calculates ATR using pandas_ta with TA-Lib backend.
         """
         return ta.atr(
             high=data.high_prices,
@@ -197,7 +182,7 @@ class OrderBlockDetector:
     def _has_liquidity_cluster(self, series: pd.Series, idx: int, local_extremes: pd.Series, tolerance: float) -> bool:
         return abs(local_extremes.iloc[idx] - series.iloc[idx]) < tolerance
 
-    def _confirm_supply_block(
+    def _confirm_block(
         self,
         data: PriceDataFrame,
         idx: int,
@@ -206,43 +191,31 @@ class OrderBlockDetector:
         zone_low: float,
         zone_high: float,
         avg_volume: pd.Series,
-        min_reaction_size: float
+        min_reaction_size: float,
+        is_supply: bool,
     ) -> dict | None:
-        for j in range(breakout_idx + 1, breakout_idx + window):
-            if zone_low <= data.low_prices.iloc[j] <= zone_high and data.volume.iloc[j] > avg_volume.iloc[j]:
-                if data.close_prices.iloc[j] < zone_low and \
-                   (zone_low - data.close_prices.iloc[j]) / zone_low >= min_reaction_size:
-                    return {
-                        "type": "supply",
-                        "start": data.index[idx],
-                        "break": data.index[breakout_idx],
-                        "retest": data.index[j],
-                        "zone_low": zone_low,
-                        "zone_high": zone_high
-                    }
-        return None
+        test_series = data.low_prices if is_supply else data.high_prices
+        close = data.close_prices
+        volume = data.volume
+        block_type = "supply" if is_supply else "demand"
 
-    def _confirm_demand_block(
-        self,
-        data: PriceDataFrame,
-        idx: int,
-        breakout_idx: int,
-        window: int,
-        zone_low: float,
-        zone_high: float,
-        avg_volume: pd.Series,
-        min_reaction_size: float
-    ) -> dict | None:
         for j in range(breakout_idx + 1, breakout_idx + window):
-            if zone_low <= data.high_prices.iloc[j] <= zone_high and data.volume.iloc[j] > avg_volume.iloc[j]:
-                if data.close_prices.iloc[j] > zone_high and \
-                   (data.close_prices.iloc[j] - zone_high) / zone_high >= min_reaction_size:
-                    return {
-                        "type": "demand",
-                        "start": data.index[idx],
-                        "break": data.index[breakout_idx],
-                        "retest": data.index[j],
-                        "zone_low": zone_low,
-                        "zone_high": zone_high
-                    }
+            price_j = test_series.iloc[j]
+            close_j = close.iloc[j]
+            volume_j = volume.iloc[j]
+
+            if not (zone_low <= price_j <= zone_high and volume_j > avg_volume.iloc[j]):
+                continue
+
+            reaction = ((zone_low - close_j) / zone_low) if is_supply else ((close_j - zone_high) / zone_high)
+            if reaction >= min_reaction_size:
+                return {
+                    "type": block_type,
+                    "start": data.index[idx],
+                    "break": data.index[breakout_idx],
+                    "retest": data.index[j],
+                    "zone_low": zone_low,
+                    "zone_high": zone_high,
+                }
+
         return None
