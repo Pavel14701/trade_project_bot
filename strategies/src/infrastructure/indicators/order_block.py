@@ -13,14 +13,8 @@ class OrderBlockDetector:
     Order Block Detector based on ZigZag peak and valley analysis.
 
     This class identifies potential supply and demand zones (order blocks) in price data
-    by detecting local highs and lows using the ZigZag pattern algorithm. It also validates
-    these zones through retest, volume confirmation, ATR-based sizing, and liquidity clustering.
-
-    Features:
-    - ZigZag detection using `scipy.signal.find_peaks`
-    - ATR-based dynamic zone sizing
-    - Volume confirmation on breakout and retest
-    - Liquidity cluster detection via local extrema proximity
+    by detecting local highs and lows using the ZigZag pattern algorithm. It validates
+    these zones through breakout logic, volume confirmation, ATR-based sizing, and liquidity clustering.
     """
 
     def zigzag_indicator(
@@ -30,18 +24,6 @@ class OrderBlockDetector:
     ) -> pd.DataFrame:
         """
         Detects local peaks and valleys in price data using ZigZag pattern logic.
-
-        Applies `find_peaks` to both high and low price series to identify significant turning points.
-        These points are filtered using configurable parameters to reduce noise.
-
-        Args:
-            data (PriceDataFrame): Price data with high and low price series.
-            config (OrderBlockDetectorDM): Configuration for peak detection.
-
-        Returns:
-            pd.DataFrame: DataFrame with columns:
-                - "peaks": High price values at detected peaks, NaN elsewhere
-                - "valleys": Low price values at detected valleys, NaN elsewhere
         """
         peaks = self._detect_peaks(data.high_prices, config, is_peak=True)
         valleys = self._detect_peaks(data.low_prices, config, is_peak=False)
@@ -64,71 +46,100 @@ class OrderBlockDetector:
         liquidity_tolerance: float = 0.001
     ) -> pd.DataFrame:
         """
-        Identifies and confirms order blocks using breakout logic, volume, ATR, and liquidity clustering.
+        Full pipeline for detecting and confirming order blocks.
+        """
+        indicators = self._precompute_indicators(data, atr_period, volume_window, liquidity_window)
+        candidates = self._generate_block_candidates(data, zigzag_df, indicators, lookback, liquidity_tolerance)
+        confirmed = self._validate_block_candidates(data, candidates, indicators, confirmation_window, min_reaction_size)
+        return pd.DataFrame(confirmed)
 
-        Args:
-            data (PriceDataFrame): Price data with high, low, close, and volume.
-            zigzag_df (pd.DataFrame): Output from `zigzag_indicator`.
-            lookback (int): Number of candles to look back for peak/valley.
-            confirmation_window (int): Number of candles to wait for retest.
-            min_reaction_size (float): Minimum % move to confirm reaction.
-            atr_period (int): Period for ATR-based zone sizing.
-            volume_window (int): Rolling window for average volume.
-            liquidity_window (int): Rolling window for local extrema.
-            liquidity_tolerance (float): Max distance to consider liquidity cluster.
+    # --- Stage 1: Precomputation ---
 
-        Returns:
-            pd.DataFrame: Confirmed order blocks with columns:
-                - "type": "supply" or "demand"
-                - "start": Timestamp of peak/valley
-                - "break": Timestamp of breakout
-                - "retest": Timestamp of retest
-                - "zone_low": Lower bound of block
-                - "zone_high": Upper bound of block
+    def _precompute_indicators(
+        self,
+        data: PriceDataFrame,
+        atr_period: int,
+        volume_window: int,
+        liquidity_window: int
+    ) -> dict:
+        """
+        Computes ATR, average volume, and local highs/lows.
         """
         atr = self._calculate_atr(data, atr_period)
         avg_volume = data.volume.rolling(window=volume_window).mean()
         local_highs = data.high_prices.rolling(window=liquidity_window).max()
         local_lows = data.low_prices.rolling(window=liquidity_window).min()
+        zone_low = data.close_prices - atr
+        zone_high = data.close_prices + atr
+        return {
+            "atr": atr,
+            "avg_volume": avg_volume,
+            "local_highs": local_highs,
+            "local_lows": local_lows,
+            "zone_low": zone_low,
+            "zone_high": zone_high
+        }
 
-        blocks = []
-        for i in range(lookback, len(data) - confirmation_window):
+    # --- Stage 2: Candidate generation ---
+
+    def _generate_block_candidates(
+        self,
+        data: PriceDataFrame,
+        zigzag_df: pd.DataFrame,
+        indicators: dict,
+        lookback: int,
+        liquidity_tolerance: float
+    ) -> list[dict]:
+        """
+        Scans ZigZag peaks/valleys and identifies potential block candidates.
+        """
+        candidates = []
+        for i in range(lookback, len(data)):
             idx = i - lookback
-            close = data.close_prices.iloc[idx]
-            atr_value = atr.iloc[idx]
-            zone_low = close - atr_value
-            zone_high = close + atr_value
-
             if not np.isnan(zigzag_df.peaks.iloc[idx]):
-                if self._is_valid_breakout(data, idx, i, avg_volume, direction="down"):
-                    if self._has_liquidity_cluster(data.low_prices, idx, local_lows, liquidity_tolerance):
-                        block = self._confirm_supply_block(data, idx, i, confirmation_window, zone_low, zone_high, avg_volume, min_reaction_size)
-                        if block:
-                            blocks.append(block)
-
+                if self._has_liquidity_cluster(data.low_prices, idx, indicators["local_lows"], liquidity_tolerance):
+                    candidates.append({"type": "supply", "idx": idx, "break_idx": i})
             elif not np.isnan(zigzag_df.valleys.iloc[idx]):
+                if self._has_liquidity_cluster(data.high_prices, idx, indicators["local_highs"], liquidity_tolerance):
+                    candidates.append({"type": "demand", "idx": idx, "break_idx": i})
+        return candidates
+
+    # --- Stage 3: Candidate validation ---
+
+    def _validate_block_candidates(
+        self,
+        data: PriceDataFrame,
+        candidates: list[dict],
+        indicators: dict,
+        confirmation_window: int,
+        min_reaction_size: float
+    ) -> list[dict]:
+        """
+        Validates each candidate by checking breakout, retest, and reaction.
+        """
+        confirmed = []
+        for c in candidates:
+            idx = c["idx"]
+            i = c["break_idx"]
+            zone_low = indicators["zone_low"].iloc[idx]
+            zone_high = indicators["zone_high"].iloc[idx]
+            avg_volume = indicators["avg_volume"]
+
+            if c["type"] == "supply":
+                if self._is_valid_breakout(data, idx, i, avg_volume, direction="down"):
+                    block = self._confirm_supply_block(data, idx, i, confirmation_window, zone_low, zone_high, avg_volume, min_reaction_size)
+                    if block:
+                        confirmed.append(block)
+            else:
                 if self._is_valid_breakout(data, idx, i, avg_volume, direction="up"):
-                    if self._has_liquidity_cluster(data.high_prices, idx, local_highs, liquidity_tolerance):
-                        block = self._confirm_demand_block(data, idx, i, confirmation_window, zone_low, zone_high, avg_volume, min_reaction_size)
-                        if block:
-                            blocks.append(block)
+                    block = self._confirm_demand_block(data, idx, i, confirmation_window, zone_low, zone_high, avg_volume, min_reaction_size)
+                    if block:
+                        confirmed.append(block)
+        return confirmed
 
-        return pd.DataFrame(blocks)
-
-    # --- Internal methods ---
+    # --- Core utilities ---
 
     def _detect_peaks(self, series: pd.Series, config: OrderBlockDetectorDM, is_peak: bool) -> NDArray[np.intp]:
-        """
-        Applies `find_peaks` to a price series.
-
-        Args:
-            series (pd.Series): Price series (high or low).
-            config (OrderBlockDetectorDM): Peak detection config.
-            is_peak (bool): True for peaks, False for valleys.
-
-        Returns:
-            NDArray[np.intp]: Indices of detected peaks/valleys.
-        """
         prominence = config.peak_prominance if is_peak else config.valley_prominance
         result = find_peaks(
             x=series,
@@ -144,65 +155,20 @@ class OrderBlockDetector:
         return cast(Tuple[NDArray[np.intp], dict[str, Any]], result)[0]
 
     def _mark_extremes(self, series: pd.Series, indices: NDArray[np.intp]) -> NDArray[np.float64]:
-        """
-        Marks detected peaks/valleys in a NaN-filled array.
-
-        Args:
-            series (pd.Series): Original price series.
-            indices (NDArray): Indices of detected points.
-
-        Returns:
-            NDArray[np.float64]: Array with values at indices, NaN elsewhere.
-        """
         arr = np.full_like(series.to_numpy(), np.nan, dtype=np.float64)
         arr[indices] = series.iloc[indices]
         return arr
 
     def _calculate_atr(self, data: PriceDataFrame, period: int) -> pd.Series:
-        """
-        Calculates ATR as high - low over a rolling window.
-
-        Args:
-            data (PriceDataFrame): Price data.
-            period (int): ATR period.
-
-        Returns:
-            pd.Series: ATR values.
-        """
         return data.high_prices.rolling(window=period).max() - data.low_prices.rolling(window=period).min()
 
     def _is_valid_breakout(self, data: PriceDataFrame, idx: int, i: int, avg_volume: pd.Series, direction: str) -> bool:
-        """
-        Checks if breakout is valid based on price and volume.
-
-        Args:
-            data (PriceDataFrame): Price data.
-            idx (int): Index of peak/valley.
-            i (int): Index of breakout.
-            avg_volume (pd.Series): Rolling average volume.
-            direction (str): "up" or "down".
-
-        Returns:
-            bool: True if breakout is valid.
-        """
         if direction == "down":
             return data.low_prices.iloc[i] < data.low_prices.iloc[idx] and data.volume.iloc[i] > avg_volume.iloc[i]
         else:
             return data.high_prices.iloc[i] > data.high_prices.iloc[idx] and data.volume.iloc[i] > avg_volume.iloc[i]
 
     def _has_liquidity_cluster(self, series: pd.Series, idx: int, local_extremes: pd.Series, tolerance: float) -> bool:
-        """
-        Checks if price is near local extrema (liquidity cluster).
-
-        Args:
-            series (pd.Series): Price series.
-            idx (int): Index to check.
-            local_extremes (pd.Series): Rolling max/min series.
-            tolerance (float): Max distance to consider cluster.
-
-        Returns:
-            bool: True if cluster is present.
-        """
         return abs(local_extremes.iloc[idx] - series.iloc[idx]) < tolerance
 
     def _confirm_supply_block(
@@ -216,28 +182,6 @@ class OrderBlockDetector:
         avg_volume: pd.Series,
         min_reaction_size: float
     ) -> dict | None:
-        """
-        Confirms a supply block by checking for a valid retest and bearish reaction.
-
-        Conditions:
-        - Retest candle must fall within the zone
-        - Volume must exceed average
-        - Close must be below zone_low
-        - Reaction size must exceed threshold
-
-        Args:
-            data (PriceDataFrame): Price data.
-            idx (int): Index of peak.
-            breakout_idx (int): Index of breakout.
-            window (int): Number of candles to wait for retest.
-            zone_low (float): Lower bound of block.
-            zone_high (float): Upper bound of block.
-            avg_volume (pd.Series): Rolling average volume.
-            min_reaction_size (float): Minimum % move to confirm reaction.
-
-        Returns:
-            dict | None: Confirmed block info or None.
-        """
         for j in range(breakout_idx + 1, breakout_idx + window):
             if zone_low <= data.low_prices.iloc[j] <= zone_high and data.volume.iloc[j] > avg_volume.iloc[j]:
                 if data.close_prices.iloc[j] < zone_low and \
@@ -263,28 +207,6 @@ class OrderBlockDetector:
         avg_volume: pd.Series,
         min_reaction_size: float
     ) -> dict | None:
-        """
-        Confirms a demand block by checking for a valid retest and bullish reaction.
-
-        Conditions:
-        - Retest candle must fall within the zone
-        - Volume must exceed average
-        - Close must be above zone_high
-        - Reaction size must exceed threshold
-
-        Args:
-            data (PriceDataFrame): Price data.
-            idx (int): Index of valley.
-            breakout_idx (int): Index of breakout.
-            window (int): Number of candles to wait for retest.
-            zone_low (float): Lower bound of block.
-            zone_high (float): Upper bound of block.
-            avg_volume (pd.Series): Rolling average volume.
-            min_reaction_size (float): Minimum % move to confirm reaction.
-
-        Returns:
-            dict | None: Confirmed block info or None.
-        """
         for j in range(breakout_idx + 1, breakout_idx + window):
             if zone_low <= data.high_prices.iloc[j] <= zone_high and data.volume.iloc[j] > avg_volume.iloc[j]:
                 if data.close_prices.iloc[j] > zone_high and \
