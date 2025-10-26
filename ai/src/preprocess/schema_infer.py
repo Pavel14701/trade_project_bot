@@ -31,12 +31,20 @@ class SchemaInfer:
         max_card (int): Maximum number of unique values to keep per categorical column.
         min_freq (int): Minimum frequency required for a categorical value to be included.
     """
-    def __init__(self, max_card: int = 1000, min_freq: int = 1) -> None:
+    def __init__(
+        self, 
+        max_card: int = 1000, 
+        min_freq: int = 1
+    ) -> None:
         self.max_card = max_card
         self.min_freq = min_freq
         self._schema: Optional[Schema] = None
 
-    def fit(self, df: pd.DataFrame, exclude: Optional[List[str]] = None) -> "SchemaInfer":
+    def fit(
+        self, 
+        df: pd.DataFrame, 
+        exclude: Optional[List[str]] = None
+    ) -> "SchemaInfer":
         """
         Infers schema from the input dataframe.
 
@@ -76,7 +84,10 @@ class SchemaInfer:
         )
         return self
 
-    def transform(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def transform(
+        self, 
+        df: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Transforms input dataframe into numeric and categorical tensors.
 
@@ -98,7 +109,10 @@ class SchemaInfer:
             cat[col] = df[col].map(vocab).fillna(unk).astype("Int64") # type: ignore
         return num, cat
 
-    def inverse_transform(self, cat_df: pd.DataFrame) -> pd.DataFrame:
+    def inverse_transform(
+        self, 
+        cat_df: pd.DataFrame
+    ) -> pd.DataFrame:
         """
         Converts encoded categorical indices back to original string values.
 
@@ -117,7 +131,11 @@ class SchemaInfer:
             inv[col] = cat_df[col].map(reverse_vocab).fillna(f"[UNK_{col}]") # type: ignore
         return inv
 
-    def fit_transform(self, df: pd.DataFrame, exclude: Optional[List[str]] = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def fit_transform(
+        self, 
+        df: pd.DataFrame, 
+        exclude: Optional[List[str]] = None
+    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Fits schema and transforms the input dataframe in one step.
 
@@ -163,3 +181,19 @@ class SchemaInfer:
         if self._schema is None:
             return "SchemaInfer(fit=False)"
         return f"SchemaInfer(fit=True, num={len(self._schema.num_cols)}, cat={len(self._schema.cat_cols)})"
+
+    @property
+    def num_cols(self) -> List[str]:
+        return self.get_schema().num_cols
+
+    @property
+    def cat_cols(self) -> List[str]:
+        return self.get_schema().cat_cols
+
+    @property
+    def cat_vocabs(self) -> Dict[str, Dict[str, int]]:
+        return self.get_schema().cat_vocabs
+
+    @property
+    def cat_unk_idx(self) -> Dict[str, int]:
+        return self.get_schema().cat_unk_idx

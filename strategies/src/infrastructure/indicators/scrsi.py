@@ -47,7 +47,8 @@ class SmoothCicleRsi:
         Returns:
             pd.DataFrame: A DataFrame containing the SCRSI 
             scaled values and boundary levels.
-        """        # Compute cycle length and cyclic memory for smoothing
+        """        
+        # Compute cycle length and cyclic memory for smoothing
         cyclelen = config.domcycle // 2
         cyclicmemory = config.domcycle * 2
         # Calculate price differences

@@ -99,7 +99,7 @@ def _process_group(
         j_end = min(len(g), start + horizon_bars)
         h_seg, l_seg = highs[start:j_end], lows[start:j_end]
         evt, t = _first_hit(long_tp, long_sl, short_tp, short_sl, h_seg, l_seg)
-        if evt is None:
+        if evt is None or t is None:
             continue
         global_i = idxs[i]
         signal[global_i] = 1 if evt.startswith("BUY") else 2
