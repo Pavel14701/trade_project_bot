@@ -1,3 +1,33 @@
+"""
+Utility module for constructing dataclass instances from raw dictionaries, primarily used in routing
+and message-handling contexts where payloads need to be parsed into structured objects.
+
+This module defines the `RouterUtils` class, which provides methods to:
+
+- Resolve type annotations by stripping wrappers like `Optional` and `Union`.
+- Recursively instantiate dataclasses from nested dictionaries, including support for lists of dataclasses.
+- Construct multiple named dataclass instances from a shared input dictionary and return them as a `NamedTuple`.
+
+These utilities are especially useful in systems where incoming data (e.g., from message queues or APIs)
+must be validated and transformed into typed Python objects before being passed to business logic layers.
+
+Classes:
+    - RouterUtils: Contains helper methods for dataclass construction and type resolution.
+
+Dependencies:
+    - Python standard library: `dataclasses`, `typing`, `collections`
+    - Project-specific: `DataclassType` from `api_okx_v1.src.infrastructure._types`
+
+Example usage:
+    utils = RouterUtils()
+    dto = utils.construct(data, MyDTO)
+    dtos = utils.construct_many_named(data, [UserDTO, AuthDTO])
+
+Note:
+    All target classes must be valid dataclass types. Type resolution handles nested structures and optional fields.
+"""
+
+
 from dataclasses import is_dataclass, fields
 from typing import (
     Type, 

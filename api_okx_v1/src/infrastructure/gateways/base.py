@@ -1,3 +1,32 @@
+"""
+Defines an abstract base class for constructing and executing authenticated HTTP requests to the OKX API.
+
+This module provides the `BaseQuerySet` class, which serves as a reusable foundation for building
+query interfaces that interact with OKX endpoints. It supports both GET and POST methods, handles
+parameter serialization, and integrates request signing via a pluggable `ISignature` interface.
+
+Key Features:
+- Converts DTOs into query parameters or request bodies.
+- Builds signed headers using secret credentials.
+- Executes asynchronous HTTP requests using a generic client.
+- Provides high-level `get()` and `post()` methods for convenience.
+
+Type Parameters:
+    TClient: A client class responsible for making asynchronous HTTP requests (e.g., based on httpx).
+    TConsts: A constants class containing configuration values such as base URLs.
+
+Intended Usage:
+    Subclass `BaseQuerySet` to implement specific query sets for different OKX domains (e.g., market, trade).
+    Inject a client, constants, and optional signature logic to enable secure and structured API communication.
+
+Dependencies:
+    - DTOs from `api_okx_v1.src.application.dto.base`
+    - Signature interface from `api_okx_v1.src.application.interfaces`
+    - Signature data model from `api_okx_v1.src.domain.entities`
+    - Type definitions from `api_okx_v1.src.infrastructure._types`
+"""
+
+
 from abc import ABC, abstractmethod
 from typing import Any, Generic
 import json

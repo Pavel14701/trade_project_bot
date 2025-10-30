@@ -1,17 +1,37 @@
 from typing import AsyncGenerator
 
-from dishka import Provider, Scope, provide # type: ignore
+from dishka import Provider, Scope, provide, from_context # type: ignore
 
+from api_okx_v1.src.config import Config
+from api_okx_v1.src.application import interfaces
 from api_okx_v1.src.infrastructure.http_sessions import client_factory, MarketClientPool
 from api_okx_v1.src.infrastructure._types import (
     MarketClient,
     PrivateClient
 )
+from api_okx_v1.src.infrastructure.consts import (
+    OkxMarketConsts, 
+    OkxTradeConsts, 
+    OkxGridConsts
+)
+from api_okx_v1.src.infrastructure.security import (
+    SecurityGateway, 
+    SignatureGateway
+)
+from api_okx_v1.src.infrastructure.gateways.market import OkxMarketService
+from api_okx_v1.src.infrastructure.gateways.trade import OkxTradeService
+from api_okx_v1.src.infrastructure.gateways.grid import OkxGridService
+
 
 
 class OkxApiProvider(Provider):
+    market_consts = from_context(provides=OkxMarketConsts, scope=Scope.APP)
+    trade_consts = from_context(provides=OkxTradeConsts, scope=Scope.APP)
+    grid_consts = from_context(provides=OkxGridConsts, scope=Scope.APP)
+    config = from_context(provides=Config, scope=Scope.APP)
+
     @provide(scope=Scope.APP)
-    async def provide_market_client_pool() -> AsyncGenerator[MarketClientPool, None]:
+    async def provide_market_client_pool(self) -> AsyncGenerator[MarketClientPool, None]:
         pool = MarketClientPool(pool_size=5, rate_limit=20)
         try:
             yield pool
@@ -28,3 +48,32 @@ class OkxApiProvider(Provider):
         async for client in client_factory():
             yield client
 
+    security_gateway = provide(
+        SecurityGateway,
+        scope=Scope.REQUEST,
+        provides=interfaces.ISecurity, 
+    )
+
+    signature_gateway = provide(
+        SignatureGateway,
+        scope=Scope.REQUEST,
+        provides=interfaces.ISignature
+    )
+
+    market_api_gateway = provide(
+        OkxMarketService,
+        scope=Scope.REQUEST,
+        provides=interfaces.IOkxMarketData
+    )
+
+    trade_api_gateway = provide(
+        OkxTradeService,
+        scope=Scope.REQUEST,
+        provides=interfaces.IOkxTrade
+    )
+
+    grid_api_gateway = provide(
+        OkxGridService,
+        scope=Scope.REQUEST,
+        provides=interfaces.IOkxGridTrade
+    )

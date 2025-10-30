@@ -1,3 +1,23 @@
+"""
+Defines environment-driven configuration models for application setup using Pydantic.
+
+This module provides a base class `EnvModel` that allows automatic loading of configuration
+values from environment variables. Subclasses represent specific configuration domains such as
+application settings, RabbitMQ, Redis, and encryption secrets.
+
+Key Features:
+- Uses Pydantic for type-safe configuration modeling.
+- Automatically loads values from environment variables via `from_env()` class method.
+- Supports field aliasing to map environment variable names to Pythonic field names.
+- Centralizes configuration access through the `Config` aggregate model.
+
+Typical Usage:
+    config = Config()
+    print(config.app.host)
+    print(config.redis.db)
+"""
+
+
 from os import environ as env
 from typing import Type, TypeVar, get_type_hints
 
@@ -7,6 +27,14 @@ ConfigModelType = TypeVar("ConfigModelType", bound="EnvModel")
 
 
 class EnvModel(BaseModel):
+    """
+    Base class for environment-driven configuration models.
+
+    Provides a `from_env()` class method that reads environment variables and
+    populates the model fields accordingly. Supports type casting and field aliasing.
+
+    Intended to be subclassed by specific configuration domains.
+    """
     @classmethod
     def from_env(cls: Type[ConfigModelType]) -> ConfigModelType:
         """
@@ -52,15 +80,40 @@ class EnvModel(BaseModel):
 
 
 class SecretConfig(EnvModel):
+    """
+    Configuration model for application-level encryption secrets.
+
+    Attributes:
+        config_secret_key (str): Secret key used for encrypting sensitive configuration data.
+    """
     config_secret_key: str = Field(alias="APP_CONFIG_ENCRYPTION_KEY")
 
 class AppConfig(EnvModel):
+    """
+    Configuration model for core application settings.
+
+    Attributes:
+        name (str): Application name.
+        host (str): Host address where the app runs.
+        port (int): Port number for the application server.
+        reloading (bool): Flag to enable auto-reloading during development.
+    """
     name: str = Field(alias="OKX_API_APP_NAME")
     host: str = Field(alias="OKX_API_APP_HOST")
     port: int = Field(alias="OKX_API_APP_PORT")
     reloading: bool = Field(True, alias="OKX_API_APP_RELOADING")
 
 class RabbitMQConfig(EnvModel):
+    """
+    Configuration model for RabbitMQ connection settings.
+
+    Attributes:
+        host (str): RabbitMQ server hostname.
+        port (int): RabbitMQ server port.
+        login (str): Username for RabbitMQ authentication.
+        password (str): Password for RabbitMQ authentication.
+        vhost (str): Virtual host to connect to within RabbitMQ.
+    """
     host: str = Field(alias='RABBITMQ_HOST')
     port: int = Field(alias='RABBITMQ_PORT')
     login: str = Field(alias='RABBITMQ_USER')
@@ -69,6 +122,15 @@ class RabbitMQConfig(EnvModel):
 
 
 class RedisConfig(EnvModel):
+    """
+    Configuration model for Redis connection settings.
+
+    Attributes:
+        host (str): Redis server hostname.
+        port (int): Redis server port.
+        db (int): Redis database index for account events.
+        password (str): Password for Redis authentication.
+    """
     port: int = Field(alias='REDIS_PORT')
     host: str = Field(alias='REDIS_HOST')
     db: int = Field(alias='REDIS_ACCOUNT_EVENTS_DB')
@@ -76,6 +138,15 @@ class RedisConfig(EnvModel):
 
 
 class Config(BaseModel):
+    """
+    Aggregated configuration model combining all domain-specific settings.
+
+    Attributes:
+        app (AppConfig): Application-level settings.
+        secret (SecretConfig): Encryption secret configuration.
+        redis (RedisConfig): Redis connection settings.
+        rabbit (RabbitMQConfig): RabbitMQ connection settings.
+    """
     app: AppConfig = Field(default_factory=AppConfig.from_env)
     secret: SecretConfig = Field(default_factory=SecretConfig.from_env)
     redis: RedisConfig = Field(default_factory=RedisConfig.from_env)
