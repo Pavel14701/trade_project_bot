@@ -35,6 +35,13 @@ class RabbitMQConfig(EnvModel):
     vhost: str = Field(alias='RABBITMQ_VHOST')
 
 
+class AppConfig(EnvModel):
+    name: str = Field(alias="EVENTS_APP_NAME")
+    host: str = Field(alias="EVENTS_APP_HOST")
+    port: int = Field(alias="EVENTS_APP_PORT")
+    reloading: bool = Field(True, alias="EVENTS_APP_RELOADING")
+
+
 class RedisConfig(EnvModel):
     port: int = Field(alias='REDIS_PORT')
     host: str = Field(alias='REDIS_HOST')
@@ -43,6 +50,7 @@ class RedisConfig(EnvModel):
 
 
 class Config(BaseModel):
+    app: AppConfig = Field(default_factory=AppConfig.from_env)
     secret: SecretConfig = Field(default_factory=SecretConfig.from_env)
     redis: RedisConfig = Field(default_factory=RedisConfig.from_env)
     rabbit: RabbitMQConfig = Field(default_factory=RabbitMQConfig.from_env)

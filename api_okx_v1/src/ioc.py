@@ -27,3 +27,4 @@ class OkxApiProvider(Provider):
     async def provide_private_client(self) -> AsyncGenerator[PrivateClient, None]:
         async for client in client_factory():
             yield client
+

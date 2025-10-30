@@ -8,9 +8,9 @@ from account_events.src.controllers.amqp import controller
 from account_events.src.infrastructure.broker import new_broker
 from account_events.src.ioc import AppProvider
 
+config = Config()
 
-def get_faststream_app() -> FastStream:
-    config = Config()
+def get_faststream_app(config: Config) -> FastStream:
     broker = new_broker(config.rabbit)
     container = make_async_container(
         AppProvider(),
@@ -31,10 +31,10 @@ def get_faststream_app() -> FastStream:
 
 if __name__ == "__main__":
     import uvicorn
-    app = get_faststream_app()
+    app = get_faststream_app(config)
     uvicorn.run(
-        app="main:app", 
-        host="0.0.0.0", 
-        port=8000, 
-        reload=True
+        app=config.app.name, 
+        host=config.app.host, 
+        port=config.app.port, 
+        reload=config.app.reloading
     )

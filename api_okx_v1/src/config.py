@@ -9,6 +9,34 @@ ConfigModelType = TypeVar("ConfigModelType", bound="EnvModel")
 class EnvModel(BaseModel):
     @classmethod
     def from_env(cls: Type[ConfigModelType]) -> ConfigModelType:
+        """
+        Load configuration values from environment variables and instantiate the model.
+
+        This method is designed to automatically populate a Pydantic model with values
+        sourced from the system's environment variables. It iterates over the model's
+        declared fields and attempts to retrieve corresponding values from the environment
+        using either the field's alias (if defined) or its name.
+
+        For each field:
+        - It checks if the corresponding environment variable exists.
+        - If found, it attempts to cast the value to the expected type using type hints.
+        - If casting fails, it falls back to using the raw string value.
+        - Fields not present in the environment are left unset (and may use defaults if defined).
+
+        This method is particularly useful for loading configuration settings (e.g., API keys,
+        database URLs, feature flags) into a strongly typed model without manually parsing
+        or validating environment variables.
+
+        Returns:
+            An instance of the model populated with values from the environment.
+
+        Example:
+            class AppConfig(EnvModel):
+                api_key: str = Field(..., alias="API_KEY")
+                debug: bool = Field(False, alias="DEBUG")
+
+            config = AppConfig.from_env()
+        """
         raw_data = {}
         hints = get_type_hints(cls)
         for field_name, field in cls.model_fields.items():
@@ -26,6 +54,11 @@ class EnvModel(BaseModel):
 class SecretConfig(EnvModel):
     config_secret_key: str = Field(alias="APP_CONFIG_ENCRYPTION_KEY")
 
+class AppConfig(EnvModel):
+    name: str = Field(alias="OKX_API_APP_NAME")
+    host: str = Field(alias="OKX_API_APP_HOST")
+    port: int = Field(alias="OKX_API_APP_PORT")
+    reloading: bool = Field(True, alias="OKX_API_APP_RELOADING")
 
 class RabbitMQConfig(EnvModel):
     host: str = Field(alias='RABBITMQ_HOST')
@@ -43,6 +76,7 @@ class RedisConfig(EnvModel):
 
 
 class Config(BaseModel):
+    app: AppConfig = Field(default_factory=AppConfig.from_env)
     secret: SecretConfig = Field(default_factory=SecretConfig.from_env)
     redis: RedisConfig = Field(default_factory=RedisConfig.from_env)
     rabbit: RabbitMQConfig = Field(default_factory=RabbitMQConfig.from_env)
