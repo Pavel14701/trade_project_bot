@@ -1,3 +1,26 @@
+"""
+Provides reusable HTTP client utilities for interacting with external APIs using HTTPX.
+
+This module defines:
+- `MarketClientPool`: A lightweight client pool with built-in connection reuse and rate limiting.
+- `client_factory`: An asynchronous factory for creating and disposing of a single-use HTTPX client.
+
+Key Features:
+- Uses HTTP/2 and connection pooling for efficient request handling.
+- Applies rate limiting via `aiolimiter` to control request throughput.
+- Supports graceful shutdown and resource cleanup.
+- Designed for use in high-concurrency environments such as trading bots or API gateways.
+
+Typical Usage:
+    pool = MarketClientPool()
+    async with pool.get() as client:
+        await client.get("https://api.example.com/data")
+
+    async for client in client_factory():
+        await client.post(...)
+"""
+
+
 from contextlib import asynccontextmanager
 from typing import (
     Any, 

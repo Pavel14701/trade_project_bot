@@ -1,17 +1,48 @@
+"""
+Utility module for constructing dataclass instances from raw dictionaries, primarily used in routing
+and message-handling contexts where payloads need to be parsed into structured objects.
+
+This module defines the `RouterUtils` class, which provides methods to:
+
+- Resolve type annotations by stripping wrappers like `Optional` and `Union`.
+- Recursively instantiate dataclasses from nested dictionaries, including support for lists of dataclasses.
+- Construct multiple named dataclass instances from a shared input dictionary and return them as a `NamedTuple`.
+
+These utilities are especially useful in systems where incoming data (e.g., from message queues or APIs)
+must be validated and transformed into typed Python objects before being passed to business logic layers.
+
+Classes:
+    - RouterUtils: Contains helper methods for dataclass construction and type resolution.
+
+Dependencies:
+    - Python standard library: `dataclasses`, `typing`, `collections`
+    - Project-specific: `DataclassType` from `api_okx_v1.src.infrastructure._types`
+
+Example usage:
+    utils = RouterUtils()
+    dto = utils.construct(data, MyDTO)
+    dtos = utils.construct_many_named(data, [UserDTO, AuthDTO])
+
+Note:
+    All target classes must be valid dataclass types. Type resolution handles nested structures and optional fields.
+"""
+
 from dataclasses import is_dataclass, fields
 from typing import (
-    Type, 
+    Type,
     Any,
-    Dict, 
-    Sequence, 
-    NamedTuple, 
-    Union
+    Dict,
+    Sequence,
+    NamedTuple,
+    Union,
+    get_origin,
+    get_args,
+    cast,
 )
-from typing import get_origin, get_args
 from collections import namedtuple
 
-
 from api_okx_v1.src.infrastructure._types import DataclassType
+
 
 class RouterUtils:
     def _resolve_type(self, tp: Any) -> Any:
@@ -51,7 +82,7 @@ class RouterUtils:
         if not isinstance(cls, type) or not is_dataclass(cls):
             raise TypeError(f"{cls} must be a dataclass type, not an instance")
 
-        init_data = {}
+        init_data: Dict[str, Any] = {}
         for f in fields(cls):
             value = data.get(f.name)
             raw_type = f.type
@@ -60,16 +91,16 @@ class RouterUtils:
             args = get_args(resolved_type)
 
             if is_dataclass(resolved_type) and isinstance(value, dict):
-                init_data[f.name] = self.construct(resolved_type, value)  # type: ignore
+                init_data[f.name] = self.construct(value, cast(Type[DataclassType], resolved_type))
 
             elif origin is list and args and is_dataclass(args[0]) and isinstance(value, list):
-                nested_type = args[0]
-                init_data[f.name] = [self.construct(nested_type, item) for item in value]  # type: ignore
+                nested_type = cast(Type[DataclassType], args[0])
+                init_data[f.name] = [self.construct(item, nested_type) for item in value]
 
             else:
                 init_data[f.name] = value
 
-        return cls(**init_data)
+        return cast(DataclassType, cls(**init_data))
 
     def construct_many_named(
         self,
@@ -94,7 +125,7 @@ class RouterUtils:
             if not isinstance(cls, type) or not is_dataclass(cls):
                 raise TypeError(f"{cls} must be a dataclass type, not an instance")
 
-        names = [cls.__name__ for cls in classes]
-        NamedResult = namedtuple("ConstructedDataclasses", names)
+        names = tuple(cls.__name__ for cls in classes)
+        NamedResult = namedtuple("ConstructedDataclasses", names) # type: ignore[misc]
         instances = [self.construct(data, cls) for cls in classes]
         return NamedResult(*instances)

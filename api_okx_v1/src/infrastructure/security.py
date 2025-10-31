@@ -81,7 +81,7 @@ class SecurityGateway(ISecurity):
             raise ValueError(f"Decryption error: {e}") from e
 
 
-class Signature(ISignature):
+class SignatureGateway(ISignature):
     async def get_signature(
         self, 
         params: SignatureDM

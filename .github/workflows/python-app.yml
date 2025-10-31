@@ -37,8 +37,7 @@ jobs:
 
     - name: Run type-checking with MyPy
       run: |
-        mypy main_app/src/main.py
-        mypy account_events/src/main.py
+        mypy . --explicit-package-bases --ignore-missing-imports
 
     - name: Run tests with pytest
       run: |

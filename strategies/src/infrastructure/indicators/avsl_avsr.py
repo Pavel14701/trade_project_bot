@@ -93,7 +93,7 @@ class BaseAVS(ABC):
         """
         vw_f, vw_s, vpc, vpr, vm, vpci = self._compute_base_series(data, config)
         price_v = self._price_fun(data, vpc, vpr, vpci)
-        deviation = config.stand_div * vpci * vm
+        deviation = np.float64(config.stand_div) * vpci * vm
         price_series = self._get_price_series(data)
         adjusted = self._adjust_formula(price_series, price_v, deviation)
         result = ta.sma(close=adjusted, length=config.length_slow, talib=True)
@@ -105,13 +105,13 @@ class BaseAVS(ABC):
         self, 
         data: PriceDataFrame, 
         config: AvslConfigDM
-    )-> tuple[
-        pd.Series[np.float64],
-        pd.Series[np.float64],
-        pd.Series[np.float64],
-        pd.Series[np.float64],
-        pd.Series[np.float64],
-        pd.Series[np.float64]
+    ) -> tuple[
+        pd.Series[float],
+        pd.Series[float],
+        pd.Series[float],
+        pd.Series[float],
+        pd.Series[float],
+        pd.Series[float]
     ]:
         """
         Computes the foundational time series for volume-price dynamics.
@@ -133,10 +133,12 @@ class BaseAVS(ABC):
         sma_slow = cast(pd.Series, ta.sma(data.close_prices, config.length_slow, talib=True))
         vol_fast = cast(pd.Series, ta.sma(data.volumes, config.length_fast, talib=True))
         vol_slow = cast(pd.Series, ta.sma(data.volumes, config.length_slow, talib=True))
-        vpc = vw_ma_slow - sma_slow
-        vpr = vw_ma_fast / sma_fast
-        vm = vol_fast / vol_slow
-        vpci = vpc * vpr * vm
+
+        vpc = (vw_ma_slow - sma_slow).astype("float64")
+        vpr = (vw_ma_fast / sma_fast).astype("float64")
+        vm = (vol_fast / vol_slow).astype("float64")
+        vpci = (vpc * vpr * vm).astype("float64")
+
         return vw_ma_fast, vw_ma_slow, vpc, vpr, vm, vpci
 
     def _price_fun(
@@ -158,9 +160,9 @@ class BaseAVS(ABC):
             np.ndarray: Adjusted price influence array (price_v), same length as input.
         """
         price_np = self._get_price_series(data).to_numpy()
-        vpc_np = vpc.to_numpy()
-        vpr_np = vpr.to_numpy()
-        vpci_np = vpci.to_numpy()
+        vpc_np = vpc.astype("float64").to_numpy()
+        vpr_np = vpr.astype("float64").to_numpy()
+        vpci_np = vpci.astype("float64").to_numpy()
         lenV = self.compute_len_v(vpc_np, vpci_np)
         VPCc = self.compute_vpcc(vpc_np)
         return _compute_price_v(price_np, vpr_np, lenV, VPCc)
@@ -211,7 +213,7 @@ class BaseAVS(ABC):
         based on the latest indicator value. It performs a full AVS calculation and extracts
         the final value from the resulting time series.
 
-        Workflow:
+                Workflow:
         1. Calls `self.calculate()` to compute the full AVS series (AVSL or AVSR).
         2. Checks if the resulting DataFrame is empty — returns None if no data.
         3. Extracts the last value from the output column (e.g., "avsl" or "avsr").
@@ -229,6 +231,7 @@ class BaseAVS(ABC):
             return None
         last_value = df[self._output_column_name()].iloc[-1]
         return None if pd.isna(last_value) else float(last_value)
+
 
 @njit
 def _compute_price_v(

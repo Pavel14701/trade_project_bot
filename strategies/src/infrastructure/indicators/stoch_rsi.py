@@ -1,4 +1,5 @@
 import talib as ta
+from talib._ta_lib import MA_Type
 from pandas import DataFrame
 
 from strategies.src.domain.entities import StochRsiConfigDM
@@ -53,7 +54,7 @@ class StochRSI:
             # %D smoothing period  
             fastd_period=config.fastd_period, 
             # Moving Average type for %D 
-            fastd_matype=config.fastd_matype  
+            fastd_matype=MA_Type(config.fastd_matype)  
         )
         return DataFrame({"fastk": fastk, "fastd": fastd}, index=data.index)  # type: ignore
 

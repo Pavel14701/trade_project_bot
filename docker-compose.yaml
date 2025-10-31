@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:18.0
     container_name: trading-postgres
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:4.2.0-management
     container_name: trading-rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:latest
+    image: redis:8.2.2
     container_name: trading-redis
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -68,7 +68,7 @@ services:
     stdin_open: true
 
   questdb:
-    image: questdb/questdb:latest
+    image: questdb/questdb:nightly-rhel
     container_name: trading-questdb
     restart: always
     ports:

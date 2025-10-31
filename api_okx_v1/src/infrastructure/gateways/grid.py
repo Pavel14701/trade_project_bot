@@ -1,3 +1,34 @@
+"""
+Provides a concrete implementation of the OKX Grid Trading service interface.
+
+This module defines the `OkxGridService` class, which extends the abstract `BaseQuerySet` and implements
+the `IOkxGridTrade` interface. It encapsulates all interactions with the OKX Grid Trading API, including
+placing, amending, stopping, and querying grid orders, as well as managing margin and investment operations.
+
+Key Responsibilities:
+- Construct and send authenticated HTTP requests to OKX grid trading endpoints.
+- Serialize and validate request payloads using DTOs.
+- Sign requests using the provided `ISignature` implementation.
+- Handle both private and public grid trading operations.
+
+Dependencies:
+- `BaseQuerySet`: Provides shared request logic such as signing, parameter preparation, and HTTP execution.
+- `SecretDTO`: Contains user-specific API credentials.
+- DTOs from `api_okx_v1.src.application.dto.grid`: Define structured request payloads for each API operation.
+- `IOkxGridTrade`: Interface defining the expected grid trading operations.
+- `ISignature`: Interface for generating secure request signatures.
+- `PrivateClient`: Asynchronous HTTP client for private API calls.
+- `OkxGridConsts`: Constants specific to the grid trading domain (e.g., base URLs, endpoints).
+
+Typical Usage:
+    service = OkxGridService(client, consts, signer)
+    await service.place_grid_order(dto, secret)
+
+This service is intended to be used within a larger application or controller layer that handles
+message routing, user input, and orchestration of trading workflows.
+"""
+
+
 from typing import Any
 
 from api_okx_v1.src.application.dto.base import SecretDTO
