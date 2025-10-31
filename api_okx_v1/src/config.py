@@ -88,20 +88,11 @@ class SecretConfig(EnvModel):
     """
     config_secret_key: str = Field(alias="APP_CONFIG_ENCRYPTION_KEY")
 
-class AppConfig(EnvModel):
-    """
-    Configuration model for core application settings.
 
-    Attributes:
-        name (str): Application name.
-        host (str): Host address where the app runs.
-        port (int): Port number for the application server.
-        reloading (bool): Flag to enable auto-reloading during development.
-    """
-    name: str = Field(alias="OKX_API_APP_NAME")
-    host: str = Field(alias="OKX_API_APP_HOST")
-    port: int = Field(alias="OKX_API_APP_PORT")
-    reloading: bool = Field(True, alias="OKX_API_APP_RELOADING")
+class AppConfig(EnvModel):
+    pool_size: int = Field(5, alias='OKX_API_MARKET_POOL_SIZE')
+    rate_limit: int = Field(20, alias='OKX_API_MARKET_RATE_LIMIT')
+
 
 class RabbitMQConfig(EnvModel):
     """

@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 
 from dishka import Provider, Scope, provide, from_context # type: ignore
 
-from api_okx_v1.src.config import Config
+from api_okx_v1.src.config import AppConfig, Config
 from api_okx_v1.src.application import interfaces
 from api_okx_v1.src.infrastructure.http_sessions import client_factory, MarketClientPool
 from api_okx_v1.src.infrastructure._types import (
@@ -31,8 +31,11 @@ class OkxApiProvider(Provider):
     config = from_context(provides=Config, scope=Scope.APP)
 
     @provide(scope=Scope.APP)
-    async def provide_market_client_pool(self) -> AsyncGenerator[MarketClientPool, None]:
-        pool = MarketClientPool(pool_size=5, rate_limit=20)
+    async def provide_market_client_pool(self, config: AppConfig) -> AsyncGenerator[MarketClientPool, None]:
+        pool = MarketClientPool(
+            pool_size=config.pool_size, 
+            rate_limit=config.rate_limit
+        )
         try:
             yield pool
         finally:

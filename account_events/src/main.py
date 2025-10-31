@@ -30,11 +30,6 @@ def get_faststream_app(config: Config) -> FastStream:
 
 
 if __name__ == "__main__":
-    import uvicorn
+    import asyncio
     app = get_faststream_app(config)
-    uvicorn.run(
-        app=config.app.name, 
-        host=config.app.host, 
-        port=config.app.port, 
-        reload=config.app.reloading
-    )
+    asyncio.run(app.run())

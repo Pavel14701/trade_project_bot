@@ -60,17 +60,6 @@ def get_faststream_app(config: Config) -> FastStream:
 
 
 if __name__ == "__main__":
-    """
-    Application entry point.
-
-    Starts the FastStream app using Uvicorn with host, port, and reload settings
-    defined in the environment-driven configuration.
-    """
-    import uvicorn
+    import asyncio
     app = get_faststream_app(config)
-    uvicorn.run(
-        app=config.app.name, 
-        host=config.app.host, 
-        port=config.app.port, 
-        reload=config.app.reloading
-    )
+    asyncio.run(app.run())
