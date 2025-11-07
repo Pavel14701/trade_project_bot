@@ -1,19 +1,21 @@
-# src/training/full_trainer.py
+from typing import Any, cast
 
-import torch
 import joblib
 import pandas as pd
-from torch import nn, optim
-from typing import Any
+import torch
+from model.calibration import fit_platt_scaler, fit_temperature_scaler
+from model.column_tokenizer import ColumnTokenizer
+from model.heads import SuccessHead
+from model.tab_transformer import TabTransformer
 from preprocess.adapters.feature_adapter import FeatureAdapter
 from preprocess.adapters.labeling_adapter import LabelingAdapter
 from preprocess.schema_infer import SchemaInfer
-from model.column_tokenizer import ColumnTokenizer
-from model.tab_transformer import TabTransformer
-from model.heads import SuccessHead
-from model.calibration import fit_temperature_scaler, fit_platt_scaler
-from training.utils import set_seed, compute_metrics
-from training.fine_tune import freeze_layers, replace_head, load_checkpoint
+from torch import nn, optim
+
+from ai.src.data_providers.base import BaseProvider
+from training.fine_tune import freeze_layers, load_checkpoint, replace_head
+from training.utils import compute_metrics, set_seed
+
 
 class FullTrainer:
     """
@@ -48,10 +50,12 @@ class FullTrainer:
 
         This includes loading data, applying feature adaptation and labeling,
         inferring schema, tokenizing input, splitting into train/val sets,
-        initializing model and head, and optionally loading checkpoints or freezing layers.
+        initializing model and head, and optionally loading 
+          checkpoints or freezing layers.
 
         Args:
-            cfg (dict[str, Any]): Configuration dictionary containing all pipeline parameters.
+            cfg (dict[str, Any]): Configuration dictionary 
+              containing all pipeline parameters.
         """
         self.cfg = cfg
         set_seed(cfg.get("seed", 42))
@@ -81,7 +85,9 @@ class FullTrainer:
         self.tokenizer = ColumnTokenizer(
             num_col_names=self.schema.num_cols,
             cat_col_names=self.schema.cat_cols,
-            cat_cardinalities=[len(self.schema.cat_vocabs[c]) + 1 for c in self.schema.cat_cols],
+            cat_cardinalities=[len(
+                self.schema.cat_vocabs[c]
+            ) + 1 for c in self.schema.cat_cols],
             asset_vocab=df_labeled["asset_id"].unique().tolist(),
             d_model=cfg["model"]["d_model"]
         )
@@ -90,14 +96,26 @@ class FullTrainer:
         split = int(0.8 * len(tokens))
         self.x_num = tokens[:split, 1 : 1 + len(self.schema.num_cols), :]
         self.x_cat = tokens[:split, 1 + len(self.schema.num_cols) : -1, :]
-        self.y_train = torch.tensor(df_labeled["target"].values[:split], dtype=torch.float32, device=self.device)
+        self.y_train = torch.tensor(
+            df_labeled["target"].values[:split], 
+            dtype=torch.float32, 
+            device=self.device
+        )
         self.x_num_val = tokens[split:, 1 : 1 + len(self.schema.num_cols), :]
         self.x_cat_val = tokens[split:, 1 + len(self.schema.num_cols) : -1, :]
-        self.y_val = torch.tensor(df_labeled["target"].values[split:], dtype=torch.float32, device=self.device)
+        self.y_val = torch.tensor(
+            df_labeled["target"].values[split:], 
+            dtype=torch.float32, 
+            device=self.device
+        )
         # 6. Model
         self.model = TabTransformer(
             num_features=len(self.schema.num_cols),
-            cat_cardinalities=[len(self.schema.cat_vocabs[c]) + 1 for c in self.schema.cat_cols],
+            cat_cardinalities=[
+                len(
+                    self.schema.cat_vocabs[c]
+                ) + 1 for c in self.schema.cat_cols
+            ],
             d_model=cfg["model"]["d_model"],
             nhead=cfg["model"]["nhead"],
             num_layers=cfg["model"]["num_layers"],
@@ -107,12 +125,15 @@ class FullTrainer:
         ).to(self.device)
         # 7. Head + optimizer
         self.head = SuccessHead(cfg["model"]["d_model"]).to(self.device)
-        self.model = replace_head(self.model, self.head)
+        self.model = cast(TabTransformer, replace_head(self.model, self.head))
         self.optimizer = optim.Adam(self.model.parameters(), lr=cfg["training"]["lr"])
         self.loss_fn = nn.BCELoss()
         # 8. Optional: load checkpoint or freeze layers
         if "checkpoint_init" in cfg:
-            self.model = load_checkpoint(self.model, cfg["checkpoint_init"])
+            self.model = cast(
+                TabTransformer, 
+                load_checkpoint(self.model, cfg["checkpoint_init"])
+            )
         if "fine_tune" in cfg and "freeze" in cfg["fine_tune"]:
             freeze_layers(self.model, cfg["fine_tune"]["freeze"])
 
@@ -126,13 +147,20 @@ class FullTrainer:
         Returns:
             pd.DataFrame: Combined and sorted dataframe with raw features.
         """
+        provider: BaseProvider
         if self.cfg["provider"]["type"] == "clickhouse":
             from data_providers.clickhouse_provider import ClickHouseProvider
             provider = ClickHouseProvider(**self.cfg["provider"])
         else:
             from data_providers.questdb_provider import QuestDBProvider
             provider = QuestDBProvider(self.cfg["provider"]["host"])
-        dfs = [provider.fetch(s, self.cfg["start"], self.cfg["end"]) for s in self.cfg["symbols"]]
+        dfs = [
+            provider.fetch(
+                s,
+                self.cfg["start"],
+                self.cfg["end"]
+            ) for s in self.cfg["symbols"]
+        ]
         return pd.concat(dfs).sort_values("timestamp").reset_index(drop=True)
 
     def train(self) -> None:
@@ -150,7 +178,7 @@ class FullTrainer:
             loss = self.loss_fn(torch.sigmoid(logits), self.y_train)
             loss.backward()
             self.optimizer.step()
-            print(f"Epoch {epoch+1}: train loss = {loss.item():.4f}")
+            print(f"Epoch {epoch + 1}: train loss = {loss.item():.4f}")
         self.model.eval()
         with torch.no_grad():
             logits_val = self.model(self.x_num_val, self.x_cat_val).squeeze()
@@ -168,7 +196,11 @@ class FullTrainer:
         Args:
             logits (Tensor): Raw logits from the validation set of shape [B].
         """
-        temp_scaler = fit_temperature_scaler(logits.unsqueeze(1), self.y_val, verbose=True)
+        temp_scaler = fit_temperature_scaler(
+            logits.unsqueeze(1), 
+            self.y_val, 
+            verbose=True
+        )
         probs = torch.sigmoid(temp_scaler(logits.unsqueeze(1)))
         platt = fit_platt_scaler(probs, self.y_val, verbose=True)
         torch.save(self.model.state_dict(), self.cfg["artifacts"]["checkpoint_path"])

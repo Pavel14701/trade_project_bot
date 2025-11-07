@@ -1,8 +1,8 @@
-# src/data_providers/base.py
-
 from abc import abstractmethod
 from typing import Protocol
+
 import pandas as pd
+
 
 class BaseProvider(Protocol):
     """
@@ -17,7 +17,8 @@ class BaseProvider(Protocol):
         end (str): End date in ISO format (inclusive).
 
     Returns:
-        pd.DataFrame: Time-indexed data with columns such as open, high, low, close, volume.
+        pd.DataFrame: Time-indexed data with columns 
+          such as open, high, low, close, volume.
     """
     @abstractmethod
     def fetch(self, symbol: str, start: str, end: str) -> pd.DataFrame:

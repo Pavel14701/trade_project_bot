@@ -1,8 +1,8 @@
-# src/ai/model/heads.py
+from typing import Literal
 
 import torch
 import torch.nn as nn
-from typing import Literal
+
 
 class BaseHead(nn.Module):
     """
@@ -17,7 +17,7 @@ class BaseHead(nn.Module):
         dropout (float): Dropout rate applied before the final layer.
     """
     def __init__(self, d_model: int, out_dim: int, dropout: float = 0.1) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.head = nn.Sequential(
             nn.LayerNorm(d_model),
             nn.Dropout(dropout),
@@ -42,7 +42,6 @@ class BaseHead(nn.Module):
         return out.squeeze(-1) if out.shape[-1] == 1 else out
 
 
-
 class SignalHead(BaseHead):
     """
     Multi-class classification head for signal prediction.
@@ -55,6 +54,7 @@ class SignalHead(BaseHead):
     """
     def __init__(self, d_model: int, dropout: float = 0.1) -> None:
         super().__init__(d_model, out_dim=3, dropout=dropout)
+
 
 class SuccessHead(BaseHead):
     """
@@ -69,6 +69,7 @@ class SuccessHead(BaseHead):
     def __init__(self, d_model: int, dropout: float = 0.1) -> None:
         super().__init__(d_model, out_dim=1, dropout=dropout)
 
+
 class MultiTaskHead(nn.Module):
     """
     Composite head for multi-task learning.
@@ -81,7 +82,7 @@ class MultiTaskHead(nn.Module):
         dropout (float): Dropout rate shared across both heads.
     """
     def __init__(self, d_model: int, dropout: float = 0.1) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.signal = SignalHead(d_model, dropout)
         self.success = SuccessHead(d_model, dropout)
 

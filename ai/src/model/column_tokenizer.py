@@ -1,9 +1,8 @@
-# src/ai/model/column_tokenizer.py
+from typing import List, Mapping, Union
 
+import pandas as pd
 import torch
 import torch.nn as nn
-import pandas as pd
-from typing import List, Mapping, Union
 
 
 class FiLM(nn.Module):
@@ -17,7 +16,7 @@ class FiLM(nn.Module):
         d_model (int): Dimensionality of the token space.
     """
     def __init__(self, d_model: int) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.net = nn.Sequential(
             nn.Linear(d_model, 2 * d_model),
             nn.GELU(),
@@ -69,7 +68,7 @@ class ColumnTokenizer(nn.Module):
         asset_vocab: List[str],
         d_model: int
     ) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.d_model = d_model
         self.num_proj = nn.Linear(1, d_model)
         self.num_norm = nn.LayerNorm(d_model)
@@ -108,7 +107,11 @@ class ColumnTokenizer(nn.Module):
         num_tokens: List[torch.Tensor] = []
         for col_name in self.num_col_ids:
             val = row.get(col_name, 0.0)
-            val_tensor = torch.tensor([[val if pd.notna(val) else 0.0]], dtype=torch.float32, device=device)
+            val_tensor = torch.tensor(
+                [[val if pd.notna(val) else 0.0]], 
+                dtype=torch.float32, 
+                device=device
+            )
             proj = self.num_norm(self.num_proj(val_tensor))
             col_idx = torch.tensor([self.num_col_ids[col_name]], device=device)
             col_emb = self.num_col_emb(col_idx)
@@ -118,7 +121,8 @@ class ColumnTokenizer(nn.Module):
         for i, name in enumerate(self.cat_col_names):
             val = row.get(name, 0)
             val_tensor = torch.tensor([val], dtype=torch.long, device=device)
-            cat_tokens.append(self.cat_embeddings[i](val_tensor).view(-1, self.d_model))  # [1, D]
+            cat_tokens.append(
+                self.cat_embeddings[i](val_tensor).view(-1, self.d_model))  # [1, D]
         asset_id_str = str(row.get("asset_id", "UNK_ASSET"))
         asset_idx = torch.tensor(
             [self.asset_vocab.get(asset_id_str, self.unk_asset_idx)],
@@ -126,7 +130,10 @@ class ColumnTokenizer(nn.Module):
         )
         asset_token = self.asset_embedding(asset_idx).view(-1, self.d_model)  # [1, D]
         cls = self.cls_token.to(device).view(-1, self.d_model)  # [1, D]
-        return torch.cat([cls] + num_tokens + cat_tokens + [asset_token], dim=0)  # [T, D]
+        return torch.cat(
+            [cls] + num_tokens + cat_tokens + [asset_token], 
+            dim=0
+        )  # [T, D]
 
     def tokenize_batch(
         self, 

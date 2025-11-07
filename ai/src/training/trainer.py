@@ -1,11 +1,10 @@
-# ai/src/training/trainer.py
-
+from typing import Callable
 
 import torch
+from inference.utils import calibrated_sigmoid
 from torch.nn import Module
 from torch.optim import Optimizer
-from typing import Callable, Optional
-from inference.utils import calibrated_sigmoid
+
 
 class Trainer:
     """
@@ -66,7 +65,6 @@ class Trainer:
             total_loss += loss.item()
         return total_loss / len(dataloader)
 
-
     def evaluate(self, dataloader, targets: torch.Tensor) -> torch.Tensor:
         """
         Runs model inference over the provided dataloader.
@@ -77,7 +75,8 @@ class Trainer:
             dataloader: PyTorch DataLoader yielding batches with keys:
                 - "x_num": numeric features
                 - "x_cat": categorical features
-            targets (torch.Tensor): Ground truth labels (unused, kept for compatibility).
+            targets (torch.Tensor): Ground truth labels 
+              (unused, kept for compatibility).
 
         Returns:
             torch.Tensor: Concatenated predictions of shape [B].

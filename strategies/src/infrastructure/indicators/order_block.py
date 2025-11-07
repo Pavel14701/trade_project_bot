@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, Tuple, cast
+
 import numpy as np
 import pandas as pd
 import pandas_ta as ta

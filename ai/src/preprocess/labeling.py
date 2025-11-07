@@ -1,8 +1,7 @@
-# ai/src/preprocess/labeling.py
-
-import pandas as pd
 import numpy as np
+import pandas as pd
 from numpy.typing import NDArray
+
 
 def label_first_touch(
     df: pd.DataFrame,
@@ -53,6 +52,7 @@ def label_first_touch(
     out["success"] = success
     out["t_first"] = t_first
     return out
+
 
 def _process_group(
     g: pd.DataFrame,
@@ -106,6 +106,7 @@ def _process_group(
         success[global_i] = 1 if evt.endswith("TP") else 0
         t_first[global_i] = t + 1
 
+
 def _first_hit(
     long_tp: float,
     long_sl: float,
@@ -133,8 +134,12 @@ def _first_hit(
         tuple[None, None]: If no threshold was hit.
     """
     hits: list[tuple[str, int]] = []
-    if np.any(highs >= long_tp): hits.append(("BUY_TP", int(np.argmax(highs >= long_tp))))
-    if np.any(lows <= long_sl): hits.append(("BUY_SL", int(np.argmax(lows <= long_sl))))
-    if np.any(lows <= short_tp): hits.append(("SELL_TP", int(np.argmax(lows <= short_tp))))
-    if np.any(highs >= short_sl): hits.append(("SELL_SL", int(np.argmax(highs >= short_sl))))
+    if np.any(highs >= long_tp): 
+        hits.append(("BUY_TP", int(np.argmax(highs >= long_tp))))
+    if np.any(lows <= long_sl): 
+        hits.append(("BUY_SL", int(np.argmax(lows <= long_sl))))
+    if np.any(lows <= short_tp): 
+        hits.append(("SELL_TP", int(np.argmax(lows <= short_tp))))
+    if np.any(highs >= short_sl): 
+        hits.append(("SELL_SL", int(np.argmax(highs >= short_sl))))
     return min(hits, key=lambda x: x[1]) if hits else (None, None)

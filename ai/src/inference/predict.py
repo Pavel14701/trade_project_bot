@@ -1,16 +1,17 @@
 # src/ai/inference/predict.py
 
-from typing import Protocol, Any, Optional, Dict, runtime_checkable
-import pandas as pd
-import torch
+from typing import Any, Dict, Optional, Protocol, runtime_checkable
+
 import numpy as np
 import numpy.typing as npt
-
+import pandas as pd
+import torch
 from preprocess.schema_infer import SchemaInfer
-from inference.utils import to_tensor, calibrated_sigmoid
 
+from inference.utils import calibrated_sigmoid, to_tensor
 
 # --- Protocols ---
+
 
 class ColumnTokenizer(Protocol):
     """
@@ -57,7 +58,8 @@ class AttentionModel(Protocol):
         x_cat (torch.Tensor): Categorical input tensor of shape [B, C].
 
     Returns:
-        torch.Tensor: Boolean mask of shape [B, 1 + 1 + C], where True indicates padding.
+        torch.Tensor: Boolean mask of shape [B, 1 + 1 + C], 
+          where True indicates padding.
     """
     def generate_attention_mask(self, x_cat: torch.Tensor) -> torch.Tensor: ...
 
@@ -68,12 +70,14 @@ class Predictor:
     """
     Inference wrapper for tabular models with optional attention and thresholding.
 
-    Applies feature transformation, schema inference, tokenization, and model prediction.
+    Applies feature transformation, schema inference, tokenization, 
+      and model prediction.
     Supports per-asset thresholding and calibrated sigmoid output.
 
     Parameters:
         model (torch.nn.Module): Trained model for inference.
-        schema (SchemaInfer): Schema transformer for splitting numeric and categorical features.
+        schema (SchemaInfer): Schema transformer for splitting numeric 
+          and categorical features.
         feature_adapter (FeatureAdapter): Preprocessing adapter for raw input.
         device (torch.device): Target device for model execution.
         thresholds (Optional[Dict[str, float]]): Per-asset decision thresholds.
@@ -99,12 +103,14 @@ class Predictor:
         """
         Runs model inference on a batch of tabular data.
 
-        Applies feature adaptation, schema transformation, tokenization, and model forward pass.
+        Applies feature adaptation, schema transformation, tokenization, 
+          and model forward pass.
         If the model supports attention masking, it is applied automatically.
         Outputs prediction probabilities and binary actions based on thresholds.
 
         Parameters:
-            df (pd.DataFrame): Input dataframe containing raw features and optional asset_id.
+            df (pd.DataFrame): Input dataframe containing raw features 
+              and optional asset_id.
 
         Returns:
             pd.DataFrame: Output dataframe with added columns:
@@ -127,8 +133,11 @@ class Predictor:
                 if attention_mask is not None
                 else self.model(x_num, x_cat)
             )
-            probs_tensor: torch.Tensor = calibrated_sigmoid(logits.squeeze(), alpha=self.alpha)
-            probs: npt.NDArray[np.float32] = probs_tensor.cpu().numpy() # type: ignore[reportUnknownVariableType]
+            probs_tensor: torch.Tensor = calibrated_sigmoid(
+                logits.squeeze(), 
+                alpha=self.alpha
+            )
+            probs: npt.NDArray[np.float32] = probs_tensor.cpu().numpy()  # type: ignore[reportUnknownVariableType]
         # Output construction
         out = df.copy()
         out["pred"] = probs
@@ -137,7 +146,7 @@ class Predictor:
             thresholds_tensor = torch.tensor([
                 self.thresholds.get(asset, 0.5) for asset in asset_ids
             ], device=probs_tensor.device)
-            actions = (probs_tensor > thresholds_tensor).int().cpu().numpy() # type: ignore[reportUnknownVariableType]
+            actions = (probs_tensor > thresholds_tensor).int().cpu().numpy()  # type: ignore[reportUnknownVariableType]
             out["action"] = actions
         else:
             out["action"] = (probs > 0.5).astype(int)
