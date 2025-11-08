@@ -1,15 +1,12 @@
 from abc import ABC
 from typing import Any
 
-from api_okx_v1.src.application.interfaces import ( 
-    IOkxMarketData, 
-    IOkxExcHandler
-)
 from api_okx_v1.src.application.dto.market import (
-    GetMarketPriceDTO, 
-    GetPriceDataDTO, 
     GetInstrumentsDTO,
+    GetMarketPriceDTO,
+    GetPriceDataDTO,
 )
+from api_okx_v1.src.application.interfaces import IOkxExcHandler, IOkxMarketData
 
 
 class BaseMarketDTO(ABC):

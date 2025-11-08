@@ -1,18 +1,24 @@
 """
-Utility module for constructing dataclass instances from raw dictionaries, primarily used in routing
+Utility module for constructing dataclass instances from raw dictionaries, primarily 
+  used in routing
 and message-handling contexts where payloads need to be parsed into structured objects.
 
 This module defines the `RouterUtils` class, which provides methods to:
 
 - Resolve type annotations by stripping wrappers like `Optional` and `Union`.
-- Recursively instantiate dataclasses from nested dictionaries, including support for lists of dataclasses.
-- Construct multiple named dataclass instances from a shared input dictionary and return them as a `NamedTuple`.
+- Recursively instantiate dataclasses from nested dictionaries, including support 
+  for lists of dataclasses.
+- Construct multiple named dataclass instances from a shared input dictionary and 
+  return them as a `NamedTuple`.
 
-These utilities are especially useful in systems where incoming data (e.g., from message queues or APIs)
-must be validated and transformed into typed Python objects before being passed to business logic layers.
+These utilities are especially useful in systems where incoming 
+  data (e.g., from message queues or APIs)
+must be validated and transformed into typed Python objects before being 
+  passed to business logic layers.
 
 Classes:
-    - RouterUtils: Contains helper methods for dataclass construction and type resolution.
+    - RouterUtils: Contains helper methods for dataclass 
+      construction and type resolution.
 
 Dependencies:
     - Python standard library: `dataclasses`, `typing`, `collections`
@@ -24,22 +30,23 @@ Example usage:
     dtos = utils.construct_many_named(data, [UserDTO, AuthDTO])
 
 Note:
-    All target classes must be valid dataclass types. Type resolution handles nested structures and optional fields.
+    All target classes must be valid dataclass types. Type resolution handles nested 
+      structures and optional fields.
 """
 
-from dataclasses import is_dataclass, fields
+from collections import namedtuple
+from dataclasses import fields, is_dataclass
 from typing import (
-    Type,
     Any,
     Dict,
-    Sequence,
     NamedTuple,
+    Sequence,
+    Type,
     Union,
-    get_origin,
-    get_args,
     cast,
+    get_args,
+    get_origin,
 )
-from collections import namedtuple
 
 from api_okx_v1.src.infrastructure._types import DataclassType
 
@@ -64,9 +71,14 @@ class RouterUtils:
             return non_none[0] if non_none else Any
         return tp
 
-    def construct(self, data: Dict[str, Any], cls: Type[DataclassType]) -> DataclassType:
+    def construct(
+        self, 
+        data: Dict[str, Any], 
+        cls: Type[DataclassType]
+    ) -> DataclassType:
         """
-        Recursively constructs an instance of the given dataclass type from a dictionary.
+        Recursively constructs an instance of the given dataclass 
+          type from a dictionary.
         Supports nested dataclasses and lists of dataclasses.
 
         Args:
@@ -91,15 +103,22 @@ class RouterUtils:
             args = get_args(resolved_type)
 
             if is_dataclass(resolved_type) and isinstance(value, dict):
-                init_data[f.name] = self.construct(value, cast(Type[DataclassType], resolved_type))
+                init_data[f.name] = self.construct(
+                    value, 
+                    cast(Type[DataclassType], resolved_type)
+                )
 
-            elif origin is list and args and is_dataclass(args[0]) and isinstance(value, list):
+            elif origin is list and args and is_dataclass(args[0]) and isinstance(
+                value, list
+            ):
                 nested_type = cast(Type[DataclassType], args[0])
-                init_data[f.name] = [self.construct(item, nested_type) for item in value]
-
+                init_data[f.name] = [
+                    self.construct(
+                        item, 
+                        nested_type
+                    ) for item in value]
             else:
                 init_data[f.name] = value
-
         return cast(DataclassType, cls(**init_data))
 
     def construct_many_named(
@@ -113,7 +132,8 @@ class RouterUtils:
 
         Args:
             data (Dict[str, Any]): Dictionary of values.
-            classes (Sequence[Type[DataclassType]]): List of dataclass types to instantiate.
+            classes (Sequence[Type[DataclassType]]): List of dataclass 
+              types to instantiate.
 
         Returns:
             NamedTuple: Named tuple of constructed dataclass instances.
@@ -126,6 +146,6 @@ class RouterUtils:
                 raise TypeError(f"{cls} must be a dataclass type, not an instance")
 
         names = tuple(cls.__name__ for cls in classes)
-        NamedResult = namedtuple("ConstructedDataclasses", names) # type: ignore[misc]
+        NamedResult = namedtuple("ConstructedDataclasses", names)  # type: ignore[misc]
         instances = [self.construct(data, cls) for cls in classes]
         return NamedResult(*instances)

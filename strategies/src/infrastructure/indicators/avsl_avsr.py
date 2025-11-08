@@ -13,10 +13,12 @@ from strategies.src.infrastructure._types import PriceDataFrame
 
 class BaseAVS(ABC):
     """
-    Abstract base class for adaptive volume-based support/resistance indicators (AVSL/AVSR).
+    Abstract base class for adaptive volume-based support/resistance 
+    indicators (AVSL/AVSR).
 
     This class encapsulates the shared logic for computing dynamic price levels based on
-    volume-weighted price behavior, momentum, and volatility. It defines the core pipeline:
+    volume-weighted price behavior, momentum, and volatility. It defines the 
+    core pipeline:
     - Compute volume-price metrics (VWMA, SMA, VPCI)
     - Derive a dynamic adjustment factor (`price_v`)
     - Apply a volatility-based deviation
@@ -33,7 +35,8 @@ class BaseAVS(ABC):
         Selects the base price series for level calculation.
 
         Returns:
-            pd.Series: Typically either `low_prices` (for support) or `high_prices` (for resistance).
+            pd.Series: Typically either `low_prices` (for support) or 
+            `high_prices` (for resistance).
         """
         pass
 
@@ -55,7 +58,8 @@ class BaseAVS(ABC):
         deviation: pd.Series[Any]
     ) -> pd.Series:
         """
-        Applies directional logic to combine the base price, volume adjustment, and deviation.
+        Applies directional logic to combine the base price, volume adjustment, 
+        and deviation.
 
         This method defines how the final level is constructed:
         - For support: price - price_v + deviation
@@ -81,17 +85,20 @@ class BaseAVS(ABC):
 
         This method orchestrates the full indicator calculation:
         1. Computes volume-based moving averages and derived metrics (VPCI)
-        2. Calculates a dynamic adjustment factor (`price_v`) using volume-price interaction
+        2. Calculates a dynamic adjustment factor (`price_v`) using 
+        volume-price interaction
         3. Computes a volatility-based deviation term
         4. Applies directional logic to combine base price, adjustment, and deviation
         5. Smooths the result using a simple moving average (SMA)
 
         Args:
             data (PriceDataFrame): Market data with close, low/high, and volume series.
-            config (AvslConfigDM): Configuration with moving average lengths and deviation factor.
+            config (AvslConfigDM): Configuration with moving average 
+            lengths and deviation factor.
 
         Returns:
-            pd.DataFrame: A DataFrame with a single column (e.g., "avsl" or "avsr") indexed by time.
+            pd.DataFrame: A DataFrame with a single column (e.g., "avsl" or "avsr") 
+            indexed by time.
         """
         vw_f, vw_s, vpc, vpr, vm, vpci = self._compute_base_series(data, config)
         price_v = self._price_fun(data, vpc, vpr, vpci)
@@ -129,13 +136,36 @@ class BaseAVS(ABC):
         Returns:
             Tuple of six pd.Series: (vwma_fast, vwma_slow, vpc, vpr, vm, vpci)
         """
-        vw_ma_fast = cast(pd.Series, ta.vwma(data.close_prices, data.volumes, config.length_fast))
-        vw_ma_slow = cast(pd.Series, ta.vwma(data.close_prices, data.volumes, config.length_slow))
-        sma_fast = cast(pd.Series, ta.sma(data.close_prices, config.length_fast, talib=True))
-        sma_slow = cast(pd.Series, ta.sma(data.close_prices, config.length_slow, talib=True))
-        vol_fast = cast(pd.Series, ta.sma(data.volumes, config.length_fast, talib=True))
-        vol_slow = cast(pd.Series, ta.sma(data.volumes, config.length_slow, talib=True))
-
+        vw_ma_fast = cast(pd.Series, ta.vwma(
+            data.close_prices, 
+            data.volumes, 
+            config.length_fast
+        ))
+        vw_ma_slow = cast(pd.Series, ta.vwma(
+            data.close_prices, 
+            data.volumes, 
+            config.length_slow
+        ))
+        sma_fast = cast(pd.Series, ta.sma(
+            data.close_prices, 
+            config.length_fast, 
+            talib=True
+        ))
+        sma_slow = cast(pd.Series, ta.sma(
+            data.close_prices, 
+            config.length_slow, 
+            talib=True
+        ))
+        vol_fast = cast(pd.Series, ta.sma(
+            data.volumes, 
+            config.length_fast, 
+            talib=True
+        ))
+        vol_slow = cast(pd.Series, ta.sma(
+            data.volumes, 
+            config.length_slow, 
+            talib=True
+        ))
         vpc = (vw_ma_slow - sma_slow).astype("float64")
         vpr = (vw_ma_fast / sma_fast).astype("float64")
         vm = (vol_fast / vol_slow).astype("float64")
@@ -170,7 +200,10 @@ class BaseAVS(ABC):
         return _compute_price_v(price_np, vpr_np, lenV, VPCc)
 
     @staticmethod
-    def compute_len_v(vpc: NDArray[np.float64], vpci: NDArray[np.float64]) -> NDArray[np.int32]:
+    def compute_len_v(
+        vpc: NDArray[np.float64], 
+        vpci: NDArray[np.float64]
+    ) -> NDArray[np.int32]:
         """
         Computes a dynamic window length for each time step based on VPCI and VPC.
 
@@ -207,12 +240,19 @@ class BaseAVS(ABC):
             np.where((vpc >= 0) & (vpc < 1), 1.0, vpc)
         )
 
-    def get_last_signal(self, data: PriceDataFrame, config: AvslConfigDM) -> float | None:
+    def get_last_signal(
+        self, 
+        data: PriceDataFrame, 
+        config: AvslConfigDM
+    ) -> float | None:
         """
-        Retrieves the most recent value of the computed adaptive level (support or resistance).
+        Retrieves the most recent value of the computed 
+        adaptive level (support or resistance).
 
-        This method is typically used for signal generation, decision-making, or triggering alerts
-        based on the latest indicator value. It performs a full AVS calculation and extracts
+        This method is typically used for signal generation, decision-making, or 
+        triggering alerts
+        based on the latest indicator value. It performs a full AVS calculation and 
+        extracts
         the final value from the resulting time series.
 
                 Workflow:
@@ -222,7 +262,8 @@ class BaseAVS(ABC):
         4. Returns None if the last value is NaN, otherwise returns it as a float.
 
         Args:
-            data (PriceDataFrame): Historical market data including close, low/high, and volume.
+            data (PriceDataFrame): Historical market data including close, low/high, 
+            and volume.
             config (AvslConfigDM): Configuration parameters for AVS calculation.
 
         Returns:
@@ -279,12 +320,13 @@ class AVSL(BaseAVS):
     """
     Adaptive Volume-Weighted Support Level (AVSL) Indicator.
 
-    This indicator calculates a dynamic support level based on volume-weighted price behavior,
-    volume momentum, and volatility. It is designed to adapt to changing market conditions
-    by incorporating volume-sensitive price deviations and smoothing mechanisms.
+    This indicator calculates a dynamic support level based on volume-weighted price 
+    behavior, volume momentum, and volatility. It is designed to adapt to changing 
+    market conditions by incorporating volume-sensitive price deviations and 
+    smoothing mechanisms.
 
-    The support level is derived from the low price series, adjusted downward by volume pressure
-    (via `price_v`) and softened upward by a volatility-based deviation.
+    The support level is derived from the low price series, adjusted downward by volume
+    pressure (via `price_v`) and softened upward by a volatility-based deviation.
 
     Final formula:
         support = low_price - price_v + deviation
@@ -343,12 +385,14 @@ class AVSR(BaseAVS):
     """
     Adaptive Volume-Weighted Resistance Level (AVSR) Indicator.
 
-    This indicator calculates a dynamic resistance level based on volume-weighted price behavior,
-    volume momentum, and volatility. It adapts to market conditions by incorporating volume-sensitive
+    This indicator calculates a dynamic resistance level based on volume-weighted 
+    price behavior, volume momentum, and volatility. It adapts to market conditions 
+    by incorporating volume-sensitive
     price deviations and smoothing mechanisms.
 
-    The resistance level is derived from the high price series, adjusted upward by volume pressure
-    (via `price_v`) and softened downward by a volatility-based deviation.
+    The resistance level is derived from the high price series, adjusted upward by 
+    volume pressure (via `price_v`) and softened downward by a 
+    volatility-based deviation.
 
     Final formula:
         resistance = high_price + price_v - deviation

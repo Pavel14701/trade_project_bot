@@ -2,14 +2,17 @@
 Provides reusable HTTP client utilities for interacting with external APIs using HTTPX.
 
 This module defines:
-- `MarketClientPool`: A lightweight client pool with built-in connection reuse and rate limiting.
-- `client_factory`: An asynchronous factory for creating and disposing of a single-use HTTPX client.
+- `MarketClientPool`: A lightweight client pool with built-in connection 
+    reuse and rate limiting.
+- `client_factory`: An asynchronous factory for creating and disposing of a 
+    single-use HTTPX client.
 
 Key Features:
 - Uses HTTP/2 and connection pooling for efficient request handling.
 - Applies rate limiting via `aiolimiter` to control request throughput.
 - Supports graceful shutdown and resource cleanup.
-- Designed for use in high-concurrency environments such as trading bots or API gateways.
+- Designed for use in high-concurrency environments such as trading 
+    bots or API gateways.
 
 Typical Usage:
     pool = MarketClientPool()
@@ -23,15 +26,15 @@ Typical Usage:
 
 from contextlib import asynccontextmanager
 from typing import (
-    Any, 
-    AsyncGenerator, 
+    Any,
+    AsyncGenerator,
 )
 
 from aiolimiter import AsyncLimiter
 from httpx import Limits
 
 from api_okx_v1.src.infrastructure._types import (
-    MarketClient, 
+    MarketClient,
     PrivateClient,
 )
 

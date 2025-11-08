@@ -19,9 +19,9 @@ from api_okx_v1.src.application.dto.grid import (
     StopGridOrderDTO,
 )
 from api_okx_v1.src.application.dto.market import (
+    GetInstrumentsDTO,
     GetMarketPriceDTO,
     GetPriceDataDTO,
-    GetInstrumentsDTO,
 )
 from api_okx_v1.src.application.dto.trade import (
     AmendOrderDTO,
@@ -34,9 +34,7 @@ from api_okx_v1.src.application.dto.trade import (
     PlaceOrderDTO,
     SetLeverageDTO,
 )
-from api_okx_v1.src.domain.entities import (
-    SignatureDM
-)
+from api_okx_v1.src.domain.entities import SignatureDM
 
 
 class IOkxTrade(Protocol):

@@ -1,12 +1,15 @@
 """
-Defines structured data models used for authentication and request signing in the OKX integration layer.
+Defines structured data models used for authentication and request signing in the OKX 
+  integration layer.
 
 This module includes:
-- `BaseDataClass`: A frozen base class with utility methods for serialization and field replacement.
+- `BaseDataClass`: A frozen base class with utility methods for serialization and 
+  field replacement.
 - `SecretConfigDM`: An immutable dataclass representing sensitive API credentials.
 - `SignatureDM`: A mutable dataclass used for constructing request signatures.
 
-These entities are designed to be lightweight, type-safe, and compatible with serialization and cryptographic workflows.
+These entities are designed to be lightweight, type-safe, and compatible with 
+  serialization and cryptographic workflows.
 """
 
 
@@ -23,7 +26,8 @@ class BaseDataClass:
     - `to_dict()`: Converts the dataclass instance to a dictionary.
     - `replace()`: Creates a new instance with updated fields.
 
-    This class is intended to be subclassed by other data models that require immutability and convenience methods.
+    This class is intended to be subclassed by other data models that require 
+      immutability and convenience methods.
     """
 
     def to_dict(self) -> dict[str, Any]:
@@ -53,7 +57,8 @@ class BaseDataClass:
 @dataclass(slots=True, frozen=True)
 class SecretConfigDM(BaseDataClass):
     """
-    Immutable data model for storing sensitive API credentials required for authenticated requests.
+    Immutable data model for storing sensitive API credentials required for 
+      authenticated requests.
 
     Attributes:
         user_id (int): Internal user identifier.

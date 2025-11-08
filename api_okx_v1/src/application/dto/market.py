@@ -21,5 +21,5 @@ class GetMarketPriceDTO(BaseDataClass):
 @dataclass(slots=True, frozen=True)
 class GetInstrumentsDTO(BaseDataClass):
     instType: str
-    instFamily: str|None = None
-    instId: str|None = None
+    instFamily: str | None = None
+    instId: str | None = None

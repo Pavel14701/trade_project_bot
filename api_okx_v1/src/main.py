@@ -1,8 +1,10 @@
 """
-Initializes and runs the FastStream application with RabbitMQ integration and dependency injection.
+Initializes and runs the FastStream application with RabbitMQ integration and 
+dependency injection.
 
-This module sets up the messaging infrastructure using FastStream and RabbitBroker, configures
-dependency injection via Dishka, and includes the AMQP controller for handling message routes.
+This module sets up the messaging infrastructure using FastStream and RabbitBroker, 
+configures dependency injection via Dishka, and includes the AMQP controller 
+for handling message routes.
 
 Key Responsibilities:
 - Load configuration from environment variables.
@@ -25,6 +27,7 @@ from api_okx_v1.src.ioc import OkxApiProvider as AppProvider
 
 config = Config()
 
+
 def get_faststream_app(config: Config) -> FastStream:
     """
     Creates and configures a FastStream application instance.
@@ -36,7 +39,8 @@ def get_faststream_app(config: Config) -> FastStream:
     - Registers the AMQP controller with the broker.
 
     Args:
-        config (Config): Aggregated configuration object containing RabbitMQ and app settings.
+        config (Config): Aggregated configuration object containing RabbitMQ and app 
+        settings.
 
     Returns:
         FastStream: A fully configured FastStream application instance.

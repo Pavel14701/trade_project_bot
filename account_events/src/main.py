@@ -10,6 +10,7 @@ from account_events.src.ioc import AppProvider
 
 config = Config()
 
+
 def get_faststream_app(config: Config) -> FastStream:
     broker = new_broker(config.rabbit)
     container = make_async_container(

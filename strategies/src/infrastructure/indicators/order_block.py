@@ -57,12 +57,33 @@ class OrderBlockDetector:
             pd.DataFrame of confirmed blocks.
         """
         zigzag_df = self._zigzag_indicator(data, config)
-        indicators = self._precompute_indicators(data, atr_period, volume_window, liquidity_window)
-        candidates = self._generate_block_candidates(data, zigzag_df, indicators, lookback, liquidity_tolerance)
-        confirmed = self._validate_block_candidates(data, candidates, indicators, confirmation_window, min_reaction_size)
+        indicators = self._precompute_indicators(
+            data, 
+            atr_period, 
+            volume_window, 
+            liquidity_window
+        )
+        candidates = self._generate_block_candidates(
+            data, 
+            zigzag_df, 
+            indicators, 
+            lookback, 
+            liquidity_tolerance
+        )
+        confirmed = self._validate_block_candidates(
+            data, 
+            candidates, 
+            indicators, 
+            confirmation_window, 
+            min_reaction_size
+        )
         return pd.DataFrame([b.__dict__ for b in confirmed])
 
-    def _zigzag_indicator(self, data: PriceDataFrame, config: OrderBlockDetectorDM) -> pd.DataFrame:
+    def _zigzag_indicator(
+        self, 
+        data: PriceDataFrame, 
+        config: OrderBlockDetectorDM
+    ) -> pd.DataFrame:
         """
         Detects local peaks and valleys using ZigZag logic via scipy.signal.find_peaks.
 
@@ -120,7 +141,8 @@ class OrderBlockDetector:
         liquidity_tolerance: float
     ) -> list[dict]:
         """
-        Generates potential order block candidates based on ZigZag extrema and liquidity proximity.
+        Generates potential order block candidates based on ZigZag extrema and 
+        liquidity proximity.
 
         Returns:
             List of candidate dictionaries with:
@@ -132,11 +154,33 @@ class OrderBlockDetector:
         for i in range(lookback, len(data)):
             idx = i - lookback
             if not np.isnan(zigzag_df.peaks.iloc[idx]):
-                if self._has_liquidity_cluster(data.low_prices, idx, indicators["local_lows"], liquidity_tolerance):
-                    candidates.append({"block_type": "supply", "idx": idx, "break_idx": i})
+                if self._has_liquidity_cluster(
+                    data.low_prices, 
+                    idx, 
+                    indicators["local_lows"], 
+                    liquidity_tolerance
+                ):
+                    candidates.append(
+                        {
+                            "block_type": "supply", 
+                            "idx": idx, 
+                            "break_idx": i
+                        }
+                    )
             elif not np.isnan(zigzag_df.valleys.iloc[idx]):
-                if self._has_liquidity_cluster(data.high_prices, idx, indicators["local_highs"], liquidity_tolerance):
-                    candidates.append({"block_type": "demand", "idx": idx, "break_idx": i})
+                if self._has_liquidity_cluster(
+                    data.high_prices, 
+                    idx, 
+                    indicators["local_highs"], 
+                    liquidity_tolerance
+                ):
+                    candidates.append(
+                        {
+                            "block_type": "demand", 
+                            "idx": idx, 
+                            "break_idx": i
+                        }
+                    )
         return candidates
 
     def _validate_block_candidates(
@@ -160,7 +204,13 @@ class OrderBlockDetector:
             is_supply = c["block_type"] == "supply"
             direction = "down" if is_supply else "up"
 
-            if not self._is_valid_breakout(data, idx, breakout_idx, indicators["avg_volume"], direction):
+            if not self._is_valid_breakout(
+                data, 
+                idx, 
+                breakout_idx, 
+                indicators["avg_volume"], 
+                direction
+            ):
                 continue
 
             block = self._confirm_block(
@@ -214,14 +264,16 @@ class OrderBlockDetector:
         end_idx = min(breakout_idx + window, len(data))
         for j in range(breakout_idx + 1, end_idx):
             if not (
-                zone_low <= (price_j := test_series.iloc[j]) <= zone_high
-                and (volume_j := volume.iloc[j]) > avg_volume.iloc[j]
+                zone_low <= (test_series.iloc[j]) <= zone_high
+                and (volume.iloc[j]) > avg_volume.iloc[j]
             ):
                 continue
 
             close_j = close.iloc[j]
             # Reaction is measured as % move beyond the zone boundary:
-            reaction = ((zone_low - close_j) / zone_low) if is_supply else ((close_j - zone_high) / zone_high)
+            reaction = ((zone_low - close_j) / zone_low) if is_supply else (
+                (close_j - zone_high) / zone_high
+            )
             if reaction >= min_reaction_size:
                 return OrderBlock(
                     block_type=block_type,
@@ -332,9 +384,11 @@ class OrderBlockDetector:
             True if the breakout is valid; otherwise, False.
         """
         if direction == "down":
-            return data.low_prices.iloc[i] < data.low_prices.iloc[idx] and data.volume.iloc[i] > avg_volume.iloc[i]
+            return data.low_prices.iloc[i] < data.low_prices.iloc[idx] \
+                and data.volume.iloc[i] > avg_volume.iloc[i]
         else:
-            return data.high_prices.iloc[i] > data.high_prices.iloc[idx] and data.volume.iloc[i] > avg_volume.iloc[i]
+            return data.high_prices.iloc[i] > data.high_prices.iloc[idx] \
+                and data.volume.iloc[i] > avg_volume.iloc[i]
 
     def _has_liquidity_cluster(
         self, 
@@ -344,7 +398,8 @@ class OrderBlockDetector:
         tolerance: float
     ) -> bool:
         """
-        Checks whether a price point is near a local high/low, indicating a liquidity cluster.
+        Checks whether a price point is near a local high/low, indicating a 
+        liquidity cluster.
 
         Args:
             series: The price series (high or low).
