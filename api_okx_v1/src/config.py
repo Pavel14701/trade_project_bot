@@ -1,9 +1,10 @@
 """
 Defines environment-driven configuration models for application setup using Pydantic.
 
-This module provides a base class `EnvModel` that allows automatic loading of configuration
-values from environment variables. Subclasses represent specific configuration domains such as
-application settings, RabbitMQ, Redis, and encryption secrets.
+This module provides a base class `EnvModel` that allows automatic loading of 
+configuration values from environment variables. Subclasses represent specific 
+configuration domains such as application settings, RabbitMQ, Redis, and 
+encryption secrets.
 
 Key Features:
 - Uses Pydantic for type-safe configuration modeling.
@@ -42,17 +43,20 @@ class EnvModel(BaseModel):
 
         This method is designed to automatically populate a Pydantic model with values
         sourced from the system's environment variables. It iterates over the model's
-        declared fields and attempts to retrieve corresponding values from the environment
+        declared fields and attempts to retrieve corresponding values from the 
+            environment
         using either the field's alias (if defined) or its name.
 
         For each field:
         - It checks if the corresponding environment variable exists.
         - If found, it attempts to cast the value to the expected type using type hints.
         - If casting fails, it falls back to using the raw string value.
-        - Fields not present in the environment are left unset (and may use defaults if defined).
+        - Fields not present in the environment are left 
+            unset (and may use defaults if defined).
 
-        This method is particularly useful for loading configuration settings (e.g., API keys,
-        database URLs, feature flags) into a strongly typed model without manually parsing
+        This method is particularly useful for loading configuration
+        settings (e.g., API keys, database URLs, feature flags) into a 
+        strongly typed model without manually parsing
         or validating environment variables.
 
         Returns:
@@ -84,7 +88,8 @@ class SecretConfig(EnvModel):
     Configuration model for application-level encryption secrets.
 
     Attributes:
-        config_secret_key (str): Secret key used for encrypting sensitive configuration data.
+        config_secret_key (str): Secret key used for encrypting sensitive 
+        configuration data.
     """
     config_secret_key: str = Field(alias="APP_CONFIG_ENCRYPTION_KEY")
 

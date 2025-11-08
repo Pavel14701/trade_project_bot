@@ -1,8 +1,8 @@
-# ai/src/model/tab_transformer.py
+from typing import Optional
 
 import torch
 import torch.nn as nn
-from typing import Optional
+
 
 class TokenDropout(nn.Module):
     """
@@ -15,7 +15,7 @@ class TokenDropout(nn.Module):
         p (float): Dropout probability for each token.
     """
     def __init__(self, p: float = 0.1) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.p = p
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -34,11 +34,13 @@ class TokenDropout(nn.Module):
         x[mask] = 0.0
         return x
 
+
 class TabTransformer(nn.Module):
     """
     Transformer-based encoder for tabular data.
 
-    Combines categorical embeddings, projected numerical features, and a learnable CLS token.
+    Combines categorical embeddings, projected numerical features, 
+      and a learnable CLS token.
     Supports attention masking, token dropout, and a configurable output head.
 
     Parameters:
@@ -66,7 +68,7 @@ class TabTransformer(nn.Module):
         padding_idx: int = 0,
         token_dropout: float = 0.1
     ) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.d_model = d_model
         self.padding_idx = padding_idx
         # Embedding for categorical features
@@ -112,11 +114,21 @@ class TabTransformer(nn.Module):
             x_cat (torch.Tensor): Categorical input tensor of shape [B, C].
 
         Returns:
-            torch.Tensor: Boolean mask of shape [B, 1 + 1 + C], where True means "ignore".
+            torch.Tensor: Boolean mask of shape [B, 1 + 1 + C], 
+              where True means "ignore".
         """
         pad_mask = (x_cat == self.padding_idx)  # [B, C]
-        cls_mask = torch.zeros(x_cat.size(0), 1, dtype=torch.bool, device=x_cat.device)  # keep CLS
-        num_mask = torch.zeros(x_cat.size(0), 1, dtype=torch.bool, device=x_cat.device)  # keep numeric
+        cls_mask = torch.zeros(
+            x_cat.size(0), 1, 
+            dtype=torch.bool, 
+            device=x_cat.device
+        )  # keep CLS
+        num_mask = torch.zeros(
+            x_cat.size(0), 
+            1, 
+            dtype=torch.bool, 
+            device=x_cat.device
+        )  # keep numeric
         full_mask = torch.cat([cls_mask, num_mask, pad_mask], dim=1)  # [B, 1+1+C]
         return full_mask  # PyTorch expects True for ignore
 
@@ -156,7 +168,8 @@ class TabTransformer(nn.Module):
         # Validate attention mask shape and type
         if attention_mask is not None:
             if attention_mask.shape != tokens.shape[:2]:
-                raise ValueError(f"Attention mask shape {attention_mask.shape} does not match token shape {tokens.shape[:2]}")
+                raise ValueError(f"Attention mask shape {attention_mask.shape} \
+                    does not match token shape {tokens.shape[:2]}")
             if attention_mask.dtype != torch.bool:
                 attention_mask = attention_mask.bool()
         # Encode

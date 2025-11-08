@@ -1,15 +1,21 @@
 """
-Defines RabbitMQ-based message handlers for OKX market and trading operations using FastStream and Dishka.
+Defines RabbitMQ-based message handlers for OKX market and trading operations using 
+  FastStream and Dishka.
 
 This module contains two main route classes:
 
-- `OkxMarketRoutes`: Handles market data queries such as candlesticks, instruments, and prices.
-- `OkxTradeRoutes`: Handles trading operations including placing orders, retrieving balances, and managing positions.
+- `OkxMarketRoutes`: Handles market data queries such as candlesticks, 
+  instruments, and prices.
+- `OkxTradeRoutes`: Handles trading operations including placing orders, retrieving 
+  balances, and managing positions.
 
-Each method is decorated with FastStream's `@subscriber` and `@publisher` to bind queues for input and output.
-Dependencies are injected via Dishka's `@inject` and `FromDishka` to decouple business logic from transport.
+Each method is decorated with FastStream's `@subscriber` and `@publisher` to bind 
+  queues for input and output.
+Dependencies are injected via Dishka's `@inject` and `FromDishka` to decouple business 
+  logic from transport.
 
-DTOs are used to validate and structure incoming payloads, and interactors encapsulate domain-specific logic.
+DTOs are used to validate and structure incoming payloads, and interactors encapsulate 
+  domain-specific logic.
 
 Usage:
     - Messages are consumed from RabbitMQ queues.
@@ -17,7 +23,8 @@ Usage:
     - Interactors are invoked with validated data.
     - Responses are published to output queues.
 
-This design promotes separation of concerns, testability, and scalability in a microservice architecture.
+This design promotes separation of concerns, testability, and scalability in a 
+  microservice architecture.
 """
 
 from typing import Any
@@ -25,45 +32,44 @@ from typing import Any
 from dishka.integrations.faststream import FromDishka, inject
 from faststream.rabbit import RabbitRouter
 
+from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.dto.market import (
     GetInstrumentsDTO,
     GetMarketPriceDTO,
-    GetPriceDataDTO
+    GetPriceDataDTO,
 )
-from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.dto.trade import (
-    CancelOrderDTO, 
-    ClosePositionsDTO, 
-    GetBalanceDTO, 
-    GetLeverageDTO, 
-    GetOrderDetailsDTO, 
-    GetOrderListDTO, 
-    PlaceOrderDTO, 
-    SetLeverageDTO
+    CancelOrderDTO,
+    ClosePositionsDTO,
+    GetBalanceDTO,
+    GetLeverageDTO,
+    GetOrderDetailsDTO,
+    GetOrderListDTO,
+    PlaceOrderDTO,
+    SetLeverageDTO,
 )
 from api_okx_v1.src.application.interactors.market import (
-    GetCandlesticksInteractor,
     GetCandlesticksHistoryInteractor,
+    GetCandlesticksInteractor,
     GetInstrumentsInteractor,
     GetMarketPriceInteractor,
-    GetTickerInteractor
+    GetTickerInteractor,
 )
 from api_okx_v1.src.application.interactors.trade import (
-    GetAccountBalanceInteractor,
-    GetOrderListInteractor,
-    GetPositionsInteractor,
-    SetPositionModeInteractor,
-    SetLeverageInteractor,
-    GetLeverageInteractor,  
-    PlaceOrderInteractor,
     AmendOrderInteractor,
     CancelOrderInteractor,
     ClosePostionsInteractor,
-    GetOrderDetailsInteractor
+    GetAccountBalanceInteractor,
+    GetLeverageInteractor,
+    GetOrderDetailsInteractor,
+    GetOrderListInteractor,
+    GetPositionsInteractor,
+    PlaceOrderInteractor,
+    SetLeverageInteractor,
+    SetPositionModeInteractor,
 )
 from api_okx_v1.src.application.interfaces import AmendOrderDTO
 from api_okx_v1.src.controllers.base_router import RouterUtils
-
 
 controller = RabbitRouter(prefix="okx_api")
 
@@ -72,8 +78,10 @@ class OkxMarketRoutes:
     """
     Defines RabbitMQ subscribers and publishers for OKX market-related operations.
 
-    Each method in this class handles a specific market data request, such as candlestick retrieval,
-    instrument listing, or price queries. Incoming messages are parsed into DTOs and passed to
+    Each method in this class handles a specific market data request, such as 
+      candlestick retrieval,
+    instrument listing, or price queries. Incoming messages are parsed into DTOs 
+      and passed to
     corresponding interactors, which encapsulate business logic.
 
     Dependencies are injected using Dishka's `FromDishka` mechanism.
@@ -90,12 +98,16 @@ class OkxMarketRoutes:
         """
         Handles incoming requests for current candlestick data.
 
-        Subscribes to the "get_candlesticks" queue and publishes results to "send_candlesticks".
-        Parses incoming parameters into `GetPriceDataDTO` and delegates to `GetCandlesticksInteractor`.
+        Subscribes to the "get_candlesticks" queue and publishes 
+          results to "send_candlesticks".
+        Parses incoming parameters into `GetPriceDataDTO` and delegates 
+          to `GetCandlesticksInteractor`.
 
         Args:
-            params (dict[str, Any]): Raw message payload containing candlestick query parameters.
-            interactor (FromDishka[GetCandlesticksInteractor]): Injected business logic handler.
+            params (dict[str, Any]): Raw message payload containing 
+              candlestick query parameters.
+            interactor (FromDishka[GetCandlesticksInteractor]): Injected 
+              business logic handler.
 
         Returns:
             dict[str, Any]: Candlestick data response.
@@ -114,8 +126,10 @@ class OkxMarketRoutes:
         """
         Retrieves historical candlestick data.
 
-        Subscribes to "get_candlesticks_history" and publishes to "send_candlesticks_history".
-        Converts parameters into `GetPriceDataDTO` and invokes `GetCandlesticksHistoryInteractor`.
+        Subscribes to "get_candlesticks_history" and publishes 
+          to "send_candlesticks_history".
+        Converts parameters into `GetPriceDataDTO` and 
+          invokes `GetCandlesticksHistoryInteractor`.
 
         Args:
             params (dict[str, Any]): Historical query parameters.
@@ -139,7 +153,8 @@ class OkxMarketRoutes:
         Fetches available trading instruments from OKX.
 
         Subscribes to "get_instruments" and publishes to "send_instruments".
-        Converts parameters into `GetInstrumentsDTO` and invokes `GetInstrumentsInteractor`.
+        Converts parameters into `GetInstrumentsDTO` 
+          and invokes `GetInstrumentsInteractor`.
 
         Args:
             params (dict[str, Any]): Instrument query parameters.
@@ -163,7 +178,8 @@ class OkxMarketRoutes:
         Retrieves current market price for a given instrument.
 
         Subscribes to "get_market_price" and publishes to "send_market_price".
-        Converts parameters into `GetMarketPriceDTO` and invokes `GetMarketPriceInteractor`.
+        Converts parameters into `GetMarketPriceDTO` 
+          and invokes `GetMarketPriceInteractor`.
 
         Args:
             params (dict[str, Any]): Market price query parameters.
@@ -199,13 +215,14 @@ class OkxMarketRoutes:
         return await interactor(instId)
 
 
-
 class OkxTradeRoutes(RouterUtils):
     """
     Defines RabbitMQ subscribers and publishers for OKX trading operations.
 
-    Each method handles a specific trading action such as placing orders, retrieving balances,
-    or modifying positions. Incoming messages are parsed into DTOs and passed to interactors
+    Each method handles a specific trading action such as 
+      placing orders, retrieving balances,
+    or modifying positions. Incoming messages are parsed into 
+      DTOs and passed to interactors
     that encapsulate the trading logic.
 
     Uses Dishka for dependency injection and RouterUtils for DTO construction.
@@ -223,7 +240,8 @@ class OkxTradeRoutes(RouterUtils):
         Retrieves account balance for a specific currency.
 
         Subscribes to "get_account_balance" and publishes to "send_account_balance".
-        Constructs `SecretDTO` from parameters and invokes `GetAccountBalanceInteractor`.
+        Constructs `SecretDTO` from parameters 
+          and invokes `GetAccountBalanceInteractor`.
 
         Args:
             params (dict[str, Any]): Contains 'ccy' and secret credentials.
@@ -254,7 +272,8 @@ class OkxTradeRoutes(RouterUtils):
         and passes them to `GetOrderListInteractor`.
 
         Args:
-            params (dict[str, Any]): Contains filtering options and authentication secrets.
+            params (dict[str, Any]): Contains filtering options 
+              and authentication secrets.
             interactor (FromDishka[GetOrderListInteractor]): Business logic handler.
 
         Returns:
@@ -281,7 +300,8 @@ class OkxTradeRoutes(RouterUtils):
         Fetches current open positions for the authenticated account.
 
         Subscribes to "get_positions" and publishes to "send_positions".
-        Constructs `GetBalanceDTO` and `SecretDTO` from parameters and invokes `GetPositionsInteractor`.
+        Constructs `GetBalanceDTO` and `SecretDTO` from parameters 
+          and invokes `GetPositionsInteractor`.
 
         Args:
             params (dict[str, Any]): Includes currency and secret credentials.
@@ -311,7 +331,8 @@ class OkxTradeRoutes(RouterUtils):
         Retrieves or sets the current position mode (e.g., net vs isolated).
 
         Subscribes to "get_position_mode" and publishes to "send_position_mode".
-        Constructs `SecretDTO` and passes `posMode` directly to `SetPositionModeInteractor`.
+        Constructs `SecretDTO` and passes `posMode` 
+          directly to `SetPositionModeInteractor`.
 
         Args:
             params (dict[str, Any]): Includes 'posMode' and secret credentials.
@@ -491,7 +512,8 @@ class OkxTradeRoutes(RouterUtils):
         Closes open positions for the authenticated account.
 
         Subscribes to "get_close_positions" and publishes to "send_close_positions".
-        Constructs `ClosePositionsDTO` and `SecretDTO` and invokes `ClosePostionsInteractor`.
+        Constructs `ClosePositionsDTO` and `SecretDTO` 
+          and invokes `ClosePostionsInteractor`.
 
         Args:
             params (dict[str, Any]): Includes position details and authentication.
@@ -521,7 +543,8 @@ class OkxTradeRoutes(RouterUtils):
         Retrieves detailed information about a specific order.
 
         Subscribes to "get_order_details" and publishes to "send_order_details".
-        Constructs `GetOrderDetailsDTO` and `SecretDTO` and invokes `GetOrderDetailsInteractor`.
+        Constructs `GetOrderDetailsDTO` and `SecretDTO` 
+          and invokes `GetOrderDetailsInteractor`.
 
         Args:
             params (dict[str, Any]): Includes order ID and authentication.

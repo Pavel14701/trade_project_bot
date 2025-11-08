@@ -1,6 +1,6 @@
 import talib as ta
-from talib._ta_lib import MA_Type
 from pandas import DataFrame
+from talib._ta_lib import MA_Type
 
 from strategies.src.domain.entities import StochRsiConfigDM
 from strategies.src.infrastructure._types import PriceDataFrame

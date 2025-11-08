@@ -1,9 +1,10 @@
-# src/data_providers/clickhouse_provider.py
+from typing import Optional
 
-from .base import BaseProvider
 import pandas as pd
 from sqlalchemy import create_engine, text
-from typing import Optional
+
+from .base import BaseProvider
+
 
 class ClickHouseProvider(BaseProvider):
     """
@@ -83,5 +84,5 @@ class ClickHouseProvider(BaseProvider):
             columns = list(result.keys())
         df = pd.DataFrame(rows, columns=columns) 
         df["asset_id"] = symbol
-        df["timestamp"] = pd.to_datetime(df["timestamp"]) # type: ignore
+        df["timestamp"] = pd.to_datetime(df["timestamp"])  # type: ignore
         return df

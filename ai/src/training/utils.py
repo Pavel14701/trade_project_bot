@@ -1,11 +1,10 @@
-# ai/src/training/utils.py
-
-
-import torch
 import random
-import numpy as np
-from torch import Tensor
 from typing import Dict
+
+import numpy as np
+import torch
+from torch import Tensor
+
 
 def set_seed(seed: int) -> None:
     """
@@ -21,6 +20,7 @@ def set_seed(seed: int) -> None:
     random.seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
+
 
 def compute_metrics(
     preds: Tensor, 
@@ -44,6 +44,7 @@ def compute_metrics(
     total = targets.numel()
     accuracy = correct / total
     return {"accuracy": accuracy}
+
 
 def move_to_device(
     batch: dict[str, Tensor], 

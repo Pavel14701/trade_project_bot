@@ -1,7 +1,10 @@
-from .base import BaseProvider
+from typing import Any, Dict
+
 import pandas as pd
 import requests
-from typing import Dict, Any
+
+from .base import BaseProvider
+
 
 class QuestDBProvider(BaseProvider):
     """
@@ -81,6 +84,6 @@ class QuestDBProvider(BaseProvider):
             pd.DataFrame: Empty DataFrame with columns:
                 - timestamp, open, high, low, close, volume, asset_id
         """
-        return pd.DataFrame(columns=[ # type: ignore
+        return pd.DataFrame(columns=[  # type: ignore
             "timestamp", "open", "high", "low", "close", "volume", "asset_id"
         ]).assign(asset_id=symbol)

@@ -1,8 +1,10 @@
-from typing import TypedDict, Callable, Optional, Any
-import torch
-from torch.utils.data import Dataset, DataLoader
+from typing import Any, Callable, Optional, TypedDict
+
 import pandas as pd
+import torch
 from model.column_tokenizer import ColumnTokenizer
+from torch.utils.data import DataLoader, Dataset
+
 
 class Sample(TypedDict):
     """
@@ -17,18 +19,22 @@ class Sample(TypedDict):
     asset_id: str
     label: int
 
+
 class MultiAssetDataset(Dataset[Sample]):
     """
     Dataset wrapper for multi-asset tabular data.
 
-    Applies optional row-level transformations and tokenizes each row using a ColumnTokenizer.
+    Applies optional row-level transformations and tokenizes 
+    each row using a ColumnTokenizer.
     Returns structured samples compatible with downstream training pipelines.
 
     Parameters:
-        df (pd.DataFrame): Input dataframe containing asset_id, label, and feature columns.
+        df (pd.DataFrame): Input dataframe containing asset_id, 
+          label, and feature columns.
         tokenizer (ColumnTokenizer): Tokenizer used to convert rows into token tensors.
         device (torch.device): Target device for tensor allocation.
-        transform (Optional[Callable]): Optional row-wise transformation applied before tokenization.
+        transform (Optional[Callable]): Optional row-wise transformation 
+          applied before tokenization.
     """
     def __init__(
         self,
@@ -45,7 +51,6 @@ class MultiAssetDataset(Dataset[Sample]):
     def __len__(self) -> int:
         """
         Returns the number of samples in the dataset.
-
         Returns:
             int: Total number of rows in the input dataframe.
         """
@@ -54,20 +59,19 @@ class MultiAssetDataset(Dataset[Sample]):
     def __getitem__(self, idx: int) -> Sample:
         """
         Retrieves and tokenizes a single row from the dataset.
-
-        Applies optional transformation, tokenizes the row, and returns a structured sample.
-
+        Applies optional transformation, tokenizes the row, and 
+        returns a structured sample.
         Parameters:
             idx (int): Row index.
-
         Returns:
             Sample: Dictionary containing tokens, asset_id, and label.
         """
-        row: pd.Series[Any] = self.df.iloc[idx] # type: ignore[reportUnknownVariableType]
+        row = self.df.iloc[idx]
         if self.transform:
             row = self.transform(row)
-        tokens = self.tokenizer.tokenize(row, device=self.device) # type: ignore[reportUnknownVariableType]
-        asset_id = row["asset_id"]
+        row_dict: dict[str, str | float | int] = row.to_dict()
+        tokens = self.tokenizer.tokenize(row_dict, device=self.device)
+        asset_id = str(row["asset_id"])
         label = int(row["label"])
         return {
             "tokens": tokens,
@@ -75,15 +79,14 @@ class MultiAssetDataset(Dataset[Sample]):
             "label": label
         }
 
+
 def collate_fn(batch: list[Sample]) -> dict[str, torch.Tensor | list[str]]:
     """
     Collates a batch of samples into tensors for model input.
-
-    Stacks token tensors, converts labels to a tensor, and preserves asset IDs as a list.
-
+    Stacks token tensors, converts labels to a tensor, 
+    and preserves asset IDs as a list.
     Parameters:
         batch (list[Sample]): List of individual samples.
-
     Returns:
         dict[str, torch.Tensor | list[str]]: Batched tokens, labels, and asset_ids.
     """
@@ -95,6 +98,7 @@ def collate_fn(batch: list[Sample]) -> dict[str, torch.Tensor | list[str]]:
         "labels": labels,
         "asset_ids": asset_ids
     }
+
 
 def build_dataloader(
     df: pd.DataFrame,
@@ -108,7 +112,8 @@ def build_dataloader(
     """
     Constructs a DataLoader for multi-asset tabular data.
 
-    Wraps the dataframe in a MultiAssetDataset, applies tokenization and optional transformation,
+    Wraps the dataframe in a MultiAssetDataset, applies tokenization and 
+    optional transformation,
     and returns a DataLoader with appropriate batching and collation.
 
     Parameters:

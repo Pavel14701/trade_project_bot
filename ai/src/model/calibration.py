@@ -1,9 +1,9 @@
-# src/ai/model/calibration.py
+from typing import Optional
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from typing import Optional
+
 
 class TemperatureScaler(nn.Module):
     """
@@ -16,7 +16,7 @@ class TemperatureScaler(nn.Module):
         log_temp (nn.Parameter): Logarithm of the temperature value.
     """
     def __init__(self) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.log_temp = nn.Parameter(torch.zeros(()))
 
     def forward(self, logits: torch.Tensor) -> torch.Tensor:
@@ -31,6 +31,7 @@ class TemperatureScaler(nn.Module):
         """
         temp = torch.exp(self.log_temp) + 1e-6
         return logits / temp
+
 
 def fit_temperature_scaler(
     logits: torch.Tensor,
@@ -63,13 +64,16 @@ def fit_temperature_scaler(
     scaler = TemperatureScaler().to(device)
     scaler.eval()
     optimizer = optim.LBFGS([scaler.log_temp], lr=0.05, max_iter=max_iter)
-    loss_fn = nn.CrossEntropyLoss(weight=class_weights.to(device) if class_weights is not None else None)
+    loss_fn = nn.CrossEntropyLoss(
+        weight=class_weights.to(device) if class_weights is not None else None
+    )
+
     def closure() -> torch.Tensor:
         optimizer.zero_grad()
         loss = loss_fn(scaler(logits), targets)
         loss.backward()
         return loss
-    optimizer.step(closure) # type: ignore
+    optimizer.step(closure)  # type: ignore
     if verbose:
         temp = torch.exp(scaler.log_temp).item()
         print(f"[TempScaler] Final temperature: {temp:.4f}")
@@ -87,7 +91,7 @@ class PlattCalibrator(nn.Module):
         b (nn.Parameter): Bias parameter.
     """
     def __init__(self) -> None:
-        super().__init__() # type: ignore
+        super().__init__()  # type: ignore
         self.a = nn.Parameter(torch.tensor(1.0))
         self.b = nn.Parameter(torch.tensor(0.0))
 
@@ -160,7 +164,7 @@ def fit_platt_scaler(
         p_cal = model(p)
         loss = loss_fn(p_cal, y.float())
         loss.backward()
-        optimizer.step() # type: ignore
+        optimizer.step()  # type: ignore
         if loss.item() < best_loss:
             best_loss = loss.item()
             wait = 0
@@ -169,7 +173,8 @@ def fit_platt_scaler(
             if wait >= early_stop:
                 break
     if verbose:
-        print(f"[Platt] Final a: {model.a.item():.4f}, b: {model.b.item():.4f}, loss: {best_loss:.4f}")
+        print(f"[Platt] Final a: {model.a.item():.4f}, \
+            b: {model.b.item():.4f}, loss: {best_loss:.4f}")
     return model
 
 
@@ -191,4 +196,7 @@ def fit_batch_temperature_scalers(
     Returns:
         list[TemperatureScaler]: List of fitted scalers.
     """
-    return [fit_temperature_scaler(l, t, device=device) for l, t in zip(logits_list, targets_list)]
+    return [
+        fit_temperature_scaler(logits, targets, device=device)
+        for logits, targets in zip(logits_list, targets_list)
+    ]

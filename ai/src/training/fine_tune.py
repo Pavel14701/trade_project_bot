@@ -1,8 +1,10 @@
-# ai/src/training/fine_tune.py
+from typing import Sequence, TypeVar
 
 import torch
 from torch.nn import Module
-from typing import Sequence
+
+ModelType = TypeVar("ModelType", bound=Module)
+
 
 def freeze_layers(
     model: Module, 
@@ -22,41 +24,41 @@ def freeze_layers(
         if any(name.startswith(layer) for layer in layer_names):
             param.requires_grad = False
 
+
 def load_checkpoint(
-    model: Module, 
+    model: ModelType, 
     path: str
-) -> Module:
+) -> ModelType:
     """
     Loads model weights from a checkpoint file.
 
-    Loads a state dictionary from disk and applies it to the given model.
-
     Parameters:
-        model (Module): PyTorch model to update.
+        model (ModelType): PyTorch model to update.
         path (str): Path to the checkpoint file (.pt or .pth).
 
     Returns:
-        Module: Model with loaded weights.
+        ModelType: Same model instance with loaded weights.
     """
     state = torch.load(path, map_location="cpu")
     model.load_state_dict(state)
     return model
 
+
 def replace_head(
-    model: Module, 
+    model: ModelType, 
     new_head: Module
-) -> Module:
+) -> ModelType:
     """
     Replaces the output head of a model.
 
     Assumes the model has a `.head` attribute and replaces it with the provided module.
 
     Parameters:
-        model (Module): PyTorch model with a `.head` attribute.
+        model (ModelType): PyTorch model with a `.head` attribute.
         new_head (Module): New head module to attach.
 
     Returns:
-        Module: Updated model with replaced head.
+        ModelType: The same model instance with updated head.
     """
-    model.head = new_head
+    model.head = new_head  # type: ignore[attr-defined]
     return model

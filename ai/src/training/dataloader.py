@@ -1,11 +1,9 @@
-# ai/src/training/dataloader.py
-
-import torch
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
-from typing import Callable, Optional
+import torch
+from inference.utils import to_tensor
 from preprocess.schema_infer import SchemaInfer
-from inference.utils import to_tensor, pad_batch
+from torch.utils.data import DataLoader, Dataset
+
 
 class TabularDataset(Dataset):
     """
@@ -44,6 +42,7 @@ class TabularDataset(Dataset):
             pd.DataFrame: Single-row dataframe.
         """
         return self.df.iloc[[idx]]  # preserve DataFrame shape
+
 
 def collate_fn(
     batch: list[pd.DataFrame],

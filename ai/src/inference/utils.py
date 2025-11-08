@@ -1,10 +1,10 @@
-# src/ai/inference/utils.py
+from typing import Tuple, cast
 
-import torch
-import pandas as pd
 import numpy as np
 import numpy.typing as npt
-from typing import Tuple, cast
+import pandas as pd
+import torch
+
 
 def to_tensor(
     num: pd.DataFrame,
@@ -23,18 +23,17 @@ def to_tensor(
         device (torch.device): Target device for tensor allocation.
 
     Returns:
-        Tuple[torch.Tensor, torch.Tensor]: (x_num, x_cat) tensors on the specified device.
+        Tuple[torch.Tensor, torch.Tensor]: (x_num, x_cat) tensors on 
+          the specified device.
     """
     if num.empty or cat.empty:
         raise ValueError("Empty input to to_tensor")
-
-    # Явная типизация массивов
-    num_array = cast(npt.NDArray[np.float32], num.values) # type: ignore[reportUnknownMemberType]
-    cat_array = cast(npt.NDArray[np.int64], cat.values) # type: ignore[reportUnknownMemberType]
-    num_tensor = torch.from_numpy(num_array).to(device=device) # type: ignore[reportUnknownMemberType]
-    cat_tensor = torch.from_numpy(cat_array).to(device=device) # type: ignore[reportUnknownMemberType]
-
+    num_array = cast(npt.NDArray[np.float32], num.values)  # type: ignore[reportUnknownMemberType]
+    cat_array = cast(npt.NDArray[np.int64], cat.values)  # type: ignore[reportUnknownMemberType]
+    num_tensor = torch.from_numpy(num_array).to(device=device)  # type: ignore[reportUnknownMemberType]
+    cat_tensor = torch.from_numpy(cat_array).to(device=device)  # type: ignore[reportUnknownMemberType]
     return num_tensor, cat_tensor
+
 
 def calibrated_sigmoid(
     x: torch.Tensor, 
@@ -53,6 +52,7 @@ def calibrated_sigmoid(
         torch.Tensor: Sigmoid-transformed probabilities.
     """
     return 1 / (1 + torch.exp(-alpha * x))
+
 
 def pad_batch(
     tensors: list[torch.Tensor], 

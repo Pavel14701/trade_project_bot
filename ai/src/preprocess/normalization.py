@@ -1,8 +1,7 @@
-# ai/src/preprocess/normalization.py
-
-import pandas as pd
-import numpy as np
 from typing import List, Optional
+
+import numpy as np
+import pandas as pd
 
 
 def scale_group(
@@ -39,9 +38,10 @@ def scale_group(
         iqr: pd.Series[float] = (q3 - q1).replace(0.0, np.nan)  # type: ignore[reportUnknownMemberType]
         z: pd.Series[float] = (col_series - med) / (iqr + eps)  # type: ignore[reportUnknownMemberType]
         if clip_iqr is not None:
-            z = z.clip(lower=-clip_iqr, upper=clip_iqr) # type: ignore[reportUnknownMemberType]
+            z = z.clip(lower=-clip_iqr, upper=clip_iqr)  # type: ignore[reportUnknownMemberType]
         g[f"{col}{suffix}"] = z
     return g
+
 
 def rolling_robust_scale_by_asset(
     df: pd.DataFrame,
@@ -64,21 +64,21 @@ def rolling_robust_scale_by_asset(
     """
     out: pd.DataFrame = df.copy()
     # Determine index column name safely
-    index_name: Optional[str] = out.index.name # type: ignore
-    if index_name is None or not out.index.is_unique: # type: ignore
+    index_name: Optional[str] = out.index.name  # type: ignore
+    if index_name is None or not out.index.is_unique:  # type: ignore
         # Preserve index as column before reset
-        out["_original_index"] = out.index # type: ignore
+        out["_original_index"] = out.index  # type: ignore
         out = out.reset_index(drop=True) 
         index_name = "_original_index"
     # Sort by asset and index
     sort_keys: List[str] = [asset_col, index_name]
-    out = out.sort_values(sort_keys) # type: ignore
+    out = out.sort_values(sort_keys)  # type: ignore
     # Apply scaling per asset
-    scaled: pd.DataFrame = out.groupby(asset_col, group_keys=False).apply( # type: ignore
+    scaled: pd.DataFrame = out.groupby(asset_col, group_keys=False).apply(  # type: ignore
         lambda g: scale_group(g, cols, window, eps, clip_iqr, suffix)
     )
     # Restore original index if it was preserved
     if "_original_index" in scaled.columns:
-        scaled = scaled.set_index("_original_index") # type: ignore
-        scaled.index.name = df.index.name # type: ignore
+        scaled = scaled.set_index("_original_index")  # type: ignore
+        scaled.index.name = df.index.name  # type: ignore
     return scaled

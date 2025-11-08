@@ -6,8 +6,10 @@ This module provides structured dataclasses that group endpoint paths for:
 - Trading operations
 - Grid trading operations
 
-Each class inherits from `OkxBaseConsts`, which defines the base URL for all OKX API requests.
-These constants are used throughout the application to construct full request URLs in service layers.
+Each class inherits from `OkxBaseConsts`, which defines the base URL 
+  for all OKX API requests.
+These constants are used throughout the application to construct full 
+  request URLs in service layers.
 """
 
 
@@ -87,35 +89,76 @@ class OkxGridConsts(OkxBaseConsts):
         PLACE_GRID_ALGO_ORDER (str): Endpoint for placing a grid algorithm order.
         AMEND_GRID_ALGO_ORDER (str): Endpoint for modifying a grid algorithm order.
         STOP_GRID_ALGO_ORDER (str): Endpoint for stopping a grid algorithm order.
-        CLOSE_POSITION_CONTRACT_GRID (str): Endpoint for closing grid contract positions.
-        CANCEL_CLOSE_POSITION_CONTRACT_GRID (str): Endpoint for canceling grid contract closure.
+        CLOSE_POSITION_CONTRACT_GRID (str): Endpoint for closing grid 
+          contract positions.
+        CANCEL_CLOSE_POSITION_CONTRACT_GRID (str): Endpoint for canceling grid 
+          contract closure.
         INSTANT_TRIGGER_GRID_ORDER (str): Endpoint for triggering grid orders instantly.
         GET_GRID_ORDER_LIST (str): Endpoint for listing pending grid orders.
         GET_GRID_ORDER_DETAILS (str): Endpoint for retrieving grid order details.
         GET_GRID_SUB_ORDERS (str): Endpoint for fetching sub-orders of a grid strategy.
         SPOT_GRID_WITHDRAW_INCOME (str): Endpoint for withdrawing grid trading income.
-        COMPUTE_MARGIN_BALANCE (str): Endpoint for computing margin balance for grid strategies.
+        COMPUTE_MARGIN_BALANCE (str): Endpoint for computing margin balance 
+          for grid strategies.
         ADJUST_MARGIN_BALANCE (str): Endpoint for adjusting margin balance.
         ADD_INVESTMENT (str): Endpoint for adding investment to a grid strategy.
-        GET_AI_PARAMETER_PUBLIC (str): Endpoint for retrieving AI-generated grid parameters.
-        COMPUTE_MIN_INVESTMENT_PUBLIC (str): Endpoint for computing minimum investment requirements.
-        GET_RSI_BACK_TESTING_PUBLIC (str): Endpoint for retrieving RSI backtesting results.
-        GET_MAX_GRID_QUANTITY_PUBLIC (str): Endpoint for computing maximum grid quantity.
+        GET_AI_PARAMETER_PUBLIC (str): Endpoint for retrieving 
+          AI-generated grid parameters.
+        COMPUTE_MIN_INVESTMENT_PUBLIC (str): Endpoint for computing minimum 
+          investment requirements.
+        GET_RSI_BACK_TESTING_PUBLIC (str): Endpoint for retrieving 
+          RSI backtesting results.
+        GET_MAX_GRID_QUANTITY_PUBLIC (str): Endpoint for computing 
+          maximum grid quantity.
     """
-    PLACE_GRID_ALGO_ORDER: ClassVar[str] = "/api/v5/tradingBot/grid/order-algo"
-    AMEND_GRID_ALGO_ORDER: ClassVar[str] = "/api/v5/tradingBot/grid/amend-order-algo"
-    STOP_GRID_ALGO_ORDER: ClassVar[str] = "/api/v5/tradingBot/grid/stop-order-algo"
-    CLOSE_POSITION_CONTRACT_GRID: ClassVar[str] = "/api/v5/tradingBot/grid/close-position"
-    CANCEL_CLOSE_POSITION_CONTRACT_GRID: ClassVar[str] = "/api/v5/tradingBot/grid/cancel-close-order"
-    INSTANT_TRIGGER_GRID_ORDER: ClassVar[str] = "/api/v5/tradingBot/grid/order-instant-trigger"
-    GET_GRID_ORDER_LIST: ClassVar[str] = "/api/v5/tradingBot/grid/orders-algo-pending"
-    GET_GRID_ORDER_DETAILS: ClassVar[str] = "/api/v5/tradingBot/grid/orders-algo-details"
-    GET_GRID_SUB_ORDERS: ClassVar[str] = "/api/v5/tradingBot/grid/sub-orders"
-    SPOT_GRID_WITHDRAW_INCOME: ClassVar[str] = "/api/v5/tradingBot/grid/withdraw-income"
-    COMPUTE_MARGIN_BALANCE: ClassVar[str] = "/api/v5/tradingBot/grid/compute-margin-balance"
-    ADJUST_MARGIN_BALANCE: ClassVar[str] = "/api/v5/tradingBot/grid/margin-balance"
-    ADD_INVESTMENT: ClassVar[str] = "/api/v5/tradingBot/grid/adjust-investment"
-    GET_AI_PARAMETER_PUBLIC: ClassVar[str] = "/api/v5/tradingBot/grid/ai-param"
-    COMPUTE_MIN_INVESTMENT_PUBLIC: ClassVar[str] = "/api/v5/tradingBot/grid/min-investment"
-    GET_RSI_BACK_TESTING_PUBLIC: ClassVar[str] = "/api/v5/tradingBot/public/rsi-back-testing"
-    GET_MAX_GRID_QUANTITY_PUBLIC: ClassVar[str] = "/api/v5/tradingBot/grid/grid-quantity"
+    PLACE_GRID_ALGO_ORDER: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/order-algo"
+    )
+    AMEND_GRID_ALGO_ORDER: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/amend-order-algo"
+    )
+    STOP_GRID_ALGO_ORDER: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/stop-order-algo"
+    )
+    CLOSE_POSITION_CONTRACT_GRID: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/close-position"
+    )
+    CANCEL_CLOSE_POSITION_CONTRACT_GRID: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/cancel-close-order"
+    )
+    INSTANT_TRIGGER_GRID_ORDER: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/order-instant-trigger"
+    )
+    GET_GRID_ORDER_LIST: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/orders-algo-pending"
+    )
+    GET_GRID_ORDER_DETAILS: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/orders-algo-details"
+    )
+    GET_GRID_SUB_ORDERS: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/sub-orders"
+    )
+    SPOT_GRID_WITHDRAW_INCOME: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/withdraw-income"
+    )
+    COMPUTE_MARGIN_BALANCE: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/compute-margin-balance"
+    )
+    ADJUST_MARGIN_BALANCE: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/margin-balance"
+    )
+    ADD_INVESTMENT: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/adjust-investment"
+    )
+    GET_AI_PARAMETER_PUBLIC: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/ai-param"
+    )
+    COMPUTE_MIN_INVESTMENT_PUBLIC: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/min-investment"
+    )
+    GET_RSI_BACK_TESTING_PUBLIC: ClassVar[str] = (
+        "/api/v5/tradingBot/public/rsi-back-testing"
+    )
+    GET_MAX_GRID_QUANTITY_PUBLIC: ClassVar[str] = (
+        "/api/v5/tradingBot/grid/grid-quantity"
+    )

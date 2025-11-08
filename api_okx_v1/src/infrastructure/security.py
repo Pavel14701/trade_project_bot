@@ -1,6 +1,6 @@
-import hmac
-import hashlib
 import base64
+import hashlib
+import hmac
 from datetime import datetime, timezone
 
 from cryptography.fernet import Fernet
@@ -8,9 +8,8 @@ from cryptography.fernet import Fernet
 from api_okx_v1.src.application.dto.base import SecretDTO
 from api_okx_v1.src.application.interfaces import ISecurity, ISignature
 from api_okx_v1.src.config import SecretConfig
-from api_okx_v1.src.domain.entities import (
-    SignatureDM
-)
+from api_okx_v1.src.domain.entities import SignatureDM
+
 
 def get_cipher(config: SecretConfig) -> Fernet:
     return Fernet(config.config_secret_key)
@@ -18,9 +17,11 @@ def get_cipher(config: SecretConfig) -> Fernet:
 
 class SecurityGateway(ISecurity):
     """
-    A security utility class for handling encryption, decryption, and API request signing.
+    A security utility class for handling encryption, decryption, and 
+        API request signing.
 
-    This class provides methods to securely encrypt and decrypt sensitive API credentials 
+    This class provides methods to securely encrypt and decrypt sensitive 
+        API credentials 
     using symmetric encryption (Fernet), as well as generate HMAC-based signatures for 
     authenticated requests to the OKX API.
 
@@ -36,11 +37,13 @@ class SecurityGateway(ISecurity):
         Encrypts sensitive fields in a SecretDTO model.
 
         This method takes an object containing API credentials and encrypts each field 
-        (API key, secret key, passphrase) using the configured Fernet cipher. It returns 
+        (API key, secret key, passphrase) using the configured Fernet cipher. 
+            It returns 
         a new instance of SecretDTO with encrypted values.
 
         Args:
-            model (SecretDTO): The original configuration object with plaintext credentials.
+            model (SecretDTO): The original configuration object with plaintext 
+                credentials.
 
         Returns:
             SecretDTO: A new configuration object with encrypted credentials.
@@ -57,7 +60,8 @@ class SecurityGateway(ISecurity):
         """
         Decrypts sensitive fields in a SecretDTO model.
 
-        This method takes an object containing encrypted API credentials and decrypts each field 
+        This method takes an object containing encrypted API credentials and 
+            decrypts each field 
         using the configured Fernet cipher. It returns a new instance of SecretDTO with 
         plaintext values.
 
@@ -99,9 +103,14 @@ class SignatureGateway(ISignature):
                                   request path, and optional request body.
 
         Returns:
-            dict[str, str]: A dictionary containing 'OK-ACCESS-TIMESTAMP' and 'OK-ACCESS-SIGN'.
+            dict[str, str]: A dictionary containing 'OK-ACCESS-TIMESTAMP' 
+                and 'OK-ACCESS-SIGN'.
         """
-        timestamp: str = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+        timestamp: str = datetime.now(
+            timezone.utc
+        ).strftime(
+            '%Y-%m-%dT%H:%M:%S.%f'
+        )[:-3] + 'Z'
         pre_hash = timestamp + params.method.upper() + params.request_path + params.body
         signature = hmac.new(
             params.secret_key.encode('utf-8'),
