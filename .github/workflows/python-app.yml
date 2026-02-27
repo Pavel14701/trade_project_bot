@@ -48,7 +48,12 @@ jobs:
         run: pip install uv
       - name: Sync dependencies
         working-directory: ./${{ matrix.service }}
-        run: uv sync --group dev
+        run: |
+          if grep -q '^\[dependency-groups.dev\]' pyproject.toml; then
+            uv sync --group dev
+          else
+            uv sync
+          fi
       - name: Run pytest
         working-directory: ./${{ matrix.service }}
         run: |
