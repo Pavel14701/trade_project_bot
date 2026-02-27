@@ -28,14 +28,18 @@ Dependencies:
 
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic
+from typing import Any, Generic, TypeVar
 import json
+
+from httpx import AsyncClient
 
 from application.dto.base import BaseDataClass, SecretDTO
 from application.interfaces import ISignature
 from domain.entities import SignatureDM
-from infrastructure._types import TClient, TConsts
+from infrastructure.consts import OkxBaseConsts
 
+TClient = TypeVar("TClient", bound=AsyncClient)
+TConsts = TypeVar("TConsts", bound=OkxBaseConsts)
 
 class BaseQuerySet(Generic[TClient, TConsts], ABC):
     """
@@ -109,11 +113,11 @@ class BaseQuerySet(Generic[TClient, TConsts], ABC):
                 request_path=endpoint,
                 body=body_str
             ))
-            headers.update({
+            headers |= {
                 "OK-ACCESS-KEY": secret.api_key,
                 "OK-ACCESS-PASSPHRASE": secret.passphrase,
-                **signature_headers
-            })
+                **signature_headers,
+            }
         return headers
 
     async def _request(

@@ -19,8 +19,6 @@ from typing import TypeVar
 
 from httpx import AsyncClient # type: ignore
 
-from infrastructure.consts import OkxBaseConsts
-
 
 class MarketClient(AsyncClient):
     pass
@@ -30,6 +28,4 @@ class PrivateClient(AsyncClient):
     pass
 
 
-TClient = TypeVar("TClient", bound=AsyncClient)
-TConsts = TypeVar("TConsts", bound=OkxBaseConsts)
 DataclassType = TypeVar("DataclassType")
