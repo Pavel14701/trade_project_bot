@@ -1,7 +1,7 @@
-from faststream.rabbit import RabbitBroker
-from faststream.security import SASLPlaintext
+from faststream.rabbit import RabbitBroker # type: ignore
+from faststream.security import SASLPlaintext # type: ignore
 
-from account_events.src.config import RabbitMQConfig
+from config import RabbitMQConfig
 
 
 def new_broker(rabbitmq_config: RabbitMQConfig) -> RabbitBroker:

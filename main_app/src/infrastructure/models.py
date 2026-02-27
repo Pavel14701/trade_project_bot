@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import Type
 
-import sqlalchemy as sa
-from sqlalchemy.orm import (
+import sqlalchemy as sa # type: ignore
+from sqlalchemy.orm import ( # type: ignore
     DeclarativeBase,
     Mapped,
     mapped_column,
@@ -10,7 +10,7 @@ from sqlalchemy.orm import (
     relationship,
 )
 
-from main_app.src.infrastructure._types import DomainModel
+from infrastructure._types import DomainModel # type: ignore
 
 
 class Base(DeclarativeBase):

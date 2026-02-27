@@ -32,13 +32,13 @@ from typing import Any
 from dishka.integrations.faststream import FromDishka, inject
 from faststream.rabbit import RabbitRouter
 
-from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.dto.market import (
+from application.dto.base import SecretDTO
+from application.dto.market import (
     GetInstrumentsDTO,
     GetMarketPriceDTO,
     GetPriceDataDTO,
 )
-from api_okx_v1.src.application.dto.trade import (
+from application.dto.trade import (
     CancelOrderDTO,
     ClosePositionsDTO,
     GetBalanceDTO,
@@ -48,14 +48,14 @@ from api_okx_v1.src.application.dto.trade import (
     PlaceOrderDTO,
     SetLeverageDTO,
 )
-from api_okx_v1.src.application.interactors.market import (
+from application.interactors.market import (
     GetCandlesticksHistoryInteractor,
     GetCandlesticksInteractor,
     GetInstrumentsInteractor,
     GetMarketPriceInteractor,
     GetTickerInteractor,
 )
-from api_okx_v1.src.application.interactors.trade import (
+from application.interactors.trade import (
     AmendOrderInteractor,
     CancelOrderInteractor,
     ClosePostionsInteractor,
@@ -68,8 +68,8 @@ from api_okx_v1.src.application.interactors.trade import (
     SetLeverageInteractor,
     SetPositionModeInteractor,
 )
-from api_okx_v1.src.application.interfaces import AmendOrderDTO
-from api_okx_v1.src.controllers.base_router import RouterUtils
+from application.interfaces import AmendOrderDTO
+from controllers.base_router import RouterUtils
 
 controller = RabbitRouter(prefix="okx_api")
 

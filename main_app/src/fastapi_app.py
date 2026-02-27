@@ -1,13 +1,13 @@
 from typing import Any, AsyncContextManager, Callable, Mapping
 
-from dishka import AsyncContainer
-from dishka.integrations import fastapi as fastapi_integration
-from fastapi import FastAPI
-from starlette.middleware import Middleware
+from dishka import AsyncContainer # type: ignore
+from dishka.integrations import fastapi as fastapi_integration # type: ignore
+from fastapi import FastAPI # type: ignore
+from starlette.middleware import Middleware # type: ignore
 
-from main_app.src.controllers.routes import router
-from main_app.src.infrastructure.middlewares import SessionMiddleware
-from main_app.src.infrastructure.repositories.sessions import (
+from controllers.routes import router
+from infrastructure.middlewares import SessionMiddleware
+from infrastructure.repositories.sessions import (
     GuestSessionBackend,
     RedisSessionBackend,
 )

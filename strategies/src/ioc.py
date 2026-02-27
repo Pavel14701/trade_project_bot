@@ -1,7 +1,7 @@
 from typing import AsyncIterable
 
 from dishka import Provider, Scope, provide  # type: ignore
-from httpx import AsyncClient
+from httpx import AsyncClient # type: ignore
 
 
 class MainAppProvider(Provider):

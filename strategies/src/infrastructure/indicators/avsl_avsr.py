@@ -2,13 +2,13 @@ from abc import ABC, abstractmethod
 from typing import Any, cast
 
 import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 import pandas_ta as ta  # type: ignore
 from numba import njit  # type: ignore
 from numpy.typing import NDArray
 
-from strategies.src.domain.entities import AvslConfigDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import AvslConfigDM
+from infrastructure._types import PriceDataFrame
 
 
 class BaseAVS(ABC):
@@ -105,7 +105,7 @@ class BaseAVS(ABC):
         deviation = np.float64(config.stand_div) * vpci * vm
         price_series = self._get_price_series(data)
         adjusted = self._adjust_formula(price_series, price_v, deviation)
-        result = ta.sma(close=adjusted, length=config.length_slow, talib=True)
+        result = ta.sma(close=adjusted, length=config.length_slow, talib=True) # type: ignore
         if result is None:
             raise ValueError("SMA calculation failed")
         return pd.DataFrame({self._output_column_name(): result}, index=data.index)
@@ -136,32 +136,32 @@ class BaseAVS(ABC):
         Returns:
             Tuple of six pd.Series: (vwma_fast, vwma_slow, vpc, vpr, vm, vpci)
         """
-        vw_ma_fast = cast(pd.Series, ta.vwma(
+        vw_ma_fast = cast(pd.Series, ta.vwma( # type: ignore
             data.close_prices, 
             data.volumes, 
             config.length_fast
         ))
-        vw_ma_slow = cast(pd.Series, ta.vwma(
+        vw_ma_slow = cast(pd.Series, ta.vwma( # type: ignore
             data.close_prices, 
             data.volumes, 
             config.length_slow
         ))
-        sma_fast = cast(pd.Series, ta.sma(
+        sma_fast = cast(pd.Series, ta.sma( # type: ignore
             data.close_prices, 
             config.length_fast, 
             talib=True
         ))
-        sma_slow = cast(pd.Series, ta.sma(
+        sma_slow = cast(pd.Series, ta.sma( # type: ignore
             data.close_prices, 
             config.length_slow, 
             talib=True
         ))
-        vol_fast = cast(pd.Series, ta.sma(
+        vol_fast = cast(pd.Series, ta.sma( # type: ignore
             data.volumes, 
             config.length_fast, 
             talib=True
         ))
-        vol_slow = cast(pd.Series, ta.sma(
+        vol_slow = cast(pd.Series, ta.sma( # type: ignore
             data.volumes, 
             config.length_slow, 
             talib=True
@@ -195,9 +195,9 @@ class BaseAVS(ABC):
         vpc_np = vpc.astype("float64").to_numpy()
         vpr_np = vpr.astype("float64").to_numpy()
         vpci_np = vpci.astype("float64").to_numpy()
-        lenV = self.compute_len_v(vpc_np, vpci_np)
-        VPCc = self.compute_vpcc(vpc_np)
-        return _compute_price_v(price_np, vpr_np, lenV, VPCc)
+        lenV = self.compute_len_v(vpc_np, vpci_np) # type: ignore # ????
+        VPCc = self.compute_vpcc(vpc_np) # type: ignore # ?????
+        return _compute_price_v(price_np, vpr_np, lenV, VPCc) # type: ignore # ?????
 
     @staticmethod
     def compute_len_v(

@@ -152,5 +152,5 @@ class ColumnTokenizer(nn.Module):
         Returns:
             torch.Tensor: Batched token tensor of shape [B, T, D].
         """
-        tokenized = [self.tokenize(row.to_dict(), device) for _, row in df.iterrows()]
+        tokenized = [self.tokenize(row.to_dict(), device) for _, row in df.iterrows()] # type: ignore
         return torch.stack(tokenized, dim=0)  # [B, T, D]

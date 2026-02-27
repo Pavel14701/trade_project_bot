@@ -1,15 +1,15 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy.ext.asyncio import AsyncSession # type: ignore
+from sqlalchemy.future import select # type: ignore
 
-from main_app.src.application.exceptions import UserNotFoundException
-from main_app.src.application.interfaces import IUser
-from main_app.src.domain.entities import (
+from application.exceptions import UserNotFoundException
+from application.interfaces import IUser
+from domain.entities import (
     UserDm,
     UserPasswordDM,
     UserSignupDM,
     WebSocketDM,
 )
-from main_app.src.infrastructure.models import OkxListenerConfig, User
+from infrastructure.models import OkxListenerConfig, User
 
 
 class UserRepo(IUser):

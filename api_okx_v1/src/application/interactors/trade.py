@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import Any
 
-from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.dto.trade import (
+from application.dto.base import SecretDTO
+from application.dto.trade import (
     AmendOrderDTO,
     CancelOrderDTO,
     ClosePositionsDTO,
@@ -12,7 +12,7 @@ from api_okx_v1.src.application.dto.trade import (
     PlaceOrderDTO,
     SetLeverageDTO,
 )
-from api_okx_v1.src.application.interfaces import (
+from application.interfaces import (
     GetOrderDetailsDTO,
     IOkxExcHandler,
     IOkxTrade,

@@ -1,9 +1,9 @@
 from typing import Generic, Protocol
 from uuid import UUID
 
-from fastapi import Request, Response
+from fastapi import Request, Response # type: ignore
 
-from main_app.src.domain.entities import (
+from domain.entities import (
     PasswordDM,
     SignupPasswordDM,
     UserDm,
@@ -11,7 +11,7 @@ from main_app.src.domain.entities import (
     UserSignupDM,
     WebSocketDM,
 )
-from main_app.src.infrastructure._types import (
+from infrastructure._types import (
     ExceptionType,
     GuestSessionData,
     GuestSessionID,

@@ -1,11 +1,11 @@
 from typing import Literal
 
 import numpy as np
-import pandas as pd
-import pandas_ta as ta
-from numba import njit
+import pandas as pd # type: ignore
+import pandas_ta as ta # type: ignore
+from numba import njit # type: ignore
 
-from strategies.src.infrastructure._types import PriceDataFrame
+from infrastructure._types import PriceDataFrame
 
 
 class OTTIndicator:
@@ -84,14 +84,14 @@ class OTTIndicator:
 
     def _get_moving_average(self, price: pd.Series) -> pd.Series:
         if self.ma_type == "SMA":
-            return ta.sma(price, self.length)
+            return ta.sma(price, self.length) # type: ignore
         elif self.ma_type == "EMA":
-            return ta.ema(price, self.length)
+            return ta.ema(price, self.length) # type: ignore
         elif self.ma_type == "WMA":
-            return ta.wma(price, self.length)
+            return ta.wma(price, self.length) # type: ignore
         elif self.ma_type == "TMA":
-            return ta.sma(
-                ta.sma(
+            return ta.sma( # type: ignore
+                ta.sma( # type: ignore
                     price, int(np.ceil(self.length / 2))), int(np.floor(self.length / 2)
                 ) + 1)
         elif self.ma_type == "VAR":
@@ -101,9 +101,9 @@ class OTTIndicator:
         elif self.ma_type == "ZLEMA":
             lag = int(self.length / 2)
             zlema_data = price + (price - price.shift(lag))
-            return ta.ema(zlema_data, self.length)
+            return ta.ema(zlema_data, self.length) # type: ignore
         elif self.ma_type == "TSF":
-            lrc = ta.linreg(price, self.length)
+            lrc = ta.linreg(price, self.length) # type: ignore
             lrc1 = lrc.shift(1)
             return lrc + (lrc - lrc1)
         else:

@@ -1,24 +1,24 @@
 from dataclasses import asdict
 from typing import Any
 
-from dishka.integrations.fastapi import FromDishka, inject
-from fastapi import APIRouter, HTTPException, Request
+from dishka.integrations.fastapi import FromDishka, inject # type: ignore
+from fastapi import APIRouter, HTTPException, Request # type: ignore
 
-from main_app.src.application.dto import LoginDto, OkxWebSocketConfigDTO, UserSignupDTO
-from main_app.src.application.exceptions import (
+from application.dto import LoginDto, OkxWebSocketConfigDTO, UserSignupDTO
+from application.exceptions import (
     InvalidPasswordException,
     UserAlreadyExistsError,
     UserGetManyConnections,
     UserNotFoundException,
 )
-from main_app.src.application.interactors import (
+from application.interactors import (
     GetOkxListnerConfigsInteractor,
     GetUserInteractor,
     LoginInteractor,
     SaveOkxListnerConfigInteractor,
     SignupInteractor,
 )
-from main_app.src.controllers.schemas import (
+from controllers.schemas import (
     OkxWebSocketConfigRequest,
     UserLoginRequest,
     UserSignupRequest,

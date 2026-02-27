@@ -1,12 +1,12 @@
 import contextlib
 from uuid import UUID
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
+from fastapi import Request, Response # type: ignore
+from starlette.middleware.base import BaseHTTPMiddleware # type: ignore
+from starlette.types import ASGIApp # type: ignore
 
-from main_app.src.infrastructure._types import RequestResponseEndpoint
-from main_app.src.infrastructure.repositories.sessions import (
+from infrastructure._types import RequestResponseEndpoint
+from infrastructure.repositories.sessions import (
     GuestSessionBackend,
     RedisSessionBackend,
 )

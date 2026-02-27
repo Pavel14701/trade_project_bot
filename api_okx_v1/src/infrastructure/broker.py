@@ -9,10 +9,10 @@ defined in the `RabbitMQConfig` dataclass. It is typically used to
 for publishing and subscribing to queues in a microservice architecture.
 """
 
-from faststream.rabbit import RabbitBroker
-from faststream.security import SASLPlaintext
+from faststream.rabbit import RabbitBroker # type: ignore
+from faststream.security import SASLPlaintext # type: ignore
 
-from api_okx_v1.src.config import RabbitMQConfig
+from config import RabbitMQConfig
 
 
 def new_broker(rabbitmq_config: RabbitMQConfig) -> RabbitBroker:

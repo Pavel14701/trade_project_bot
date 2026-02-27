@@ -2,35 +2,35 @@ import base64
 from typing import AsyncIterable
 from uuid import uuid4
 
-from argon2 import PasswordHasher
-from cryptography.fernet import Fernet
-from dishka import AnyOf, Provider, Scope, from_context, provide  # type: ignore
-from faststream.rabbit import RabbitBroker
-from redis.asyncio import Redis
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from argon2 import PasswordHasher # type: ignore
+from cryptography.fernet import Fernet # type: ignore
+from dishka import AnyOf, Provider, Scope, from_context, provide # type: ignore
+from faststream.rabbit import RabbitBroker # type: ignore
+from redis.asyncio import Redis # type: ignore
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker # type: ignore
 
-from main_app.src.application import interfaces
-from main_app.src.application.interactors import (
+from application import interfaces
+from application.interactors import (
     GetOkxListnerConfigsInteractor,
     GetUserInteractor,
     LoginInteractor,
     SaveOkxListnerConfigInteractor,
     SignupInteractor,
 )
-from main_app.src.config import Config, SecretConfig
-from main_app.src.infrastructure.factories.postgres import new_session_maker
-from main_app.src.infrastructure.factories.redis import new_redis_client
-from main_app.src.infrastructure.repositories.cookies import CookieRepo
-from main_app.src.infrastructure.repositories.exc import ExceptionHandlersRepo
-from main_app.src.infrastructure.repositories.security import (
+from config import Config, SecretConfig
+from infrastructure.factories.postgres import new_session_maker
+from infrastructure.factories.redis import new_redis_client
+from infrastructure.repositories.cookies import CookieRepo
+from infrastructure.repositories.exc import ExceptionHandlersRepo
+from infrastructure.repositories.security import (
     ConfigEncryptionRepo,
     SecurityRepo,
 )
-from main_app.src.infrastructure.repositories.sessions import (
+from infrastructure.repositories.sessions import (
     GuestSessionBackend,
     RedisSessionBackend,
 )
-from main_app.src.infrastructure.repositories.user import UserRepo
+from infrastructure.repositories.user import UserRepo
 
 
 class AppProvider(Provider):

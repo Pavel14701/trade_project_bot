@@ -1,11 +1,11 @@
 from typing import cast
 
 import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 import pandas_ta as ta  # type: ignore
 
-from strategies.src.domain.entities import RsiCloudsConfigDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import RsiCloudsConfigDM
+from infrastructure._types import PriceDataFrame
 
 
 class RsiClouds:

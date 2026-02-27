@@ -12,7 +12,7 @@ from preprocess.adapters.labeling_adapter import LabelingAdapter
 from preprocess.schema_infer import SchemaInfer
 from torch import nn, optim
 
-from ai.src.data_providers.base import BaseProvider
+from data_providers.base import BaseProvider
 from training.fine_tune import freeze_layers, load_checkpoint, replace_head
 from training.utils import compute_metrics, set_seed
 

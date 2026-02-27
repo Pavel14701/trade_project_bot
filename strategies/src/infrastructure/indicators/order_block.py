@@ -2,13 +2,13 @@ from dataclasses import dataclass
 from typing import Any, Tuple, cast
 
 import numpy as np
-import pandas as pd
-import pandas_ta as ta
+import pandas as pd # type: ignore
+import pandas_ta as ta # type: ignore
 from numpy.typing import NDArray
-from scipy.signal import find_peaks  # type: ignore
+from scipy.signal import find_peaks # type: ignore
 
-from strategies.src.domain.entities import OrderBlockDetectorDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import OrderBlockDetectorDM
+from infrastructure._types import PriceDataFrame
 
 
 @dataclass
@@ -354,7 +354,7 @@ class OrderBlockDetector:
         Returns:
             A pandas Series containing the ATR values.
         """
-        return ta.atr(
+        return ta.atr( # type: ignore
             high=data.high_prices,
             low=data.low_prices,
             close=data.close_prices,

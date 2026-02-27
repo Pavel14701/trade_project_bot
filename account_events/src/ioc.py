@@ -1,22 +1,22 @@
 from typing import AsyncIterable
 
-from dishka import Provider, Scope, from_context, provide  # type: ignore
-from faststream.rabbit import RabbitBroker
-from redis.asyncio import Redis
+from dishka import Provider, Scope, from_context, provide # type: ignore
+from faststream.rabbit import RabbitBroker # type: ignore
+from redis.asyncio import Redis # type: ignore
 
-from account_events.src.application import interfaces
-from account_events.src.application.interactors import (
+from application import interfaces
+from application.interactors import (
     AccountEventsDeleterInteractor,
     AccountEventsSubscriberInteractor,
     AccountEventsUpdaterInteractor,
     WebSocketBootstrapInteractor,
     WebSocketRecoveryInteractor,
 )
-from account_events.src.config import Config
-from account_events.src.infrastructure.cache import new_redis_client
-from account_events.src.infrastructure.redis_storage import ConnectionStorageGateway
-from account_events.src.infrastructure.security import ConfigEncryptionGateway
-from account_events.src.infrastructure.websocket import OKXWebsocketsChannelGateway
+from config import Config
+from infrastructure.cache import new_redis_client
+from infrastructure.redis_storage import ConnectionStorageGateway
+from infrastructure.security import ConfigEncryptionGateway
+from infrastructure.websocket import OKXWebsocketsChannelGateway
 
 
 class AppProvider(Provider):

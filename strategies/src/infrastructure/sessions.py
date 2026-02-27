@@ -1,6 +1,6 @@
 import asyncio
 
-import httpx
+import httpx # type: ignore
 
 
 async def fetch():

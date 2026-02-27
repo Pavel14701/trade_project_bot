@@ -1,10 +1,10 @@
 import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 from numpy.typing import NDArray
 from pandas_ta import accbands  # type: ignore
 
-from strategies.src.domain.entities import AcceletrationBandsDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import AcceletrationBandsDM
+from infrastructure._types import PriceDataFrame
 
 
 class AccelerationBands:

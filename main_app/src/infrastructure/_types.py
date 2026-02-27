@@ -2,9 +2,9 @@ from dataclasses import is_dataclass
 from typing import Awaitable, Callable, Protocol, TypeVar
 from uuid import UUID
 
-from fastapi import Request, Response
+from fastapi import Request, Response # type: ignore
 
-from main_app.src.application.exceptions import DomainException
+from application.exceptions import DomainException
 
 
 class DataclassProtocol(Protocol):

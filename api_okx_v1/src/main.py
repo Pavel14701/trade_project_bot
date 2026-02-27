@@ -15,15 +15,15 @@ Key Responsibilities:
 """
 
 
-from dishka import make_async_container
+from dishka import make_async_container # type: ignore
 from dishka.integrations.faststream import setup_dishka  # type: ignore
-from faststream import FastStream
-from faststream.rabbit import RabbitBroker
+from faststream import FastStream # type: ignore
+from faststream.rabbit import RabbitBroker # type: ignore
 
-from api_okx_v1.src.config import Config
-from api_okx_v1.src.controllers.amqp import controller
-from api_okx_v1.src.infrastructure.broker import new_broker
-from api_okx_v1.src.ioc import OkxApiProvider as AppProvider
+from config import Config
+from controllers.amqp import controller
+from infrastructure.broker import new_broker
+from ioc import OkxApiProvider as AppProvider
 
 config = Config()
 

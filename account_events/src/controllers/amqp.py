@@ -1,10 +1,10 @@
 from typing import Any
 
-from dishka.integrations.faststream import FromDishka, inject
-from faststream.rabbit import RabbitRouter
+from dishka.integrations.faststream import FromDishka, inject # type: ignore
+from faststream.rabbit import RabbitRouter # type: ignore
 
-from account_events.src.application.dto import WebSocketDTO
-from account_events.src.application.interactors import (
+from application.dto import WebSocketDTO
+from application.interactors import (
     AccountEventsDeleterInteractor,
     AccountEventsSubscriberInteractor,
     AccountEventsUpdaterInteractor,

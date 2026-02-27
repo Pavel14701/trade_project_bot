@@ -20,10 +20,10 @@ Intended Usage:
     Inject a client, constants, and optional signature logic to enable secure and structured API communication.
 
 Dependencies:
-    - DTOs from `api_okx_v1.src.application.dto.base`
-    - Signature interface from `api_okx_v1.src.application.interfaces`
-    - Signature data model from `api_okx_v1.src.domain.entities`
-    - Type definitions from `api_okx_v1.src.infrastructure._types`
+    - DTOs from `application.dto.base`
+    - Signature interface from `application.interfaces`
+    - Signature data model from `domain.entities`
+    - Type definitions from `infrastructure._types`
 """
 
 
@@ -31,10 +31,10 @@ from abc import ABC, abstractmethod
 from typing import Any, Generic
 import json
 
-from api_okx_v1.src.application.dto.base import BaseDataClass, SecretDTO
-from api_okx_v1.src.application.interfaces import ISignature
-from api_okx_v1.src.domain.entities import SignatureDM
-from api_okx_v1.src.infrastructure._types import TClient, TConsts
+from application.dto.base import BaseDataClass, SecretDTO
+from application.interfaces import ISignature
+from domain.entities import SignatureDM
+from infrastructure._types import TClient, TConsts
 
 
 class BaseQuerySet(Generic[TClient, TConsts], ABC):

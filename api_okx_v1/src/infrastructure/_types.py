@@ -17,9 +17,9 @@ public and private API clients.
 
 from typing import TypeVar
 
-from httpx import AsyncClient
+from httpx import AsyncClient # type: ignore
 
-from api_okx_v1.src.infrastructure.consts import OkxBaseConsts
+from infrastructure.consts import OkxBaseConsts
 
 
 class MarketClient(AsyncClient):

@@ -1,17 +1,17 @@
-from httpx import AsyncClient, Response
-from sqlalchemy import text
-from sqlalchemy.sql import quoted_name
+from httpx import AsyncClient, Response # type: ignore
+from sqlalchemy import text # type: ignore
+from sqlalchemy.sql import quoted_name # type: ignore
 
-from strategies.src.application.interfaces import IDataQuery
-from strategies.src.config import QuestConfig
-from strategies.src.domain.entities import (
+from application.interfaces import IDataQuery
+from config import QuestConfig
+from domain.entities import (
     CreateTableDM,
     GetLastRecordsDM,
     GetRangeRecordsDM,
     InsertManyRecordsDM,
     InsertRecordDM,
 )
-from strategies.src.infrastructure._types import PriceDataFrame
+from infrastructure._types import PriceDataFrame
 
 
 class DataQueryRepo(IDataQuery):

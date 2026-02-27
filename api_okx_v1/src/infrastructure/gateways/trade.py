@@ -13,7 +13,7 @@ Key Responsibilities:
 
 Dependencies:
 - `BaseQuerySet`: Abstract base class for HTTP request execution and signing.
-- DTOs from `api_okx_v1.src.application.dto.trade`: Define structured request payloads.
+- DTOs from `application.dto.trade`: Define structured request payloads.
 - `IOkxTrade`: Interface defining expected trading operations.
 - `ISignature`: Interface for generating secure request signatures.
 - `PrivateClient`: Asynchronous HTTP client for private API calls.
@@ -26,8 +26,8 @@ Typical Usage:
 
 from typing import Any
 
-from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.dto.trade import (
+from application.dto.base import SecretDTO
+from application.dto.trade import (
     AmendOrderDTO,
     CancelOrderDTO,
     ClosePositionsDTO,
@@ -38,13 +38,13 @@ from api_okx_v1.src.application.dto.trade import (
     PlaceOrderDTO,
     SetLeverageDTO,
 ) 
-from api_okx_v1.src.application.interfaces import (
+from application.interfaces import (
     IOkxTrade,
     ISignature
 )
-from api_okx_v1.src.infrastructure._types import PrivateClient
-from api_okx_v1.src.infrastructure.consts import OkxTradeConsts
-from api_okx_v1.src.infrastructure.gateways.base import BaseQuerySet
+from infrastructure._types import PrivateClient
+from infrastructure.consts import OkxTradeConsts
+from infrastructure.gateways.base import BaseQuerySet
 
 
 class OkxTradeService(BaseQuerySet[PrivateClient, OkxTradeConsts], IOkxTrade):
