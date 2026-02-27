@@ -1,8 +1,8 @@
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet # type: ignore
 
-from account_events.src.application.interfaces import IConfigEncryption
-from account_events.src.config import SecretConfig
-from account_events.src.domain.entities import WebSocketDM
+from application.interfaces import IConfigEncryption
+from config import SecretConfig
+from domain.entities import WebSocketDM
 
 
 def get_cipher(config: SecretConfig) -> Fernet:

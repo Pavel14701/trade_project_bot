@@ -39,7 +39,7 @@ class SecretConfig(EnvModel):
 
     @field_validator("allowed_hosts", mode="before")
     def split_allowed_hosts(cls, value: str) -> list[str]:
-        return [] if value == "" else value.split(",")
+        return value.split(",") if value else []
 
 
 class RabbitMQConfig(EnvModel):

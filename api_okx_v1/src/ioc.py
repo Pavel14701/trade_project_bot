@@ -2,19 +2,19 @@ from typing import AsyncGenerator
 
 from dishka import Provider, Scope, from_context, provide  # type: ignore
 
-from api_okx_v1.src.application import interfaces
-from api_okx_v1.src.config import AppConfig, Config
-from api_okx_v1.src.infrastructure._types import MarketClient, PrivateClient
-from api_okx_v1.src.infrastructure.consts import (
+from application import interfaces
+from config import AppConfig, Config
+from infrastructure._types import MarketClient, PrivateClient
+from infrastructure.consts import (
     OkxGridConsts,
     OkxMarketConsts,
     OkxTradeConsts,
 )
-from api_okx_v1.src.infrastructure.gateways.grid import OkxGridService
-from api_okx_v1.src.infrastructure.gateways.market import OkxMarketService
-from api_okx_v1.src.infrastructure.gateways.trade import OkxTradeService
-from api_okx_v1.src.infrastructure.http_sessions import MarketClientPool, client_factory
-from api_okx_v1.src.infrastructure.security import SecurityGateway, SignatureGateway
+from infrastructure.gateways.grid import OkxGridService
+from infrastructure.gateways.market import OkxMarketService
+from infrastructure.gateways.trade import OkxTradeService
+from infrastructure.http_sessions import MarketClientPool, client_factory
+from infrastructure.security import SecurityGateway, SignatureGateway
 
 
 class OkxApiProvider(Provider):

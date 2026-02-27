@@ -3,12 +3,12 @@ import hashlib
 import hmac
 from datetime import datetime, timezone
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet # type: ignore
 
-from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.interfaces import ISecurity, ISignature
-from api_okx_v1.src.config import SecretConfig
-from api_okx_v1.src.domain.entities import SignatureDM
+from application.dto.base import SecretDTO
+from application.interfaces import ISecurity, ISignature
+from config import SecretConfig
+from domain.entities import SignatureDM
 
 
 def get_cipher(config: SecretConfig) -> Fernet:

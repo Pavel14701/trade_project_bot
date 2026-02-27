@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol
 
-from account_events.src.domain.entities import WebSocketDM
+from domain.entities import WebSocketDM
 
 
 class IConnectionStorage(Protocol):

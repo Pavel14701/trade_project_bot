@@ -12,7 +12,7 @@ Key Responsibilities:
 
 Dependencies:
 - `BaseQuerySet`: Abstract base class for HTTP request execution and signing.
-- DTOs from `api_okx_v1.src.application.dto.market`: Define structured request payloads.
+- DTOs from `application.dto.market`: Define structured request payloads.
 - `IOkxMarketData`: Interface defining expected market data operations.
 - `MarketClient`: Asynchronous HTTP client for market API calls.
 - `OkxMarketConsts`: Constants specific to market data endpoints.
@@ -20,15 +20,15 @@ Dependencies:
 
 
 from typing import Any
-from api_okx_v1.src.application.dto.market import (
+from application.dto.market import (
     GetInstrumentsDTO,
     GetPriceDataDTO,
     GetMarketPriceDTO
 )
-from api_okx_v1.src.application.interfaces import IOkxMarketData
-from api_okx_v1.src.infrastructure._types import MarketClient
-from api_okx_v1.src.infrastructure.consts import OkxMarketConsts
-from api_okx_v1.src.infrastructure.gateways.base import BaseQuerySet
+from application.interfaces import IOkxMarketData
+from infrastructure._types import MarketClient
+from infrastructure.consts import OkxMarketConsts
+from infrastructure.gateways.base import BaseQuerySet
 
 
 class OkxMarketService(BaseQuerySet[MarketClient, OkxMarketConsts], IOkxMarketData):

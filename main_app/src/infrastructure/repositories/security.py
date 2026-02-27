@@ -1,11 +1,11 @@
-from argon2 import PasswordHasher
-from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
-from cryptography.fernet import Fernet
+from argon2 import PasswordHasher # type: ignore
+from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError # type: ignore
+from cryptography.fernet import Fernet # type: ignore
 
-from main_app.src.application.exceptions import InvalidPasswordException
-from main_app.src.application.interfaces import IConfigEncryption, ISecurity
-from main_app.src.config import SecretConfig
-from main_app.src.domain.entities import PasswordDM, SignupPasswordDM, WebSocketDM
+from application.exceptions import InvalidPasswordException
+from application.interfaces import IConfigEncryption, ISecurity
+from config import SecretConfig
+from domain.entities import PasswordDM, SignupPasswordDM, WebSocketDM
 
 
 class ConfigEncryptionRepo(IConfigEncryption):

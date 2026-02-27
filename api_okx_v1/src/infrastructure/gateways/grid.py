@@ -14,7 +14,7 @@ Key Responsibilities:
 Dependencies:
 - `BaseQuerySet`: Provides shared request logic such as signing, parameter preparation, and HTTP execution.
 - `SecretDTO`: Contains user-specific API credentials.
-- DTOs from `api_okx_v1.src.application.dto.grid`: Define structured request payloads for each API operation.
+- DTOs from `application.dto.grid`: Define structured request payloads for each API operation.
 - `IOkxGridTrade`: Interface defining the expected grid trading operations.
 - `ISignature`: Interface for generating secure request signatures.
 - `PrivateClient`: Asynchronous HTTP client for private API calls.
@@ -31,8 +31,8 @@ message routing, user input, and orchestration of trading workflows.
 
 from typing import Any
 
-from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.dto.grid import (
+from application.dto.base import SecretDTO
+from application.dto.grid import (
     PlaceGridOrderDTO,
     AmendGridOrderDTO,
     StopGridOrderDTO,
@@ -49,13 +49,13 @@ from api_okx_v1.src.application.dto.grid import (
     RsiBacktestingPublicDTO,
     MaxGridQuantityPublicDTO
 ) 
-from api_okx_v1.src.application.interfaces import (
+from application.interfaces import (
     IOkxGridTrade,
     ISignature
 )
-from api_okx_v1.src.infrastructure._types import PrivateClient
-from api_okx_v1.src.infrastructure.consts import OkxGridConsts
-from api_okx_v1.src.infrastructure.gateways.base import BaseQuerySet
+from infrastructure._types import PrivateClient
+from infrastructure.consts import OkxGridConsts
+from infrastructure.gateways.base import BaseQuerySet
 
 
 class OkxGridService(BaseQuerySet[PrivateClient, OkxGridConsts], IOkxGridTrade):

@@ -22,7 +22,7 @@ Classes:
 
 Dependencies:
     - Python standard library: `dataclasses`, `typing`, `collections`
-    - Project-specific: `DataclassType` from `api_okx_v1.src.infrastructure._types`
+    - Project-specific: `DataclassType` from `infrastructure._types`
 
 Example usage:
     utils = RouterUtils()
@@ -48,7 +48,7 @@ from typing import (
     get_origin,
 )
 
-from api_okx_v1.src.infrastructure._types import DataclassType
+from infrastructure._types import DataclassType
 
 
 class RouterUtils:

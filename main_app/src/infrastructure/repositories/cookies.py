@@ -1,6 +1,6 @@
-from fastapi import Request, Response
+from fastapi import Request, Response # type: ignore
 
-from main_app.src.application.interfaces import ICookieBackend
+from application.interfaces import ICookieBackend
 
 
 class CookieRepo(ICookieBackend):

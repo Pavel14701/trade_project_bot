@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-
-from api_okx_v1.src.application.dto.base import BaseDataClass
+from application.dto.base import BaseDataClass
 
 
 @dataclass(slots=True, frozen=True)

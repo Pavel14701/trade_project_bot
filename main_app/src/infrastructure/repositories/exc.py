@@ -1,7 +1,7 @@
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError # type: ignore
 
-from main_app.src.application.exceptions import DomainException
-from main_app.src.application.interfaces import IErrorHandler
+from application.exceptions import DomainException
+from application.interfaces import IErrorHandler
 
 
 class ExceptionHandlersRepo(IErrorHandler[DomainException]):

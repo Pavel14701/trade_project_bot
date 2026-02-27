@@ -1,8 +1,8 @@
-import pandas as pd
+import pandas as pd # type: ignore
 import pandas_ta as ta  # type: ignore
 
-from strategies.src.domain.entities import AdxConfigDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import AdxConfigDM
+from infrastructure._types import PriceDataFrame
 
 
 class ADXTrend:

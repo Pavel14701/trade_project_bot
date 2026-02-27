@@ -1,7 +1,7 @@
 from typing import Any, Protocol
 
-from api_okx_v1.src.application.dto.base import SecretDTO
-from api_okx_v1.src.application.dto.grid import (
+from application.dto.base import SecretDTO
+from application.dto.grid import (
     AddIvestmentDTO,
     AdjustMarginBalanceDTO,
     AiParamsPublicDTO,
@@ -18,12 +18,12 @@ from api_okx_v1.src.application.dto.grid import (
     RsiBacktestingPublicDTO,
     StopGridOrderDTO,
 )
-from api_okx_v1.src.application.dto.market import (
+from application.dto.market import (
     GetInstrumentsDTO,
     GetMarketPriceDTO,
     GetPriceDataDTO,
 )
-from api_okx_v1.src.application.dto.trade import (
+from application.dto.trade import (
     AmendOrderDTO,
     CancelOrderDTO,
     ClosePositionsDTO,
@@ -34,7 +34,7 @@ from api_okx_v1.src.application.dto.trade import (
     PlaceOrderDTO,
     SetLeverageDTO,
 )
-from api_okx_v1.src.domain.entities import SignatureDM
+from domain.entities import SignatureDM
 
 
 class IOkxTrade(Protocol):

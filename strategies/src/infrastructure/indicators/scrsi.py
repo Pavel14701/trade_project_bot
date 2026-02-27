@@ -1,9 +1,9 @@
 import numpy as np
-import pandas as pd
+import pandas as pd # type: ignore
 from numpy.typing import NDArray
 
-from strategies.src.domain.entities import ScrsiConfigDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import ScrsiConfigDM
+from infrastructure._types import PriceDataFrame
 
 
 class SmoothCicleRsi:

@@ -3,12 +3,12 @@ from dataclasses import asdict
 from typing import Any, Optional, cast
 from uuid import UUID, uuid4
 
-from fastapi import Request, Response
-from redis.asyncio import Redis
+from fastapi import Request, Response # type: ignore
+from redis.asyncio import Redis # type: ignore
 
-from main_app.src.application.interfaces import IGuestSessionBackend, ISessionBackend
-from main_app.src.domain.entities import SessionData
-from main_app.src.infrastructure.repositories.cookies import CookieRepo
+from application.interfaces import IGuestSessionBackend, ISessionBackend
+from domain.entities import SessionData
+from infrastructure.repositories.cookies import CookieRepo
 
 
 class RedisSessionBackend(ISessionBackend[UUID, SessionData]):

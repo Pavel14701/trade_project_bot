@@ -1,9 +1,9 @@
 import json
 from typing import cast
 
-from redis.asyncio import Redis
+from redis.asyncio import Redis # type: ignore
 
-from account_events.src.domain.entities import WebSocketDM
+from domain.entities import WebSocketDM
 
 
 class ConnectionStorageGateway:

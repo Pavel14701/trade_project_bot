@@ -5,11 +5,11 @@ import json
 import time
 from typing import Any, Dict
 
-import websockets
-from faststream.rabbit import RabbitBroker
-from websockets import ClientConnection
+import websockets # type: ignore
+from faststream.rabbit import RabbitBroker # type: ignore
+from websockets import ClientConnection 
 
-from account_events.src.domain.entities import WebSocketDM
+from domain.entities import WebSocketDM
 
 
 class OKXWebsocketsChannelGateway:

@@ -1,9 +1,9 @@
-import talib as ta
-from pandas import DataFrame
-from talib._ta_lib import MA_Type
+import talib as ta # type: ignore
+from pandas import DataFrame # type: ignore
+from talib._ta_lib import MA_Type # type: ignore
 
-from strategies.src.domain.entities import StochRsiConfigDM
-from strategies.src.infrastructure._types import PriceDataFrame
+from domain.entities import StochRsiConfigDM
+from infrastructure._types import PriceDataFrame
 
 
 class StochRSI:

@@ -30,10 +30,10 @@ from typing import (
     AsyncGenerator,
 )
 
-from aiolimiter import AsyncLimiter
-from httpx import Limits
+from aiolimiter import AsyncLimiter # type: ignore
+from httpx import Limits # type: ignore
 
-from api_okx_v1.src.infrastructure._types import (
+from infrastructure._types import (
     MarketClient,
     PrivateClient,
 )

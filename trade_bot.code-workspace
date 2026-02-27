@@ -1,0 +1,23 @@
+{
+  "folders": [
+    { 
+      "path": ".",
+    },
+    {
+      "path": "account_events",
+    },
+    {
+      "path": "ai",
+    },
+    {
+      "path": "api_okx_v1",
+    },
+    {
+      "path": "main_app",
+    },
+    {
+      "path": "strategies",
+    }
+  ]
+  
+}

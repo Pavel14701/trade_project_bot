@@ -1,13 +1,13 @@
 from typing import Protocol
 
-from strategies.src.domain.entities import (
+from domain.entities import (
     CreateTableDM,
     GetLastRecordsDM,
     GetRangeRecordsDM,
     InsertManyRecordsDM,
     InsertRecordDM,
 )
-from strategies.src.infrastructure._types import PriceDataFrame
+from infrastructure._types import PriceDataFrame
 
 
 class IDataQuery(Protocol):

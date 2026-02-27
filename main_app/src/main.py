@@ -1,16 +1,16 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from argon2 import PasswordHasher
-from dishka import make_async_container
-from fastapi import FastAPI
-from faststream.rabbit import RabbitBroker
+from argon2 import PasswordHasher # type: ignore
+from dishka import make_async_container # type: ignore
+from fastapi import FastAPI # type: ignore
+from faststream.rabbit import RabbitBroker # type: ignore
 
-from main_app.src.config import Config
-from main_app.src.fastapi_app import create_fastapi_app
-from main_app.src.faststream_app import create_faststream_app
-from main_app.src.infrastructure.factories.rabbit import new_broker
-from main_app.src.ioc import AppProvider
+from config import Config
+from fastapi_app import create_fastapi_app
+from faststream_app import create_faststream_app
+from infrastructure.factories.rabbit import new_broker
+from ioc import AppProvider
 
 config = Config()
 broker = new_broker(config.rabbitmq)

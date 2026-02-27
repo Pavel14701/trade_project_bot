@@ -1,0 +1,13 @@
+[project]
+name = "account-events"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography>=46.0.5",
+    "dishka>=1.5.3",
+    "faststream>=0.5.39",
+    "redis>=7.2.1",
+    "websockets>=16.0",
+]

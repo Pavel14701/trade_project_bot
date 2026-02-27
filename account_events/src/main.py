@@ -1,12 +1,12 @@
-from dishka import make_async_container
+from dishka import make_async_container # type: ignore
 from dishka.integrations.faststream import setup_dishka  # type: ignore
-from faststream import FastStream
-from faststream.rabbit import RabbitBroker
+from faststream import FastStream # type: ignore
+from faststream.rabbit import RabbitBroker # type: ignore
 
-from account_events.src.config import Config
-from account_events.src.controllers.amqp import controller
-from account_events.src.infrastructure.broker import new_broker
-from account_events.src.ioc import AppProvider
+from config import Config
+from controllers.amqp import controller
+from infrastructure.broker import new_broker
+from ioc import AppProvider
 
 config = Config()
 

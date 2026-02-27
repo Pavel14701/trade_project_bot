@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, TypedDict
+from typing import Any, Callable, Optional, TypedDict, cast
 
 import pandas as pd
 import torch
@@ -69,7 +69,7 @@ class MultiAssetDataset(Dataset[Sample]):
         row = self.df.iloc[idx]
         if self.transform:
             row = self.transform(row)
-        row_dict: dict[str, str | float | int] = row.to_dict()
+        row_dict = cast(dict[str, str | float | int], row.to_dict()) 
         tokens = self.tokenizer.tokenize(row_dict, device=self.device)
         asset_id = str(row["asset_id"])
         label = int(row["label"])

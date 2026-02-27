@@ -2,13 +2,13 @@ import asyncio
 from abc import ABC
 from dataclasses import asdict
 
-from account_events.src.application.dto import WebSocketDTO
-from account_events.src.application.interfaces import (
+from application.dto import WebSocketDTO
+from application.interfaces import (
     IConfigEncryption,
     IConnectionStorage,
     IOkxAccountListner,
 )
-from account_events.src.domain.entities import WebSocketDM
+from domain.entities import WebSocketDM
 
 
 class BaseInteractor(ABC):

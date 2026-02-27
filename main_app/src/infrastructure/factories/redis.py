@@ -1,6 +1,6 @@
-from redis.asyncio import Redis
+from redis.asyncio import Redis # type: ignore
 
-from main_app.src.config import RedisConfig
+from config import RedisConfig
 
 
 async def new_redis_client(redis_config: RedisConfig) -> Redis:

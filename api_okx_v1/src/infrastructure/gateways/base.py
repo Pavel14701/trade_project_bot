@@ -20,22 +20,26 @@ Intended Usage:
     Inject a client, constants, and optional signature logic to enable secure and structured API communication.
 
 Dependencies:
-    - DTOs from `api_okx_v1.src.application.dto.base`
-    - Signature interface from `api_okx_v1.src.application.interfaces`
-    - Signature data model from `api_okx_v1.src.domain.entities`
-    - Type definitions from `api_okx_v1.src.infrastructure._types`
+    - DTOs from `application.dto.base`
+    - Signature interface from `application.interfaces`
+    - Signature data model from `domain.entities`
+    - Type definitions from `infrastructure._types`
 """
 
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic
+from typing import Any, Generic, TypeVar
 import json
 
-from api_okx_v1.src.application.dto.base import BaseDataClass, SecretDTO
-from api_okx_v1.src.application.interfaces import ISignature
-from api_okx_v1.src.domain.entities import SignatureDM
-from api_okx_v1.src.infrastructure._types import TClient, TConsts
+from httpx import AsyncClient
 
+from application.dto.base import BaseDataClass, SecretDTO
+from application.interfaces import ISignature
+from domain.entities import SignatureDM
+from infrastructure.consts import OkxBaseConsts
+
+TClient = TypeVar("TClient", bound=AsyncClient)
+TConsts = TypeVar("TConsts", bound=OkxBaseConsts)
 
 class BaseQuerySet(Generic[TClient, TConsts], ABC):
     """
@@ -109,11 +113,11 @@ class BaseQuerySet(Generic[TClient, TConsts], ABC):
                 request_path=endpoint,
                 body=body_str
             ))
-            headers.update({
+            headers |= {
                 "OK-ACCESS-KEY": secret.api_key,
                 "OK-ACCESS-PASSPHRASE": secret.passphrase,
-                **signature_headers
-            })
+                **signature_headers,
+            }
         return headers
 
     async def _request(
