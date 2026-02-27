@@ -23,9 +23,17 @@ jobs:
           python-version: "3.12"
       - name: Install uv
         run: pip install uv
-      - name: Sync dependencies
+      - name: Install dependencies
         working-directory: ./${{ matrix.service }}
-        run: uv sync --group dev
+        run: |
+          # Проверяем наличие группы dev в pyproject.toml
+          if grep -q '^\[dependency-groups.dev\]' pyproject.toml 2>/dev/null; then
+            uv sync --group dev
+          else
+            uv sync
+            # Устанавливаем mypy и ruff в то же виртуальное окружение через uv pip
+            uv pip install mypy ruff
+          fi
       - name: Run Mypy
         working-directory: ./${{ matrix.service }}
         run: uv run mypy . --explicit-package-bases --ignore-missing-imports
@@ -46,13 +54,15 @@ jobs:
           python-version: "3.12"
       - name: Install uv
         run: pip install uv
-      - name: Sync dependencies
+      - name: Install dependencies
         working-directory: ./${{ matrix.service }}
         run: |
-          if grep -q '^\[dependency-groups.dev\]' pyproject.toml; then
+          if grep -q '^\[dependency-groups.dev\]' pyproject.toml 2>/dev/null; then
             uv sync --group dev
           else
             uv sync
+            # Если pytest не в основных зависимостях, доустанавливаем
+            uv pip install pytest
           fi
       - name: Run pytest
         working-directory: ./${{ matrix.service }}
